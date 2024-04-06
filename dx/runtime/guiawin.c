@@ -58,7 +58,7 @@
 #define WM_UAHNCPAINTMENUPOPUP 0x0095
 
 /* define some general macros */
-extern CHAR pgmname[20];
+extern TCHAR pgmname[20];
 #define GUIADEBUG
 
 #ifndef SPI_SETFOREGROUNDLOCKTIMEOUT
@@ -206,8 +206,8 @@ typedef struct guia_hide_controls {	/* structure passed to control group hide in
 typedef struct guia_ext_window_create {		/* structure passed to extended window create in msg loop thread */
 	HWND hwndParent;
 	DWORD dwExStyle;
-	LPCSTR lpszClassName;
-	LPCSTR lpszWindowName;
+	LPTSTR lpszClassName;
+	LPTSTR lpszWindowName;
 	DWORD dwStyle;
 	INT x;
 	INT y;
@@ -220,7 +220,7 @@ typedef struct guia_ext_window_create {		/* structure passed to extended window 
 
 typedef struct guia_get_win_text {
 	HWND hwnd;
-	CHAR *title;
+	TCHAR *title;
 	INT textlen;
 } GUIAGETWINTEXT;
 
@@ -298,8 +298,8 @@ static INT screenwidth;				/* width of screen in pixels */
 static INT breakeventid;			/* EVT handle for the Break event */
 static ZHANDLE aboutline1;			/* Info line 1 for About dialog */
 static ZHANDLE aboutline2;			/* Info line 2 for About dialog */
-static CHAR winclassname[] = "DBCwinwc";	/* window class name for all windows */
-static CHAR dlgclassname[] = "DBCdlgwc";	/* window class name for all dialogs */
+static TCHAR winclassname[] = _T("DBCwinwc");	/* window class name for all windows */
+static TCHAR dlgclassname[] = _T("DBCdlgwc");	/* window class name for all dialogs */
 static INT breakflag;				/* set to true when a break event has occured */
 static HWND hwndmainwin;			/* handle of the main DB/C window */
 static HWND hwndfocuswin;			/* handle of DB/C window currently in focus */
@@ -477,19 +477,19 @@ static BOOL guiaadjusticonimage(LPICONIMAGE lpImage);
 static INT guiaAltKeySetFocus(RESOURCE *, INT);
 static INT32 guiaBitmapGetPixel(BITMAP, INT, INT, INT);
 static BOOL guiaCenterWindow(HWND);
-static void guiaChangeTableInsert(CONTROL* control, CHAR* string);
+static void guiaChangeTableInsert(CONTROL* control, TCHAR* string);
 static INT guiaChangeTree(RESOURCE *res, CONTROL *control, INT iCmd);
 static void guiaCheckScrollBars(WINHANDLE);
 static UINT_PTR CALLBACK guiaCommonDlgProcOne(HWND, UINT, WPARAM, LPARAM);
 static UINT_PTR CALLBACK guiaCommonDlgProcTwo(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK guiaDlgProc(HWND, UINT, WPARAM, LPARAM);
-static INT guiaGetCtlTextBoxSize(CONTROL *, CHAR *, INT *, INT *);
-static INT guiaGetSelectedTreeitemText(HWND, CHAR *, INT);
+static INT guiaGetCtlTextBoxSize(CONTROL *, TCHAR *, INT *, INT *);
+static INT guiaGetSelectedTreeitemText(HWND, TCHAR *, INT);
 //static void guiaGetTextSize(PIXMAP *, UCHAR *, INT, INT *, INT *);
 static INT guiaGrayIcon(RESOURCE *, HDC);
 static BOOL guiaIsTableFocusable(CONTROL *control);
 static void guiaMsgLoop(void);
-static INT guiaParseFont(CHAR *, INT, LOGFONT *, INT, HDC);
+static INT guiaParseFont(TCHAR *, INT, LOGFONT *, INT, HDC);
 static void guiaPixBitBlt(PIXMAP *, INT, INT, INT, INT, PIXMAP *, INT, INT, INT, INT);
 static void guiaProcessAutoScrollBars(WINDOW *, UINT, WPARAM);
 static void guiaProcessWinScrollBars(WINDOW *, UINT, WPARAM);
@@ -509,7 +509,7 @@ static void handleGuiShowonly(RESOURCE *res, CONTROL *control);
 static LRESULT handleTree_CustomDraw(CONTROL* control, LPNMTVCUSTOMDRAW lParam);
 static LONG hidecontrols(GUIAHIDECONTROLS *);
 static INT hidePixmap(PIXHANDLE ph, RECT *rect);
-static INT isnummask(CHAR *, INT *, INT *);
+static INT isnummask(TCHAR *, INT *, INT *);
 //static INT makecontrol(CONTROL *, INT, INT, HWND, INT);
 static LONG menucreate(RESHANDLE);
 static LONG menudestroy(RESOURCE *);
@@ -517,7 +517,7 @@ static LONG popupmenushow(RESHANDLE);
 static void saveMListboxSelectionState(CONTROL *);
 //static LONG setctrlfocus(CONTROL *);
 static INT setCtlTextBoxSize(RESOURCE *res, CONTROL *ctl);
-static void setLastErrorMessage (CHAR *msg);
+static void setLastErrorMessage (TCHAR *msg);
 static void setMListboxSelectionState(CONTROL *);
 static LONG settoolbartext(CONTROL *);
 static LONG showcontrols(GUIASHOWCONTROLS *);
@@ -530,7 +530,7 @@ static LONG toolbarcreate(RESOURCE *);
 static LONG toolbarcreatedbox(GUIATOOLBARDROPBOX *);
 static LONG toolbardestroy(RESOURCE *);
 static void guiaSetTabs(CONTROL *);
-static void guiaFEditInsertChar(CHAR *, CHAR *, CHAR *, INT, INT *);
+static void guiaFEditInsertChar(TCHAR *, TCHAR *, TCHAR *, INT, INT *);
 static HBITMAP guiaGetRotatedBitmap(PIXMAP *, PIXMAP *, INT, INT *, INT *);
 static LPICONRESOURCE guiareadiconfromICOfile(HANDLE hFile);
 static UINT guiareadICOheader(HANDLE hFile);
@@ -541,8 +541,8 @@ static INT sendESELMessage(CONTROL *control, INT iInsertPos, INT iEndPos);
 static TREESTRUCT * treesearch(TREESTRUCT *, HTREEITEM);
 static void treeinsert(HWND, TREESTRUCT *);
 static void treedelete(HWND, INT, TREESTRUCT *);
-static void treeposition(CHAR *, TREESTRUCT *, TREESTRUCT *);
-static void wincb(WINDOW *, CHAR *, INT datalen);
+static void treeposition(TCHAR *, TREESTRUCT *, TREESTRUCT *);
+static void wincb(WINDOW *, TCHAR *, INT datalen);
 static INT wincreate(GUIAWINCREATESTRUCT *);
 static LONG windestroy(HWND);
 static LONG winshowcaret(WINDOW *);
@@ -571,7 +571,7 @@ static RECT guiaDrawInvalidRect;
  */
 static HANDLE hPaintingEvent;
 
-static CHAR lastErrorMessage[128];
+static TCHAR lastErrorMessage[128];
 
 /**
  * August 2013 jpr
@@ -589,7 +589,7 @@ static BOOL radioButtonSuppressAutoCheck;
 /*
  * Windows entry point
  */
-int WINAPI WinMain(HINSTANCE hinst, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int WINAPI WinMain(HINSTANCE hinst, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
 	INT color;
 
@@ -613,7 +613,7 @@ int WINAPI WinMain(HINSTANCE hinst, HINSTANCE hPrevInstance, LPSTR lpCmdLine, in
 	hbrButtonFace = CreateBrushIndirect(&logbrushbackground);
 
 
-	if( (hFile = CreateFile("DBCICONS.ICO", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL )) == INVALID_HANDLE_VALUE )
+	if( (hFile = CreateFile(T("DBCICONS.ICO"), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL ) == INVALID_HANDLE_VALUE) )
 	{
 		hIcon = LoadImage(hinstancemain, DBCLARGEICONNAME, IMAGE_ICON, 0, 0, 0);
 		hSmIcon = LoadImage(hinstancemain, DBCSMALLICONNAME, IMAGE_ICON, 0, 0, 0);
@@ -756,7 +756,7 @@ int WINAPI WinMain(HINSTANCE hinst, HINSTANCE hPrevInstance, LPSTR lpCmdLine, in
 	 * This is for the filtering option on a opendirdlg resource. Only works on Vista or newer.
 	 */
 	if (IsWindowsVistaOrGreater() /*osinfo.dwMajorVersion >= 6*/) {
-		shell32lib = LoadLibrary((LPCSTR)"shell32");
+		shell32lib = LoadLibrary((LPTSTR)"shell32");
 		if (shell32lib != NULL)
 			guiaSHCreateItemWithParent = (guiaPSHCreateItemWithParent) GetProcAddress(shell32lib, "SHCreateItemWithParent");
 	}
@@ -831,7 +831,7 @@ void guiaFeditTextSelectionOnFocusOld()
 	feditTextSelectionOnFocusOld = TRUE;
 }
 
-void guiaSetImageDrawStretchMode(CHAR *ptr)
+void guiaSetImageDrawStretchMode(TCHAR *ptr)
 {
 	if (strcmp(ptr, "1") == 0) imageDrawStretchMode = 1;
 	else if (strcmp(ptr, "2") == 0) imageDrawStretchMode = 2;
@@ -839,7 +839,7 @@ void guiaSetImageDrawStretchMode(CHAR *ptr)
 	else if (strcmp(ptr, "4") == 0) imageDrawStretchMode = 4;
 }
 
-void guiaEnterkey(CHAR *ptr)
+void guiaEnterkey(TCHAR *ptr)
 {
 	if (strcmp(ptr, "old") == 0) enterkeybehavior = enterKeyBehavior_old;
 	else if (strcmp(ptr, "tab") == 0) enterkeybehavior = enterKeyBehavior_tab;
@@ -889,7 +889,7 @@ void guiaSetImageRotateNew(void)
 }
 #endif
 
-void guiaClipboardCodepage(CHAR * cp)
+void guiaClipboardCodepage(TCHAR * cp)
 {
 	if (!strcmp(cp, "850") || !strcmp(cp, "oem")) clipboardtextformat = CF_OEMTEXT;
 }
@@ -900,10 +900,10 @@ void guiaClipboardCodepage(CHAR * cp)
  *
  * Always returns zero.
  */
-INT guiaInit(INT iEventID, CHAR *p1)
+INT guiaInit(INT iEventID, TCHAR *p1)
 {
 	HDC hdc;
-	CHAR *ptr;
+	TCHAR *ptr;
 
 	if (!initcomctlflag) {
 		INITCOMMONCONTROLSEX iccex;
@@ -917,13 +917,13 @@ INT guiaInit(INT iEventID, CHAR *p1)
 	breakflag = FALSE;
 	dlgreshandlelisthdr = NULL;
 	hfontcontrolfont = NULL;
-	if (p1 == NULL || strlen(p1) == 0) {
-		CHAR work[32];
+	if (p1 == NULL || _tcslen(p1) == 0) {
+		TCHAR work[32];
 		sprintf(work, "SYSTEM(%d)", GUI_DEFAULT_FONT_SIZE);
 		p1 = work;
 	}
 	hdc = GetDC(hwndmainwin);
-	if (!guiaParseFont(p1, (INT)strlen(p1), &logfontcontrolfont, TRUE, hdc)) {
+	if (!guiaParseFont(p1, (INT)_tcslen(p1), &logfontcontrolfont, TRUE, hdc)) {
 		hfontcontrolfont = getFont(&logfontcontrolfont);
 		SelectObject(hdc, hfontcontrolfont);
 	}
@@ -1030,13 +1030,13 @@ static void handleCheckboxStateChange(CONTROL *control, HWND hwnd)
 static BOOL doTrayPopup(INT x, INT y) {
 	BOOL ret;
 	BOOL allowStop = TRUE;	// By default, we allow it
-	CHAR work[256], *ptr;
+	TCHAR work[256], *ptr;
 	HMENU traymenu;
 	INT i1;
 
 	traymenu = CreatePopupMenu();
 	if (traymenu == NULL) {
-		sprintf_s(work, ARRAYSIZE(work), "In %s, Failed call to CreatePopupMenu - %d",
+		_stprintf_s(work, ARRAYSIZE(work), "In %s, Failed call to CreatePopupMenu - %d",
 				__FUNCTION__, (int)GetLastError());
 		MessageBox(hwndmainwin, work, RELEASEPROGRAM RELEASE, MB_ICONERROR | MB_SETFOREGROUND);
 		return 0;
@@ -1086,7 +1086,7 @@ void guiaMsgBox(ZHANDLE title, ZHANDLE msg)
 	int i1;
 	if (IsOS(OS_TERMINALCLIENT)) Beep(400, 250);
 	else MessageBeep(MB_OK);
-	i1 = MessageBox(NULL, (CHAR *) msg, (CHAR *) title, MB_OK | MB_SETFOREGROUND | MB_APPLMODAL);
+	i1 = MessageBox(NULL, (TCHAR *) msg, (TCHAR *) title, MB_OK | MB_SETFOREGROUND | MB_APPLMODAL);
 }
 
 /**
@@ -1153,7 +1153,7 @@ void guiaBeep(INT pitch, INT tenths, INT beepflag)
 }
 
 /* execute a task */
-//INT guiaExecTask(ZHANDLE zhCmd, INT bkgdflag, void (*fpDspFnc)(CHAR *))
+//INT guiaExecTask(ZHANDLE zhCmd, INT bkgdflag, void (*fpDspFnc)(TCHAR *))
 //{
 //	STARTUPINFO suiInfo;
 //	PROCESS_INFORMATION piInfo;
@@ -1169,7 +1169,7 @@ void guiaBeep(INT pitch, INT tenths, INT beepflag)
 //		suiInfo.dwFlags = STARTF_USESHOWWINDOW;
 //		suiInfo.wShowWindow = SW_SHOWMINNOACTIVE;
 //	}
-//	if (!CreateProcess(NULL, (CHAR *) zhCmd, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &suiInfo, &piInfo)) {
+//	if (!CreateProcess(NULL, (TCHAR *) zhCmd, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &suiInfo, &piInfo)) {
 //		(*fpDspFnc)("Unable to create process\n");
 //		return RC_ERROR;
 //	}
@@ -1330,7 +1330,7 @@ static LRESULT handleCtlColorStatic(WPARAM wParam, LPARAM lParam) {
 	 * So, if NULL and it is an edit box, do something reasonable.
 	 */
 	if (control == NULL) {
-		CHAR buff[64];
+		TCHAR buff[64];
 		if (GetClassName((HWND)lParam, buff, 64)) {
 			if (strcmp(buff, WC_EDIT) == 0) {
 				SetBkColor((HDC) wParam,  GetSysColor(COLOR_3DFACE));
@@ -1401,7 +1401,7 @@ static void checkselchange(CONTROL *control) {
 
 static INT sendESELMessage(CONTROL *control, INT iInsertPos, INT iEndPos)
 {
-	if (iEndPos + 1 > (INT)((sizeof(cbmsg) - 17) / sizeof(CHAR))) {
+	if (iEndPos + 1 > (INT)((sizeof(cbmsg) - 17) / sizeof(TCHAR))) {
 		guiaErrorMsg(DX_FATAL_15, 0);
 		return RC_ERROR;
 	}
@@ -1468,14 +1468,14 @@ static INT wincreate(GUIAWINCREATESTRUCT *pwcsCreateStruct)
 	}
 
 	if (win->floatwindow) {
-		win->hwnd = CreateWindowEx(WS_EX_TOOLWINDOW, winclassname, (CHAR *) guiMemToPtr(win->title), dwStyle,
+		win->hwnd = CreateWindowEx(WS_EX_TOOLWINDOW, winclassname, (TCHAR *) guiMemToPtr(win->title), dwStyle,
 				rect.left, rect.top, rect.right, rect.bottom,
 				win->ownerhwnd, /* hWndParent */
 				NULL, hinstancemain, NULL);
 	}
 	else {
 		if (!win->taskbarbutton) dwExStyle = WS_EX_NOACTIVATE;
-		win->hwnd = CreateWindowEx(dwExStyle, winclassname, (CHAR *) guiMemToPtr(win->title), dwStyle,
+		win->hwnd = CreateWindowEx(dwExStyle, winclassname, (TCHAR *) guiMemToPtr(win->title), dwStyle,
 			rect.left, rect.top, rect.right, rect.bottom,
 			NULL/*hwndmainwin*/, NULL, hinstancemain, NULL);
 	}
@@ -1500,7 +1500,7 @@ static INT wincreate(GUIAWINCREATESTRUCT *pwcsCreateStruct)
 
 	if (pwcsCreateStruct->style & WINDOW_STYLE_STATUSBAR) {
 		win->hwndstatusbar = CreateWindow(STATUSCLASSNAME,
-			(LPCSTR) NULL, WS_CHILD | WS_VISIBLE, 0, 0, 0, 0,
+			(LPTSTR) NULL, WS_CHILD | WS_VISIBLE, 0, 0, 0, 0,
 			win->hwnd, (HMENU) ITEM_MSG_STATUSBAR, hinstancemain, NULL);
 		if (win->hwndstatusbar == NULL) {
 			guiaErrorMsg("Create statusbar error", GetLastError());
@@ -1625,7 +1625,7 @@ static LONG dlgcreate(GUIADLGCREATESTRUCT *pdcsCreateStruct)
 	 * The 'Owner' window was the main (invisible) DX main window.
 	 * Change it to the db/c created window that the dialog is being shown on.
 	 */
-	res->hwnd = CreateWindowEx(WS_EX_DLGMODALFRAME, dlgclassname, (CHAR *) res->title,
+	res->hwnd = CreateWindowEx(WS_EX_DLGMODALFRAME, dlgclassname, (TCHAR *) res->title,
 		dwStyle, pdcsCreateStruct->hpos, pdcsCreateStruct->vpos,
 		rect.right, rect.bottom,
 
@@ -1639,9 +1639,9 @@ static LONG dlgcreate(GUIADLGCREATESTRUCT *pdcsCreateStruct)
 	);
 
 	if (res->hwnd == NULL) {
-		CHAR work[128];
+		TCHAR work[128];
 		INT i1 = GetLastError();
-		sprintf_s(work, ARRAYSIZE(work), "In %s CreateWindowEx fail code = %d", __FUNCTION__, i1);
+		_stprintf_s(work, ARRAYSIZE(work), "In %s CreateWindowEx fail code = %d", __FUNCTION__, i1);
 		setLastErrorMessage(work);
 		return RC_ERROR;
 	}
@@ -1681,9 +1681,9 @@ static LONG dlgdestroy(HWND hwnd)
 	}
 	if (IsWindow(hwnd)) {
 		if (!DestroyWindow(hwnd)) {
-			CHAR work[128];
+			TCHAR work[128];
 			INT i1 = GetLastError();
-			sprintf_s(work, ARRAYSIZE(work), "In %s DestroyWindow fail %d", __FUNCTION__, i1);
+			_stprintf_s(work, ARRAYSIZE(work), "In %s DestroyWindow fail %d", __FUNCTION__, i1);
 			setLastErrorMessage(work);
 			return RC_ERROR;
 		}
@@ -1852,7 +1852,7 @@ static LONG hidecontrols(GUIAHIDECONTROLS *phcsHideCtrlStruct)
 	INT rc, iCurCtrl, textlen;
 	LONG_PTR lrc;
 	WINDOW *win;
-	CHAR work[128];
+	TCHAR work[128];
 
 	res = phcsHideCtrlStruct->res;
 	checkwinsize(res->winshow);
@@ -1910,7 +1910,7 @@ static LONG hidecontrols(GUIAHIDECONTROLS *phcsHideCtrlStruct)
 			 * we can ignore it.
 			 */
 			if (!rc && /* Other than an owned float window */ !(win->floatwindow && win->owner != NULL)) {
-				sprintf_s(work, ARRAYSIZE(work), "DestroyWindow fail, e=%d, control->type=%hu",
+				_stprintf_s(work, ARRAYSIZE(work), "DestroyWindow fail, e=%d, control->type=%hu",
 						(INT)GetLastError(), control->type);
 				setLastErrorMessage(work);
 				control->ctlhandle = NULL;
@@ -1923,12 +1923,12 @@ static LONG hidecontrols(GUIAHIDECONTROLS *phcsHideCtrlStruct)
 }
 
 static void acquireEditBoxText (CONTROL *control, INT *textlen) {
-	CHAR work[64];
+	TCHAR work[64];
 	*textlen = GetWindowTextLength(control->ctlhandle) + 1;
 	if (control->textval != NULL) {
 		control->textval = guiReallocMem(control->textval, *textlen);
 		if (control->textval == NULL) {
-			sprintf_s(work, ARRAYSIZE(work), "Error in %s, guiReallocMem failed", __FUNCTION__);
+			_stprintf_s(work, ARRAYSIZE(work), "Error in %s, guiReallocMem failed", __FUNCTION__);
 			guiaErrorMsg(work, *textlen);
 			return;
 		}
@@ -1936,13 +1936,13 @@ static void acquireEditBoxText (CONTROL *control, INT *textlen) {
 	else {
 		control->textval = guiAllocMem(*textlen);
 		if (control->textval == NULL) {
-			sprintf_s(work, ARRAYSIZE(work), "Error in %s, guiAllocMem failed", __FUNCTION__);
+			_stprintf_s(work, ARRAYSIZE(work), "Error in %s, guiAllocMem failed", __FUNCTION__);
 			guiaErrorMsg(work, *textlen);
 			return;
 		}
 	}
-	*textlen = GetWindowText(control->ctlhandle, (CHAR *) control->textval, *textlen);
-	control->textval[*textlen] = '\0';
+	*textlen = GetWindowText(control->ctlhandle, (TCHAR *) control->textval, *textlen);
+	control->textval[*textlen] = (TCHAR) '\0';
 }
 
 /**
@@ -2027,9 +2027,9 @@ static LONG winmovecaret(WINDOW *win)
 /**
  * Will return 0 or RC_ERROR
  */
-static INT speedKeyText(MENUENTRY *pMenuItem, CHAR *MenuBuffer, INT menutxtlen) {
+static INT speedKeyText(MENUENTRY *pMenuItem, TCHAR *MenuBuffer, INT menutxtlen) {
 
-	static CHAR letters[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	static TCHAR letters[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	if (pMenuItem->speedkey >= KEYF1 && pMenuItem->speedkey <= KEYF12) {
 		sprintf(&MenuBuffer[menutxtlen + 1], "F%i", pMenuItem->speedkey - KEYF1 + 1);
@@ -2048,17 +2048,17 @@ static INT speedKeyText(MENUENTRY *pMenuItem, CHAR *MenuBuffer, INT menutxtlen) 
 		sprintf(&MenuBuffer[menutxtlen + 1], "Ctrl+F%i", pMenuItem->speedkey - KEYCTLF1 + 1);
 	}
 	else if (pMenuItem->speedkey >= KEYCTRLA && pMenuItem->speedkey <= KEYCTRLZ) {
-		strcpy(&MenuBuffer[menutxtlen + 1], "Ctrl+");
+		_tcscpy(&MenuBuffer[menutxtlen + 1], "Ctrl+");
 		MenuBuffer[menutxtlen + 6] = letters[pMenuItem->speedkey - KEYCTRLA];
-		MenuBuffer[menutxtlen + 7] = '\0';
+		MenuBuffer[menutxtlen + 7] = (TCHAR) '\0';
 	}
 	else if (pMenuItem->speedkey >= KEYCTLSHFTA && pMenuItem->speedkey <= KEYCTLSHFTZ) {
-		strcpy(&MenuBuffer[menutxtlen + 1], "Ctrl+Shift+");
+		_tcscpy(&MenuBuffer[menutxtlen + 1], "Ctrl+Shift+");
 		MenuBuffer[menutxtlen + 12] = letters[pMenuItem->speedkey - KEYCTLSHFTA];
-		MenuBuffer[menutxtlen + 13] = '\0';
+		MenuBuffer[menutxtlen + 13] = (TCHAR) '\0';
 	}
 	else if (pMenuItem->speedkey >= KEYCOMMA && pMenuItem->speedkey <= KEYQUOTE) {
-		strcpy(&MenuBuffer[menutxtlen + 1], "Ctrl+");
+		_tcscpy(&MenuBuffer[menutxtlen + 1], "Ctrl+");
 		switch (pMenuItem->speedkey) {
 			case KEYCOMMA:		MenuBuffer[menutxtlen + 6] = ','; break;
 			case KEYPERIOD:		MenuBuffer[menutxtlen + 6] = '.'; break;
@@ -2071,25 +2071,25 @@ static INT speedKeyText(MENUENTRY *pMenuItem, CHAR *MenuBuffer, INT menutxtlen) 
 			case KEYEQUAL:		MenuBuffer[menutxtlen + 6] = '='; break;
 			case KEYQUOTE:		MenuBuffer[menutxtlen + 6] = '\'';  break;
 		}
-		MenuBuffer[menutxtlen + 7] = '\0';
+		MenuBuffer[menutxtlen + 7] = (TCHAR) '\0';
 	}
 	else if (pMenuItem->speedkey == KEYINSERT) {
-		strcpy(&MenuBuffer[menutxtlen + 1], "Ins");
+		_tcscpy(&MenuBuffer[menutxtlen + 1], "Ins");
 	}
 	else if (pMenuItem->speedkey == KEYDELETE) {
-		strcpy(&MenuBuffer[menutxtlen + 1], "Del");
+		_tcscpy(&MenuBuffer[menutxtlen + 1], "Del");
 	}
 	else if (pMenuItem->speedkey == KEYHOME) {
-		strcpy(&MenuBuffer[menutxtlen + 1], "Home");
+		_tcscpy(&MenuBuffer[menutxtlen + 1], "Home");
 	}
 	else if (pMenuItem->speedkey == KEYEND) {
-		strcpy(&MenuBuffer[menutxtlen + 1], "End");
+		_tcscpy(&MenuBuffer[menutxtlen + 1], "End");
 	}
 	else if (pMenuItem->speedkey == KEYPGUP) {
-		strcpy(&MenuBuffer[menutxtlen + 1], "Pgup");
+		_tcscpy(&MenuBuffer[menutxtlen + 1], "Pgup");
 	}
 	else if (pMenuItem->speedkey == KEYPGDN) {
-		strcpy(&MenuBuffer[menutxtlen + 1], "Pgdn");
+		_tcscpy(&MenuBuffer[menutxtlen + 1], "Pgdn");
 	}
 	else return RC_ERROR;
 	return 0;
@@ -2102,14 +2102,14 @@ static LONG menucreate(RESHANDLE reshandle)
 {
 	WINDOW *win;
 	MENUENTRY *pMenuItem;
-	CHAR *MenuText, *MenuBuffer;
+	TCHAR *MenuText, *MenuBuffer;
 	RECT rect;
 	INT curentry, numspeedkey, menutxtlen, maxmenutxt, curlvl, nextlvl;
 	INT hsize, vsize, curspeedkey, i1;
 	USHORT fAutoScroll;
 	ACCEL * aaclAccelTable = NULL;
 	MENUITEMINFO mii;
-	CHAR work[64];
+	TCHAR work[64];
 	ZHANDLE zhMB = NULL, zhAccel = NULL;
 	RESOURCE *res;
 	INT notMaximized;
@@ -2129,21 +2129,21 @@ static LONG menucreate(RESHANDLE reshandle)
 	for (curentry = 0; curentry < res->entrycount; curentry++) {
 		if (pMenuItem[curentry].speedkey) {
 			numspeedkey++;
-			menutxtlen = (INT)strlen((CHAR *) pMenuItem[curentry].text);
+			menutxtlen = (INT)_tcslen((TCHAR *) pMenuItem[curentry].text);
 			if (maxmenutxt < menutxtlen) maxmenutxt = menutxtlen;
 		}
 	}
 	res->speedkeys = numspeedkey;
 	if (numspeedkey) {
 		zhAccel = guiAllocMem(sizeof(ACCEL) * numspeedkey );
-		maxmenutxt += 15 * sizeof(CHAR); /* 15 is added here for accelerator key text like CTRL-A .. CTRL-Z, F1 .. F10, PgUp, Insert, etc. */
+		maxmenutxt += 15 * sizeof(TCHAR); /* 15 is added here for accelerator key text like CTRL-A .. CTRL-Z, F1 .. F10, PgUp, Insert, etc. */
 		zhMB = guiAllocMem(maxmenutxt);
 		if (zhAccel == NULL || zhMB == NULL) {
 			sprintf(work, "guiAllocMem returned null in %s", __FUNCTION__);
 			guiaErrorMsg(work, 0);
 			goto menucreateerror;
 		}
-		MenuBuffer = (CHAR *) guiLockMem(zhMB);
+		MenuBuffer = (TCHAR *) guiLockMem(zhMB);
 		aaclAccelTable = (ACCEL *) guiLockMem(zhAccel);
 	}
 
@@ -2166,8 +2166,8 @@ static LONG menucreate(RESHANDLE reshandle)
 		if (nextlvl <= curlvl && pMenuItem->style & MENUSTYLE_HIDDEN) continue;
 		if (pMenuItem->speedkey) {
 			/* add speed keys to accelerator table and to menu item text */
-			menutxtlen = (INT)strlen((CHAR *) pMenuItem->text);
-			strcpy(MenuBuffer, pMenuItem->text);
+			menutxtlen = (INT)_tcslen((TCHAR *) pMenuItem->text);
+			_tcscpy(MenuBuffer, pMenuItem->text);
 			MenuBuffer[menutxtlen] = '\t';
 			i1 = speedKeyText(pMenuItem, MenuBuffer, menutxtlen);
 			if (i1) {
@@ -2248,7 +2248,7 @@ static LONG menucreate(RESHANDLE reshandle)
 			aaclAccelTable[curspeedkey++].cmd = (USHORT) pMenuItem->useritem;
 			MenuText = MenuBuffer;
 		}
-		else MenuText = (CHAR *) pMenuItem->text;
+		else MenuText = (TCHAR *) pMenuItem->text;
 
 		/* add menu item to current menu/pop-up menu */
 		mii.fMask = MIIM_TYPE;
@@ -2361,7 +2361,7 @@ menucreateerror:
 static void checkForIconItem(PMENUENTRY pMenuEntry, LPMENUITEMINFO mii, HMENU hmenu) {
 	MENUINFO mi;
 	INT i1;
-	CHAR work[64];
+	TCHAR work[64];
 	if (pMenuEntry->iconres != NULL) {
 		mii->fType &= ~(MFT_STRING);
 		mii->fMask &= ~(MIIM_TYPE);
@@ -2457,7 +2457,7 @@ static LONG popupmenushow(RESHANDLE rh)
 	RECT rect;
 	POINT pt;
 	MENUITEMINFO mii;
-	CHAR work[80];
+	TCHAR work[80];
 
 	pvistart();
 	res = *rh;
@@ -2554,7 +2554,7 @@ static LONG getselectedtreeitemtext(GUIAGETWINTEXT *pgwtGetWinTextStruct) {
 		tvitem.cchTextMax = pgwtGetWinTextStruct->textlen;
 		TreeView_GetItem(pgwtGetWinTextStruct->hwnd, &tvitem);
 	}
-	else pgwtGetWinTextStruct->title[0] = '\0';
+	else pgwtGetWinTextStruct->title[0] = (TCHAR) '\0';
 	return 0;
 }
 
@@ -2607,7 +2607,7 @@ static INT guiaAddTooltip(CONTROL *control) {
 	INT i1;
 	RECT rect;
 	TOOLINFO toolinfo;
-	CHAR buffer[80];
+	TCHAR buffer[80];
 	HWND window;
 
 	if (control->style & (CTRLSTYLE_DISABLED | CTRLSTYLE_SHOWONLY | CTRLSTYLE_READONLY)) {
@@ -2883,7 +2883,7 @@ static LONG settoolbartext(CONTROL *control)
 		toolinfo.hwnd = control->ctlhandle;
 		toolinfo.hinst = hinstancemain;
 		toolinfo.uId = 0;
-		toolinfo.lpszText = (CHAR *) control->tooltip;
+		toolinfo.lpszText = (TCHAR *) control->tooltip;
 		toolinfo.rect.left = rect.left;
 		toolinfo.rect.top = rect.top;
 		toolinfo.rect.right = rect.right;
@@ -2920,7 +2920,7 @@ static LONG statusbarcreate(WINDOW *win)
 	iWinWidth = rect.right - rect.left;
 	iWinHeight = rect.bottom - rect.top;
 	win->hwndstatusbar = CreateWindowEx(0L, STATUSCLASSNAME,
-		(CHAR *) win->statusbartext, WS_CHILD , 0, 0, 0, 0,
+		(TCHAR *) win->statusbartext, WS_CHILD , 0, 0, 0, 0,
 		win->hwnd, (HMENU) ITEM_MSG_STATUSBAR, hinstancemain, NULL);
 	if (win->hwndstatusbar == NULL) {
 		guiaErrorMsg("Create statusbar error", GetLastError());
@@ -3010,10 +3010,10 @@ LONG setctrlfocus(CONTROL *control)
 static LONG addmenuitem(MENUENTRY *pMenuItem, UINT itemnumber)
 {
 	ZHANDLE zhMB = NULL;
-	CHAR *MenuBuffer;
+	TCHAR *MenuBuffer;
 	INT retval, menutxtlen;
 	MENUITEMINFO mii;
-	CHAR work[64];
+	TCHAR work[64];
 
 	mii.cbSize = sizeof(MENUITEMINFO);
 	mii.fMask = MIIM_TYPE;
@@ -3025,15 +3025,15 @@ static LONG addmenuitem(MENUENTRY *pMenuItem, UINT itemnumber)
 		mii.wID = pMenuItem->useritem;
 		if (pMenuItem->speedkey) {
 			/* add speed keys to menu item text */
-			menutxtlen = (INT)strlen((CHAR *) pMenuItem->text);
-			zhMB = guiAllocMem(menutxtlen + 15 * sizeof(CHAR));
+			menutxtlen = (INT)_tcslen((TCHAR *) pMenuItem->text);
+			zhMB = guiAllocMem(menutxtlen + 15 * sizeof(TCHAR));
 			if (zhMB == NULL) {
 				sprintf(work, "guiAllocMem failure in %s", __FUNCTION__);
 				guiaErrorMsg(work, 0);
 				return RC_NO_MEM;
 			}
-			MenuBuffer = (CHAR *) guiLockMem(zhMB);
-			strcpy(MenuBuffer, pMenuItem->text);
+			MenuBuffer = (TCHAR *) guiLockMem(zhMB);
+			_tcscpy(MenuBuffer, pMenuItem->text);
 			MenuBuffer[menutxtlen] = '\t';
 			retval = speedKeyText(pMenuItem, MenuBuffer, menutxtlen);
 			if (retval) {
@@ -3043,7 +3043,7 @@ static LONG addmenuitem(MENUENTRY *pMenuItem, UINT itemnumber)
 			}
 			mii.dwTypeData = MenuBuffer;
 		}
-		else mii.dwTypeData = (CHAR *) pMenuItem->text;
+		else mii.dwTypeData = (TCHAR *) pMenuItem->text;
 		if (pMenuItem->style & MENUSTYLE_DISABLED) mii.fState |= MFS_GRAYED;
 		if (pMenuItem->style & MENUSTYLE_SUBMENU) {
 			mii.fMask |= MIIM_SUBMENU;
@@ -3085,7 +3085,7 @@ static void clearPBDefStyle(CONTROL* control) {
 	WINDOW *win;
 	RESOURCE *res;
 	DRAWITEMSTRUCT drawItem;
-	CHAR message[256];
+	TCHAR message[256];
 
 	if (control == NULL) {
 		sprintf(message, "intercepted fatal error in %s\n", __FUNCTION__);
@@ -3136,7 +3136,7 @@ static void clearPBDefStyle(CONTROL* control) {
 static void setPBDefStyle(CONTROL* control, INT location) {
 	WINDOW *win;
 	RESOURCE *res;
-	CHAR message[256];
+	TCHAR message[256];
 
 	/*
 	 * Fixup on 8/23/10
@@ -3146,13 +3146,13 @@ static void setPBDefStyle(CONTROL* control, INT location) {
 	if (enterkeybehavior == enterKeyBehavior_tab) return;
 
 	if (control == NULL) {
-		sprintf_s(message, ARRAYSIZE(message), "intercepted fatal error in setPBDefStyle(): from location=%d\n", location);
+		_stprintf_s(message, ARRAYSIZE(message), "intercepted fatal error in setPBDefStyle(): from location=%d\n", location);
 		MessageBox(NULL, message, "DB/C DEBUG",	MB_OK | MB_ICONSTOP | MB_SETFOREGROUND);
 		return;
 	}
 	res = *control->res;
 	if (res == NULL) {
-		sprintf_s(message, ARRAYSIZE(message), "intercepted fatal error in setPBDefStyle(): from location=%d, ctype=%hu, citem=%hu, cshown=%d\n",
+		_stprintf_s(message, ARRAYSIZE(message), "intercepted fatal error in setPBDefStyle(): from location=%d, ctype=%hu, citem=%hu, cshown=%d\n",
 			location, control->type, control->useritem, ((control->shownflag) ? 1 : 0));
 		MessageBox(NULL, message, "DB/C DEBUG",	MB_OK | MB_ICONSTOP | MB_SETFOREGROUND);
 		return;
@@ -3176,8 +3176,8 @@ static void setPBDefStyle(CONTROL* control, INT location) {
  */
 LRESULT CALLBACK guiaDlgProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lParam)
 {
-	CHAR *msgid;
-	CHAR xtext[TREEVIEW_ITEM_MAX_SIZE];
+	TCHAR *msgid;
+	TCHAR xtext[TREEVIEW_ITEM_MAX_SIZE];
 	INT iCtlNum, iCtlsave, textlen, iCurCtrl, color;
 	LRESULT rc;
 	//WINDOW *win;
@@ -3395,7 +3395,7 @@ LRESULT CALLBACK guiaDlgProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 //					control->selectedtab = i1 - 1;
 //				if (control->tabsubgroup != i1) continue;
 //				if (control->type == PANEL_TAB) {
-//					if (res->itemmsgs && (textlen = (INT)strlen((LPSTR) control->textval))) {
+//					if (res->itemmsgs && (textlen = (INT)_tcslen((LPSTR) control->textval))) {
 //						memcpy(cbmsgdata, control->textval, min(textlen, MAXCBMSGSIZE - 17));
 //						rescb(res, DBC_MSGITEM, control->useritem, textlen);
 //					}
@@ -3407,7 +3407,7 @@ LRESULT CALLBACK guiaDlgProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 //						ShowWindow(control->ctlhandle, SW_SHOW);
 //						if (control->type != PANEL_TABLE) setControlWndProc(control);
 //						if (ISEDIT(control) && control->type != PANEL_FEDIT) {
-//							SetWindowText(control->ctlhandle, (LPCSTR) control->textval);
+//							SetWindowText(control->ctlhandle, (LPTSTR) control->textval);
 //						}
 //					}
 //					control->changeflag = FALSE;
@@ -3459,7 +3459,7 @@ LRESULT CALLBACK guiaDlgProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 						}
 					}
 					if (res->linemsgs) {
-						cbmsgdata[0] = '\0';
+						cbmsgdata[0] = (TCHAR) '\0';
 						if (nmhdr->code == TVN_KEYDOWN) {
 							tpos = treesearch(control->tree.root, control->tree.hitem);
 						}
@@ -3469,10 +3469,10 @@ LRESULT CALLBACK guiaDlgProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 							}
 						}
 						if (tpos == NULL) break; /* should never happen */
-						treeposition((CHAR *) cbmsgdata, control->tree.root, tpos);
-						textlen = (INT)strlen((CHAR *) cbmsgdata);
+						treeposition((TCHAR *) cbmsgdata, control->tree.root, tpos);
+						textlen = (INT)_tcslen((TCHAR *) cbmsgdata);
 						/* remove trailing comma */
-						if (textlen > 0 && cbmsgdata[textlen - 1] == ',') cbmsgdata[--textlen] = '\0';
+						if (textlen > 0 && cbmsgdata[textlen - 1] == ',') cbmsgdata[--textlen] = (TCHAR) '\0';
 						rescb(res, msgid, control->useritem, textlen);
 					}
 					else {
@@ -3484,13 +3484,13 @@ LRESULT CALLBACK guiaDlgProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 							tvitem.cchTextMax = TREEVIEW_ITEM_MAX_SIZE;
 							TreeView_GetItem(control->ctlhandle, &tvitem);
 							StringCbCopy((LPSTR)cbmsgdata, MAXCBMSGSIZE - 17, xtext);
-							//strcpy((CHAR *) cbmsgdata, xtext);
-							rescb(res, msgid, control->useritem, (INT)strlen(xtext));
+							//_tcscpy((TCHAR *) cbmsgdata, xtext);
+							rescb(res, msgid, control->useritem, (INT)_tcslen(xtext));
 						}
 						else {
 							StringCbCopy((LPSTR)cbmsgdata, MAXCBMSGSIZE - 17, control->tree.text);
-							//strcpy((CHAR *) cbmsgdata, control->tree.text);
-							rescb(res, msgid, control->useritem, (INT)strlen(control->tree.text));
+							//_tcscpy((TCHAR *) cbmsgdata, control->tree.text);
+							rescb(res, msgid, control->useritem, (INT)_tcslen(control->tree.text));
 						}
 					}
 					break;
@@ -3510,7 +3510,7 @@ LRESULT CALLBACK guiaDlgProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 
 static BOOL isTablePart(HWND hwnd) {
 	HWND parent1;
-	CHAR NewText[150];
+	TCHAR NewText[150];
 	parent1 = GetParent(hwnd);
 	if (parent1 == NULL) return FALSE;
 	if (!GetClassName(parent1, NewText, 150)) return FALSE;
@@ -3544,7 +3544,7 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 	INT color, iCtlNum, iCtlsave, iInsertPos, iEndPos, iLineIndex, datasize;
 	UINT n1;
 	INT i1, textlen;
-	CHAR NewText[150], CBText[150], work[128], *ptr;
+	TCHAR NewText[150], CBText[150], work[128], *ptr;
 	USHORT usItem;
 	LRESULT retcode;
 	HWND hwndParent, hwndControl, hwndGetFocus;
@@ -3618,22 +3618,22 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 			pvistart();
 			res = *control->res;
 			if (res->linemsgs) {
-				cbmsgdata[0] = '\0';
+				cbmsgdata[0] = (TCHAR) '\0';
 				tpos = treesearch(control->tree.root, control->tree.hitem);
 				if (tpos == NULL) {   /* should never happen */
 					pviend();
 					break;
 				}
-				treeposition((CHAR *) cbmsgdata, control->tree.root, tpos);
-				textlen = (INT)strlen((CHAR *) cbmsgdata);
+				treeposition((TCHAR *) cbmsgdata, control->tree.root, tpos);
+				textlen = (INT)_tcslen((TCHAR *) cbmsgdata);
 				/* remove trailing comma */
-				if (textlen > 0 && cbmsgdata[textlen - 1] == ',') cbmsgdata[--textlen] = '\0';
+				if (textlen > 0 && cbmsgdata[textlen - 1] == ',') cbmsgdata[--textlen] = (TCHAR) '\0';
 				rescb(res, DBC_MSGPICK, control->useritem, textlen);
 			}
 			else {
 				StringCbCopy((LPSTR)cbmsgdata, MAXCBMSGSIZE - 17, control->tree.text);
-				//strcpy((CHAR *) cbmsgdata, control->tree.text);
-				rescb(res, DBC_MSGPICK, control->useritem, (INT)strlen(control->tree.text));
+				//_tcscpy((TCHAR *) cbmsgdata, control->tree.text);
+				rescb(res, DBC_MSGPICK, control->useritem, (INT)_tcslen(control->tree.text));
 			}
 			pviend();
 		}
@@ -3696,7 +3696,7 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 		if (wParam == (WPARAM)NULL) break;
 		if (control->type == PANEL_FEDIT) {
 			control->changeflag = TRUE;
-			SetWindowText(control->ctlhandle, (CHAR *) control->textval);
+			SetWindowText(control->ctlhandle, (TCHAR *) control->textval);
 			control->changeflag = FALSE;
 		}
 		//if (ISSINGLELINEEDIT(control)) guiaSetSingleLineEditCaretPos(control);
@@ -3835,27 +3835,27 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 			if (wParam < 256) {
 				pvistart();
 				if (control->textval == NULL) {  /* possible if erase happened */
-					control->textval = guiAllocMem((INT)strlen((LPSTR) control->mask) + 1);
+					control->textval = guiAllocMem((INT)_tcslen((LPSTR) control->mask) + 1);
 					if (control->textval == NULL) {
 						pviend();
-						sprintf(work, "Error in %s, guiAllocMem fail at WM_[SYS]CHAR", __FUNCTION__);
-						guiaErrorMsg(work, (DWORD)strlen((LPSTR) control->mask) + 1);
+						sprintf(work, "Error in %s, guiAllocMem fail at WM_[SYS]TCHAR", __FUNCTION__);
+						guiaErrorMsg(work, (DWORD)_tcslen((LPSTR) control->mask) + 1);
 						return 0;
 					}
-					control->textval[0] = '\0';
+					control->textval[0] = (TCHAR) '\0';
 				}
 				iLineIndex = (INT)SendMessage(control->ctlhandle, EM_LINEINDEX, 0, 0L);
 				datasize = (INT)SendMessage(control->ctlhandle, EM_LINELENGTH, iLineIndex, 0L);
 				control->changetext = guiAllocMem(datasize + 256);	/* add 256 bytes for buffer length */
 				if (control->changetext == NULL) {
 					pviend();
-					sprintf(work, "Error in %s, guiAllocMem fail at WM_[SYS]CHAR", __FUNCTION__);
+					sprintf(work, "Error in %s, guiAllocMem fail at WM_[SYS]TCHAR", __FUNCTION__);
 					guiaErrorMsg(work, datasize + 256);
 					return 0;
 				}
 				* (WORD *) control->changetext = (WORD) datasize + 1;
 				SendMessage(control->ctlhandle, EM_GETLINE, 0, (LPARAM) control->changetext);
-				control->changetext[datasize] = '\0';
+				control->changetext[datasize] = (TCHAR) '\0';
 				SendMessage(control->ctlhandle, EM_GETSEL, (WPARAM) &iInsertPos, (LPARAM) &iEndPos);
 				if (VK_BACK == wParam) {  /* backspace */
 					if (iInsertPos == iEndPos) {
@@ -3870,7 +3870,7 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 					memmove(&control->changetext[iInsertPos], &control->changetext[iEndPos], datasize - iEndPos + 1);
 					ptr = guiMemToPtr(control->changetext);
 					StringCbCopy(NewText, ARRAYSIZE(NewText), ptr);
-					//strcpy(NewText, (CHAR *) control->changetext);
+					//_tcscpy(NewText, (TCHAR *) control->changetext);
 					n1 = 0;
 				}
 				else if (wParam == ('A' - '@') && ctrlkeydown) {
@@ -3889,7 +3889,7 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 					guiaPutCBText(&control->changetext[iInsertPos], iEndPos - iInsertPos);
 					ptr = guiMemToPtr(control->changetext);
 					StringCbCopy(NewText, ARRAYSIZE(NewText), ptr);
-					//strcpy(NewText, (CHAR *) control->changetext);
+					//_tcscpy(NewText, (TCHAR *) control->changetext);
 					n1 = 1;
 				}
 				else if (wParam == ('X' - '@') && ctrlkeydown) {
@@ -3901,7 +3901,7 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 					}
 					ptr = guiMemToPtr(control->changetext);
 					StringCbCopy(NewText, ARRAYSIZE(NewText), ptr);
-					//strcpy(NewText, (CHAR *) control->changetext);
+					//_tcscpy(NewText, (TCHAR *) control->changetext);
 					n1 = 0;
 				}
 				else if (wParam == ('V' - '@') && ctrlkeydown) {
@@ -3918,7 +3918,7 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 								guiMemToPtr(control->mask), NewText, CBText[n1], &iInsertPos);
 						ptr = guiMemToPtr(control->changetext);
 						StringCbCopy(ptr, datasize + 256, NewText);
-						//strcpy((CHAR *) control->changetext, NewText);
+						//_tcscpy((TCHAR *) control->changetext, NewText);
 					}
 					n1 = 0;
 				}
@@ -3932,8 +3932,8 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 					n1 = 0;
 				}
 				if (!n1) { /* don't do the following if we are just copying the text */
-					guiaFEditMaskText(NewText, (CHAR *) control->mask, (CHAR *) control->textval);
-					if (strlen(NewText) <= strlen((CHAR *) control->mask)) {
+					guiaFEditMaskText(NewText, (TCHAR *) control->mask, (TCHAR *) control->textval);
+					if (_tcslen(NewText) <= _tcslen((TCHAR *) control->mask)) {
 						control->changeflag = TRUE;
 						SetWindowText(control->ctlhandle, NewText);
 						control->changeflag = FALSE;
@@ -3968,13 +3968,13 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 			size_t n22;
 			if (wParam < 256) {
 				if (control->textval == NULL) {  /* possible if erase happened */
-					control->textval = guiAllocMem((INT)strlen((CHAR *) control->mask) + 1);
+					control->textval = guiAllocMem((INT)_tcslen((TCHAR *) control->mask) + 1);
 					if (control->textval == NULL) {
 						sprintf(work, "Error in %s, guiAllocMem fail at WM_PASTE", __FUNCTION__);
-						guiaErrorMsg(work, (DWORD)strlen((CHAR *) control->mask) + 1);
+						guiaErrorMsg(work, (DWORD)_tcslen((TCHAR *) control->mask) + 1);
 						return 0;
 					}
-					control->textval[0] = '\0';
+					control->textval[0] = (TCHAR) '\0';
 				}
 				iLineIndex = (INT)SendMessage(control->ctlhandle, EM_LINEINDEX, 0, 0L);
 				datasize = (INT)SendMessage(control->ctlhandle, EM_LINELENGTH, iLineIndex, 0L);
@@ -3986,7 +3986,7 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 				}
 				*(WORD*) control->changetext = (WORD) datasize + 1;
 				SendMessage(control->ctlhandle, EM_GETLINE, 0, (LPARAM) control->changetext);
-				control->changetext[datasize] = '\0';
+				control->changetext[datasize] = (TCHAR) '\0';
 				SendMessage(hwnd, EM_GETSEL, (WPARAM) &iInsertPos, (LPARAM) &iEndPos);
 			}
 			guiaGetCBTextLen(&n22);
@@ -3996,15 +3996,15 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 				memmove(&control->changetext[iInsertPos], &control->changetext[iEndPos], datasize - iEndPos + 1);
 			}
 			for (n1 = 0; n1 < n22; n1++) {
-				guiaFEditInsertChar((CHAR *) control->changetext, (CHAR *) control->mask,
+				guiaFEditInsertChar((TCHAR *) control->changetext, (TCHAR *) control->mask,
 						NewText, CBText[n1], &iInsertPos);
 				ptr = guiMemToPtr(control->changetext);
 				StringCbCopy(ptr, datasize + 256, NewText);
-				//strcpy((CHAR *) control->changetext, NewText);
+				//_tcscpy((TCHAR *) control->changetext, NewText);
 			}
 
-			guiaFEditMaskText(NewText, (CHAR *) control->mask, (CHAR *) control->textval);
-			if (strlen(NewText) <= strlen((CHAR *) control->mask)) {
+			guiaFEditMaskText(NewText, (TCHAR *) control->mask, (TCHAR *) control->textval);
+			if (_tcslen(NewText) <= _tcslen((TCHAR *) control->mask)) {
 				control->changeflag = TRUE;
 				SetWindowText(control->ctlhandle, NewText);
 				control->changeflag = FALSE;
@@ -4224,13 +4224,13 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 		case VK_DELETE:
 			if (control->type == PANEL_FEDIT && !(control->style & CTRLSTYLE_READONLY)) {
 				if (control->textval == NULL) {  /* possible if erase happened */
-					control->textval = guiAllocMem((INT)strlen((CHAR *) control->mask) + 1);
+					control->textval = guiAllocMem((INT)_tcslen((TCHAR *) control->mask) + 1);
 					if (control->textval == NULL) {
 						sprintf(work, "Error in %s, guiAllocMem fail at VK_DELETE", __FUNCTION__);
-						guiaErrorMsg(work, (DWORD)strlen((CHAR *) control->mask) + 1);
+						guiaErrorMsg(work, (DWORD)_tcslen((TCHAR *) control->mask) + 1);
 						return 0;
 					}
-					control->textval[0] = '\0';
+					control->textval[0] = (TCHAR) '\0';
 				}
 				iLineIndex = (INT)SendMessage(control->ctlhandle, EM_LINEINDEX, 0, 0L);
 				datasize = (INT)SendMessage(control->ctlhandle, EM_LINELENGTH, iLineIndex, 0L);
@@ -4242,7 +4242,7 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 				}
 				*((WORD *) control->changetext) = (WORD) datasize + 1;
 				SendMessage(control->ctlhandle, EM_GETLINE, 0, (LPARAM) control->changetext);
-				control->changetext[datasize] = '\0';
+				control->changetext[datasize] = (TCHAR) '\0';
 				SendMessage(hwnd, EM_GETSEL, (WPARAM) &iInsertPos, (LPARAM) &iEndPos);
 				if (iInsertPos == iEndPos) {
 					if (iEndPos == datasize) {
@@ -4254,9 +4254,9 @@ LRESULT CALLBACK guiaControlProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM
 				}
 				memmove(&control->changetext[iInsertPos], &control->changetext[iEndPos], datasize - iEndPos + 1);
 				StringCbCopy(NewText, ARRAYSIZE(NewText), guiMemToPtr(control->changetext));
-				//strcpy(NewText, (CHAR *) control->changetext);
-				guiaFEditMaskText(NewText, (CHAR *) control->mask, (CHAR *) control->textval);
-				if (strlen(NewText) <= strlen((CHAR *) control->mask)) {
+				//_tcscpy(NewText, (TCHAR *) control->changetext);
+				guiaFEditMaskText(NewText, (TCHAR *) control->mask, (TCHAR *) control->textval);
+				if (_tcslen(NewText) <= _tcslen((TCHAR *) control->mask)) {
 					control->changeflag = TRUE;
 					SetWindowText(control->ctlhandle, NewText);
 					control->changeflag = FALSE;
@@ -4607,7 +4607,7 @@ LRESULT CALLBACK guiaControlInactiveProc(HWND hwnd, UINT nMessage, WPARAM wParam
 INT guiaOwnerDrawListbox(CONTROL *control, const DRAWITEMSTRUCT *pdrawStruct)
 {
 	INT i1, i2, i3, tabstops[MAXBOXTABS], *tabsptr;
-	CHAR *justptr;
+	TCHAR *justptr;
 	INT nBkMode, nStyle;
 	UINT nFormat;
 	ZHANDLE sText;
@@ -4617,7 +4617,7 @@ INT guiaOwnerDrawListbox(CONTROL *control, const DRAWITEMSTRUCT *pdrawStruct)
 	HFONT hfont, oldfont;
 	LOGFONT lf;
 	HDC pDC;
-	CHAR work[128];
+	TCHAR work[128];
 	DWORD ecode;
 
 	/**
@@ -4741,31 +4741,31 @@ INT guiaOwnerDrawListbox(CONTROL *control, const DRAWITEMSTRUCT *pdrawStruct)
 		}
 		sText = guiAllocMem(i1 + 1);
 		if (sText == NULL) {
-			sprintf_s(work, ARRAYSIZE(work), "Error in guiaOwnerDrawListbox(A), guiAllocMem fail");
+			_stprintf_s(work, ARRAYSIZE(work), "Error in guiaOwnerDrawListbox(A), guiAllocMem fail");
 			guiaErrorMsg(work, i1 + 1);
 			return 0;
 		}
 		else {
-			SendMessage(control->ctlhandle, CB_GETLBTEXT, (WPARAM) pdrawStruct->itemID, (LPARAM) (LPCSTR) sText);
+			SendMessage(control->ctlhandle, CB_GETLBTEXT, (WPARAM) pdrawStruct->itemID, (LPARAM) (LPTSTR) sText);
 			sText[i1] = 0;
 		}
 	}
 	else {
 		i1 = (INT)SendMessage(control->ctlhandle, LB_GETTEXTLEN, (WPARAM) pdrawStruct->itemID, (LPARAM) 0);
 		if (i1 == LB_ERR) {
-			sprintf_s(work, ARRAYSIZE(work),
+			_stprintf_s(work, ARRAYSIZE(work),
 					"Error in guiaOwnerDrawListbox(B), LB_GETTEXTLEN fail (%d)", pdrawStruct->itemID);
 			guiaErrorMsg(work, GetLastError());
 			return 0;
 		}
 		sText = guiAllocMem(i1 + 1);
 		if (sText == NULL) {
-			sprintf_s(work, ARRAYSIZE(work), "Error in guiaOwnerDrawListbox(B), guiAllocMem fail");
+			_stprintf_s(work, ARRAYSIZE(work), "Error in guiaOwnerDrawListbox(B), guiAllocMem fail");
 			guiaErrorMsg(work, i1 + 1);
 			return 0;
 		}
 		else {
-			SendMessage(control->ctlhandle, LB_GETTEXT, (WPARAM) pdrawStruct->itemID, (LPARAM) (LPCSTR) sText);
+			SendMessage(control->ctlhandle, LB_GETTEXT, (WPARAM) pdrawStruct->itemID, (LPARAM) (LPTSTR) sText);
 			sText[i1] = 0;
 		}
 	}
@@ -4797,11 +4797,11 @@ INT guiaOwnerDrawListbox(CONTROL *control, const DRAWITEMSTRUCT *pdrawStruct)
 	if (control->listboxtabs != NULL) {
 		nFormat |= DT_END_ELLIPSIS;
 		tabsptr = (INT *) control->listboxtabs;
-		justptr = (CHAR *) control->listboxjust;
-		for (i1 = 0, i2 = (INT)strlen((CHAR *)sText), i3 = 0; i1 < i2; i1++) {
+		justptr = (TCHAR *) control->listboxjust;
+		for (i1 = 0, i2 = (INT)_tcslen((TCHAR *)sText), i3 = 0; i1 < i2; i1++) {
 			if (sText[i1] == '\t') {
 				tabstops[i3++] = i1;
-				sText[i1] = '\0';
+				sText[i1] = (TCHAR) '\0';
 			}
 		}
 		for (i1 = i2 = 0; tabsptr[i1]; i1++) {
@@ -4811,7 +4811,7 @@ INT guiaOwnerDrawListbox(CONTROL *control, const DRAWITEMSTRUCT *pdrawStruct)
 				else if (justptr[i1] == 'r') nFormat |= DT_RIGHT;
 				else nFormat |= DT_LEFT;
 				rect.right = rect.left + tabsptr[i1] - 1;
-				DrawText(pDC, (CHAR *) sText + ((!i1) ? 0 : tabstops[i1 - 1] + 1), -1, &rect, nFormat);
+				DrawText(pDC, (TCHAR *) sText + ((!i1) ? 0 : tabstops[i1 - 1] + 1), -1, &rect, nFormat);
 				rect.left += tabsptr[i1];
 			}
 		}
@@ -4819,7 +4819,7 @@ INT guiaOwnerDrawListbox(CONTROL *control, const DRAWITEMSTRUCT *pdrawStruct)
 	else {
 		rect.right = pdrawStruct->rcItem.right;
 		nFormat |= DT_LEFT;
-		DrawText(pDC, (CHAR *) sText, -1, &rect, nFormat);
+		DrawText(pDC, (TCHAR *) sText, -1, &rect, nFormat);
 	}
 
 	if (pdrawStruct->itemState & ODS_FOCUS) {
@@ -4834,7 +4834,7 @@ INT guiaOwnerDrawListbox(CONTROL *control, const DRAWITEMSTRUCT *pdrawStruct)
 	return 0;
 
 CB_GETLBTEXTLEN_ERROR:
-	sprintf_s(work, ARRAYSIZE(work),
+	_stprintf_s(work, ARRAYSIZE(work),
 			"Error in guiaOwnerDrawListbox(A), CB_GETLBTEXTLEN fail (%d)", pdrawStruct->itemID);
 	guiaErrorMsg(work, ecode);
 	return 0;
@@ -5026,7 +5026,7 @@ void guiaMListboxCreateList(RESOURCE *res, CONTROL *control)
 {
 	INT i1, i2, i3, i4;
 	LRESULT selcount = 0;
-	CHAR work[32];
+	TCHAR work[32];
 	INT *selbuffer;
 
 	/* If the list is empty */
@@ -5039,7 +5039,7 @@ void guiaMListboxCreateList(RESOURCE *res, CONTROL *control)
 				return;
 			}
 		}
-		control->mlbsellist[0] = '\0';
+		control->mlbsellist[0] = (TCHAR) '\0';
 		return;
 	}
 
@@ -5069,12 +5069,12 @@ void guiaMListboxCreateList(RESOURCE *res, CONTROL *control)
 	if (res->linemsgs) {
 		for (i1 = i3 = 0; i1 < selcount; i1++) {
 			mscitoa(selbuffer[i1] + 1, work);
-			i3 += (INT)strlen(work);
+			i3 += (INT)_tcslen(work);
 		}
 	}
 	else {
 		for (i1 = i3 = 0; i1 < selcount; i1++) {
-			i3 += (INT)strlen((CHAR *) ((BYTE **)control->itemarray)[selbuffer[i1]]);
+			i3 += (INT)_tcslen((TCHAR *) ((BYTE **)control->itemarray)[selbuffer[i1]]);
 		}
 	}
 	i3 += (INT)selcount;		/* for the commas and the trailing null */
@@ -5088,7 +5088,7 @@ void guiaMListboxCreateList(RESOURCE *res, CONTROL *control)
 				return;
 			}
 		}
-		control->mlbsellist[0] = '\0';
+		control->mlbsellist[0] = (TCHAR) '\0';
 	}
 	else {
 		if (control->mlbsellist != NULL) {
@@ -5112,16 +5112,16 @@ void guiaMListboxCreateList(RESOURCE *res, CONTROL *control)
 			else i4 = TRUE;
 			if (res->linemsgs) {
 				mscitoa(selbuffer[i1] + 1, work);
-				i3 = (INT)strlen(work);
+				i3 = (INT)_tcslen(work);
 				memcpy(&control->mlbsellist[i2], work, i3);
 			}
 			else {
-				i3 = (INT)strlen((CHAR *) ((BYTE **)control->itemarray)[selbuffer[i1]]);
+				i3 = (INT)_tcslen((TCHAR *) ((BYTE **)control->itemarray)[selbuffer[i1]]);
 				memcpy(&control->mlbsellist[i2], ((BYTE **) control->itemarray)[selbuffer[i1]], i3);
 			}
 			i2 += i3;
 		}
-		control->mlbsellist[i2] = '\0';
+		control->mlbsellist[i2] = (TCHAR) '\0';
 	}
 	guiFreeMem((ZHANDLE)selbuffer);
 }
@@ -5135,7 +5135,7 @@ void guiaMListboxCreateList(RESOURCE *res, CONTROL *control)
 static INT guiaResCallBack(RESOURCE *res, CONTROL *control, WORD wCmd)
 {
 	INT datasize, selected;
-	CHAR *function, work[64];
+	TCHAR *function, work[64];
 
 	datasize = 0;
 	if (res->cbfnc == NULL) return RC_ERROR;
@@ -5145,7 +5145,7 @@ static INT guiaResCallBack(RESOURCE *res, CONTROL *control, WORD wCmd)
 		function = DBC_MSGITEM;
 		if (control->textval == NULL) datasize = 0;
 		else {
-			datasize = (INT)strlen((CHAR *) control->textval);
+			datasize = (INT)_tcslen((TCHAR *) control->textval);
 			if (datasize) memcpy(cbmsgdata, control->textval, datasize);
 		}
 		break;
@@ -5163,7 +5163,7 @@ static INT guiaResCallBack(RESOURCE *res, CONTROL *control, WORD wCmd)
 	case PANEL_PLEDIT:
 		if (!res->itemmsgs || wCmd != EN_CHANGE) return RC_ERROR;
 		function = DBC_MSGITEM;
-		datasize = GetWindowText(control->ctlhandle, (CHAR *) cbmsgdata, MAXCBMSGSIZE - 17);
+		datasize = GetWindowText(control->ctlhandle, (TCHAR *) cbmsgdata, MAXCBMSGSIZE - 17);
 		break;
 
 	case PANEL_MLISTBOXHS:
@@ -5179,7 +5179,7 @@ static INT guiaResCallBack(RESOURCE *res, CONTROL *control, WORD wCmd)
 				datasize = 5;
 			}
 			else {
-				datasize = (INT)strlen((CHAR *) ((BYTE **) control->itemarray)[selected]);
+				datasize = (INT)_tcslen((TCHAR *) ((BYTE **) control->itemarray)[selected]);
 				if (control->textval != NULL) guiFreeMem(control->textval);
 				if ((control->textval = guiAllocMem(datasize + 1)) == NULL) {
 					sprintf(work, "guiAllocMem failed in %s at PANEL_MLISTBOXx", __FUNCTION__);
@@ -5189,7 +5189,7 @@ static INT guiaResCallBack(RESOURCE *res, CONTROL *control, WORD wCmd)
 				if (datasize) {
 					memcpy(control->textval, ((BYTE **) control->itemarray)[selected], datasize);
 				}
-				control->textval[datasize] = '\0';
+				control->textval[datasize] = (TCHAR) '\0';
 				memcpy(cbmsgdata, control->textval, datasize);
 			}
 		}
@@ -5197,7 +5197,7 @@ static INT guiaResCallBack(RESOURCE *res, CONTROL *control, WORD wCmd)
 			if (!res->itemmsgs) return RC_ERROR;
 			function = DBC_MSGITEM;
 			guiaMListboxCreateList(res, control);
-			datasize = min((INT)strlen((CHAR *) control->mlbsellist), MAXCBMSGSIZE - 17);
+			datasize = min((INT)_tcslen((TCHAR *) control->mlbsellist), MAXCBMSGSIZE - 17);
 			memcpy(cbmsgdata, control->mlbsellist, datasize);
 		}
 		break;
@@ -5233,7 +5233,7 @@ static INT guiaResCallBack(RESOURCE *res, CONTROL *control, WORD wCmd)
 			datasize = 5;
 		}
 		else {
-			datasize = min((INT)strlen((CHAR *) control->textval), MAXCBMSGSIZE - 17);
+			datasize = min((INT)_tcslen((TCHAR *) control->textval), MAXCBMSGSIZE - 17);
 			memcpy(cbmsgdata, control->textval, datasize);
 		}
 		break;
@@ -5294,7 +5294,7 @@ static INT guiaResCallBack(RESOURCE *res, CONTROL *control, WORD wCmd)
  * return 0 if success, RC_? if failure
  */
 static INT setCtlTextBoxSize(RESOURCE *res, CONTROL *control) {
-	LPCSTR string;
+	LPTSTR string;
 	INT iCtrlWidth, iCtrlHeight, iXPos, iYPos, i1;
 	WINDOW *win;
 	RECT rect;
@@ -5337,18 +5337,18 @@ static INT setCtlTextBoxSize(RESOURCE *res, CONTROL *control) {
  *         RC_ERROR if the call to GetTextExtentPoint32 fails
  *         0 if success or if a dc cannot be obtained from the control.
  */
-static INT guiaGetCtlTextBoxSize(CONTROL *ctl, CHAR *text, INT *width, INT *height)
+static INT guiaGetCtlTextBoxSize(CONTROL *ctl, TCHAR *text, INT *width, INT *height)
 {
 	int i1, n1;
 	SIZE size;
 	HWND hwnd;
 	HDC hdc;
 	HFONT hfont;
-	CHAR worktext[256];
+	TCHAR worktext[256];
 
 	hwnd = ctl->ctlhandle;
 	if (text == NULL || width == NULL || height == NULL) return RC_INVALID_VALUE;
-	n1 = (int)strlen(text);
+	n1 = (int)_tcslen(text);
 	if (n1 < 256) {
 		for (i1 = n1 = 0; text[i1]; ) {
 			if (text[i1] == '&' && text[i1 + 1]) i1++;
@@ -5454,7 +5454,7 @@ INT guiaChangeWinTitle(WINDOW *win)
 		guiaErrorMsg("Invalid parameters passed to guiaChangeWinTitle()", GetLastError());
 		return(RC_INVALID_VALUE);
 	}
-	if (!SetWindowText(win->hwnd, (CHAR *) win->title)) {
+	if (!SetWindowText(win->hwnd, (TCHAR *) win->title)) {
 		guiaErrorMsg("Change window text error", GetLastError());
 		return RC_ERROR;
 	}
@@ -5571,7 +5571,7 @@ static HICON createiconfromres(RESOURCE *res, INT large, DWORD *error) {
 	ICONINFO iconinfo;
 	HBITMAP maskbm, iconbm, hbmOldSource, hbmOldDest;
 	HDC sourceDC, destDC, tmpDC;
-	CHAR work[64];
+	TCHAR work[64];
 
 	if (res->restype != RES_TYPE_ICON) {
 		*error = RC_INVALID_PARM;
@@ -5579,7 +5579,7 @@ static HICON createiconfromres(RESOURCE *res, INT large, DWORD *error) {
 	}
 	pImageStorage = guiAllocMem(!large ? 32 : 128);
 	if (pImageStorage == NULL) {
-		sprintf_s(work, ARRAYSIZE(work), "guiAllocMem failed in %s", __FUNCTION__);
+		_stprintf_s(work, ARRAYSIZE(work), "guiAllocMem failed in %s", __FUNCTION__);
 		guiaErrorMsg(work, 0);
 		*error = RC_NO_MEM;
 		return NULL;
@@ -5702,7 +5702,7 @@ INT guiaChangeWinIcon(WINDOW *win, RESOURCE *res)
  *
  * This is done by a desktopicon/dialogicon change operation on the 'application' device.
  */
-INT guiaChangeAppIcon(RESOURCE *res, CHAR *cmd)
+INT guiaChangeAppIcon(RESOURCE *res, TCHAR *cmd)
 {
 	INT large;
 	HICON hicon, ohicon;
@@ -5749,7 +5749,7 @@ INT guiaChangeAppIcon(RESOURCE *res, CHAR *cmd)
 /*
  * change the title of the main application window
  */
-INT guiaChangeAppWinTitle(CHAR *title)
+INT guiaChangeAppWinTitle(TCHAR *title)
 {
 	if (!SetWindowText(hwndmainwin, title)) {
 		guiaErrorMsg("Change application window text error", GetLastError());
@@ -5804,7 +5804,7 @@ INT guiaWinInvalidate(WINDOW *win)
 }
 #endif
 
-INT guiaGetWinText(HWND hwnd, CHAR *title, INT textlen)
+INT guiaGetWinText(HWND hwnd, TCHAR *title, INT textlen)
 {
 	GUIAGETWINTEXT gwtGetWinTextStruct;
 
@@ -5903,16 +5903,16 @@ INT guiaChangeMenu(RESOURCE *res, MENUENTRY *pMenuItem, INT iCmd)
 {
 	INT menutxtlen, iCurMenuPos;
 	WINDOW *win;
-	CHAR *MenuBuffer;
+	TCHAR *MenuBuffer;
 	MENUENTRY *pCurMenuItem;
 	MENUENTRY *pMenuItemIdx;
 	INT curentry, begin, i1;
 	MENUITEMINFO mii;
-	CHAR work[64];
+	TCHAR work[64];
 	ZHANDLE zhMB = NULL;
 
 	if (res == NULL || res->winshow == NULL) {
-		sprintf_s(work, ARRAYSIZE(work), "Invalid menu resource passed to %s", __FUNCTION__);
+		_stprintf_s(work, ARRAYSIZE(work), "Invalid menu resource passed to %s", __FUNCTION__);
 		guiaErrorMsg(work, 0);
 		return RC_INVALID_VALUE;
 	}
@@ -5950,16 +5950,16 @@ INT guiaChangeMenu(RESOURCE *res, MENUENTRY *pMenuItem, INT iCmd)
 		mii.fType = MFT_STRING;
 		if (pMenuItem->speedkey) {
 			/* add speed keys to menu item text */
-			menutxtlen = (INT)strlen((CHAR *) pMenuItem->text);
+			menutxtlen = (INT)_tcslen((TCHAR *) pMenuItem->text);
 			/* 15 is added here for accelerator key text like CTRL-A .. CTRL-Z, F1 .. F10, PgUp, Insert, etc. */
-			zhMB = guiAllocMem(menutxtlen + 15 * sizeof(CHAR));
+			zhMB = guiAllocMem(menutxtlen + 15 * sizeof(TCHAR));
 			if (zhMB == NULL) {
-				sprintf_s(work, ARRAYSIZE(work), "guiAllocMem failed in %s at GUI_TEXT", __FUNCTION__);
+				_stprintf_s(work, ARRAYSIZE(work), "guiAllocMem failed in %s at GUI_TEXT", __FUNCTION__);
 				guiaErrorMsg(work, 0);
 				return RC_NO_MEM;
 			}
-			MenuBuffer = (CHAR *) guiLockMem(zhMB);
-			strcpy(MenuBuffer, pMenuItem->text);
+			MenuBuffer = (TCHAR *) guiLockMem(zhMB);
+			_tcscpy(MenuBuffer, pMenuItem->text);
 			MenuBuffer[menutxtlen] = '\t';
 			i1 = speedKeyText(pMenuItem, MenuBuffer, menutxtlen);
 			if (i1) {
@@ -5970,7 +5970,7 @@ INT guiaChangeMenu(RESOURCE *res, MENUENTRY *pMenuItem, INT iCmd)
 			mii.dwTypeData = MenuBuffer;
 		}
 		else {
-			mii.dwTypeData = (CHAR*) pMenuItem->text;
+			mii.dwTypeData = (TCHAR*) pMenuItem->text;
 		}
 		SetMenuItemInfo(pMenuItem->menuhandle, iCurMenuPos, TRUE, &mii);
 		if (zhMB != NULL) {
@@ -6038,22 +6038,22 @@ INT guiaShowOpenDirDlg(RESOURCE *res)
 {
 	DIRDLGINFO dirinfo;
 	WINDOW *win;
-	CHAR data[MAX_PATH], work[64];
+	TCHAR data[MAX_PATH], work[64];
 	INT i1;
 
-	memset(data, '\0', sizeof(CHAR) * MAX_PATH);
+	memset(data, '\0', sizeof(TCHAR) * MAX_PATH);
 	memset(&dirinfo, 0, sizeof(dirinfo));
 	win = *res->winshow;
 	dirinfo.dirstruct.hwndOwner = win->hwnd;
 	dirinfo.dirstruct.pidlRoot = NULL;
 	dirinfo.dirstruct.pszDisplayName = data;
-	if (res->title != NULL) dirinfo.dirstruct.lpszTitle = (LPCSTR) guiLockMem(res->title);
-	else dirinfo.dirstruct.lpszTitle = (LPCSTR) NULL;
+	if (res->title != NULL) dirinfo.dirstruct.lpszTitle = (LPTSTR) guiLockMem(res->title);
+	else dirinfo.dirstruct.lpszTitle = (LPTSTR) NULL;
 	dirinfo.dirstruct.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE | BIF_NONEWFOLDERBUTTON;
 	if (res->content != NULL) dirinfo.pszStartDir = (LPSTR) guiLockMem(res->content);
 	else dirinfo.pszStartDir = (LPSTR) NULL;
-	if (res->deviceFilters != NULL) dirinfo.deviceFilters = (LPCSTR) guiLockMem(res->deviceFilters);
-	else dirinfo.deviceFilters = (LPCSTR) NULL;
+	if (res->deviceFilters != NULL) dirinfo.deviceFilters = (LPTSTR) guiLockMem(res->deviceFilters);
+	else dirinfo.deviceFilters = (LPTSTR) NULL;
 	commonDlgFlag = TRUE;
 	SendMessage(hwndmainwin, GUIAM_DIRDLG, 0, (LPARAM) &dirinfo);
 	pvistart(); /* hack - because SendMessage could return too soon - SSN */
@@ -6071,8 +6071,8 @@ INT guiaShowOpenDirDlg(RESOURCE *res)
 		guiUnlockMem(res->title);
 	}
 	if (dirinfo.retcode) {
-		i1 = (INT)strlen(data);
-		strcpy((CHAR *) cbmsgdata, data);
+		i1 = (INT)_tcslen(data);
+		_tcscpy((TCHAR *) cbmsgdata, data);
 		if (res->content == NULL) {
 			res->content = guiAllocMem(i1 + 1);
 			if (res->content == NULL) {
@@ -6089,7 +6089,7 @@ INT guiaShowOpenDirDlg(RESOURCE *res)
 				return RC_NO_MEM;
 			}
 		}
-		strcpy((CHAR *) guiMemToPtr(res->content), data);
+		_tcscpy((TCHAR *) guiMemToPtr(res->content), data);
 		rescb(res, DBC_MSGOK, 0, i1);
 	}
 	else {
@@ -6111,10 +6111,10 @@ INT guiaShowOpenFileDlg(RESOURCE *res)
 	FILEDLGINFO fileinfo;
 	WINDOW *win;
 	INT i1;
-	CHAR *p1, *p2;
-	CHAR *data, work[64];
+	TCHAR *p1, *p2;
+	TCHAR *data, work[64];
 
-	data = (CHAR *) guiAllocMem(MAXCbMSGFILE);
+	data = (TCHAR *) guiAllocMem(MAXCbMSGFILE);
 	if (data == NULL) {
 		sprintf(work, "guiAllocMem returned Null in %s", __FUNCTION__);
 		guiaErrorMsg(work, 0);
@@ -6126,9 +6126,9 @@ INT guiaShowOpenFileDlg(RESOURCE *res)
 	fileinfo.ofnstruct.hwndOwner = win->hwnd;
 	/* The extra zero at the end of the filter string is necessary */
 	if (res->namefilter == NULL)
-		fileinfo.ofnstruct.lpstrFilter = (LPCSTR) "All Files\0*.*\0";
+		fileinfo.ofnstruct.lpstrFilter = (LPTSTR) "All Files\0*.*\0";
 	else {
-		fileinfo.ofnstruct.lpstrFilter = (LPCSTR) guiLockMem(res->namefilter);
+		fileinfo.ofnstruct.lpstrFilter = (LPTSTR) guiLockMem(res->namefilter);
 	}
 	fileinfo.ofnstruct.lpstrCustomFilter = NULL;
 	fileinfo.ofnstruct.lpstrFile = data;
@@ -6147,26 +6147,26 @@ INT guiaShowOpenFileDlg(RESOURCE *res)
 #if DX_MAJOR_VERSION >= 17
 	if (res->openFileDlgMultiSelect) fileinfo.ofnstruct.Flags |= OFN_ALLOWMULTISELECT;
 #endif
-	fileinfo.ofnstruct.lpstrDefExt = (LPCSTR) "txt";
+	fileinfo.ofnstruct.lpstrDefExt = (LPTSTR) "txt";
 	fileinfo.ofnstruct.lpfnHook = guiaCommonDlgProcOne;
 	fileinfo.ofnstruct.lStructSize = sizeof(OPENFILENAME);
 	if (res->content != NULL) {
-		p2 = (CHAR *) res->content + strlen((CHAR *) res->content);
-		while (p2 != (CHAR *) res->content && *p2 != '\\' && *p2 != '/' && *p2 != ':') p2--;
-		if (p2 != (CHAR *) res->content) p2++;
-		p1 = (CHAR *) data;
+		p2 = (TCHAR *) res->content + _tcslen((TCHAR *) res->content);
+		while (p2 != (TCHAR *) res->content && *p2 != '\\' && *p2 != '/' && *p2 != ':') p2--;
+		if (p2 != (TCHAR *) res->content) p2++;
+		p1 = (TCHAR *) data;
 		StringCbCopy(p1, MAXCbMSGFILE, p2);
-		//strcpy(p1, p2);
-		if (p2 != (CHAR *) res->content) {
+		//_tcscpy(p1, p2);
+		if (p2 != (TCHAR *) res->content) {
 			ptrdiff_t pdiff;
-			p1 += strlen(p1) + 1;
-			pdiff = p2 - (CHAR *) res->content;
-			memcpy((CHAR *) p1, res->content, pdiff);
-			p1[pdiff] = '\0';
+			p1 += _tcslen(p1) + 1;
+			pdiff = p2 - (TCHAR *) res->content;
+			memcpy((TCHAR *) p1, res->content, pdiff);
+			p1[pdiff] = (TCHAR) '\0';
 			fileinfo.ofnstruct.lpstrInitialDir = p1;
 		}
 	}
-	else data[0] = '\0';
+	else data[0] = (TCHAR) '\0';
 	commonDlgFlag = TRUE;
 	SendMessage(hwndmainwin, GUIAM_OPENDLG, 0, (LPARAM) &fileinfo);
 	pvistart(); /* hack - because SendMessage could return too soon - SSN */
@@ -6188,9 +6188,9 @@ INT guiaShowOpenFileDlg(RESOURCE *res)
 		 */
 
 		// User specified a file name and clicked the OK button
-		i1 = (INT)strlen(data);
+		i1 = (INT)_tcslen(data);
 		StringCbCopy((LPSTR)cbmsgdata, MAXCBMSGSIZE - 17, data);
-		//strcpy((CHAR *) cbmsgdata, data);
+		//_tcscpy((TCHAR *) cbmsgdata, data);
 		if (res->content == NULL) {
 			res->content = guiAllocMem(i1 + 1);
 			if (res->content == NULL) {
@@ -6208,7 +6208,7 @@ INT guiaShowOpenFileDlg(RESOURCE *res)
 			}
 		}
 		StringCbCopy(guiMemToPtr(res->content), i1 + 1, data);
-		//strcpy((CHAR *) res->content, data);
+		//_tcscpy((TCHAR *) res->content, data);
 		rescb(res, DBC_MSGOK, 0, i1);
 	}
 	else {
@@ -6236,9 +6236,9 @@ INT guiaShowSaveAsFileDlg(RESOURCE *res)
 	FILEDLGINFO fileinfo;
 	WINDOW *win;
 	INT i1, i2;
-	CHAR *data, *p1, *ptr, work[64];
+	TCHAR *data, *p1, *ptr, work[64];
 
-	data = (CHAR *) guiAllocMem(MAXCbMSGFILE);
+	data = (TCHAR *) guiAllocMem(MAXCbMSGFILE);
 	if (data == NULL) {
 		sprintf(work, "guiAllocMem returned Null in %s", __FUNCTION__);
 		guiaErrorMsg(work, 0);
@@ -6250,33 +6250,33 @@ INT guiaShowSaveAsFileDlg(RESOURCE *res)
 	fileinfo.ofnstruct.hwndOwner = win->hwnd;
 	/* The extra zero at the end of the filter string is necessary */
 	if (res->namefilter == NULL)
-		fileinfo.ofnstruct.lpstrFilter = (LPCSTR) "All Files\0*.*\0";
+		fileinfo.ofnstruct.lpstrFilter = (LPTSTR) "All Files\0*.*\0";
 	else {
-		fileinfo.ofnstruct.lpstrFilter = (LPCSTR) guiLockMem(res->namefilter);
+		fileinfo.ofnstruct.lpstrFilter = (LPTSTR) guiLockMem(res->namefilter);
 	}
 	fileinfo.ofnstruct.lpstrFile = data;
 	fileinfo.ofnstruct.nMaxFile = MAXCbMSGFILE;
 	fileinfo.ofnstruct.Flags = OFN_NOCHANGEDIR | OFN_ENABLEHOOK | OFN_EXPLORER | OFN_HIDEREADONLY
 			| OFN_ENABLESIZING;
-	fileinfo.ofnstruct.lpstrDefExt = (LPCSTR) "txt";
+	fileinfo.ofnstruct.lpstrDefExt = (LPTSTR) "txt";
 	fileinfo.ofnstruct.lpfnHook = guiaCommonDlgProcOne;
 	fileinfo.ofnstruct.lStructSize = sizeof(OPENFILENAME);
 	if (res->content != NULL) {
-		ptr = (CHAR *)(res->content + strlen((CHAR *) res->content));
-		while (ptr != (CHAR *) res->content && *ptr != '\\' && *ptr != '/' && *ptr != ':') ptr--;
-		if (ptr != (CHAR *) res->content) ptr++;
+		ptr = (TCHAR *)(res->content + _tcslen((TCHAR *) res->content));
+		while (ptr != (TCHAR *) res->content && *ptr != '\\' && *ptr != '/' && *ptr != ':') ptr--;
+		if (ptr != (TCHAR *) res->content) ptr++;
 		p1 = data;
-		strcpy(p1, ptr);
-		if (ptr != (CHAR *) res->content) {
+		_tcscpy(p1, ptr);
+		if (ptr != (TCHAR *) res->content) {
 			ptrdiff_t pdiff;
-			p1 += strlen(p1) + 1;
-			pdiff = ptr - (CHAR *) res->content;
+			p1 += _tcslen(p1) + 1;
+			pdiff = ptr - (TCHAR *) res->content;
 			memcpy(p1, res->content, pdiff);
-			p1[pdiff] = '\0';
+			p1[pdiff] = (TCHAR) '\0';
 			fileinfo.ofnstruct.lpstrInitialDir = p1;
 		}
 	}
-	else data[0] = '\0';
+	else data[0] = (TCHAR) '\0';
 	commonDlgFlag = TRUE;
 	SendMessage(hwndmainwin, GUIAM_SAVEDLG, 0, (LPARAM) &fileinfo);
 	pvistart(); /* hack - because SendMessage could return too soon - SSN */
@@ -6288,15 +6288,15 @@ INT guiaShowSaveAsFileDlg(RESOURCE *res)
 		res->namefilter = NULL;
 	}
 	if (fileinfo.retcode) {
-		i1 = (INT)strlen(data);
+		i1 = (INT)_tcslen(data);
 /*** CODE: THIS FIXES BUG UNDER WIN95 OF ALWAYS ADDING DEF EXTENSION TO NAME ***/
 		ptr = data;
-		strcpy((CHAR *) &cbmsg[17], data);
+		_tcscpy((TCHAR *) &cbmsg[17], data);
 		if (i1 > 4 && !strcmp(&ptr[i1 - 4], ".txt")) {
 			for (i2 = i1 - 5; i2 >= 0 && ptr[i2] != '.' && ptr[i2] != '\\' && ptr[i2] != '/' && ptr[i2] != ':'; i2--);
 			if (i2 >= 0 && ptr[i2] == '.') {
 				i1 -= 4;
-				ptr[i1] = '\0';
+				ptr[i1] = (TCHAR) '\0';
 			}
 		}
 		if (res->content == NULL) {
@@ -6338,7 +6338,7 @@ INT guiaShowFontDlg(RESOURCE *res)
 {
 	WINDOW *win;
 	INT i1;
-	CHAR *p1;
+	TCHAR *p1;
 	CHOOSEFONT choosefont;
 	LOGFONT logfont;
 	HDC hDC;
@@ -6355,20 +6355,20 @@ INT guiaShowFontDlg(RESOURCE *res)
 
 	if (res->content != NULL) {
 		memset(&logfont, 0, sizeof(logfont));
-		p1 = (CHAR *) res->content;
+		p1 = (TCHAR *) res->content;
 		while (*p1 == ' ') p1++;
 		StringCbCopy((LPSTR)cbmsgdata, MAXCBMSGSIZE - 17, p1);
-		//strcpy((CHAR *) cbmsgdata, p1);
+		//_tcscpy((TCHAR *) cbmsgdata, p1);
 		if (cbmsgdata[0]) {
-			for (p1 = (CHAR *) cbmsgdata; *p1 && *p1 != '('; p1++);
+			for (p1 = (TCHAR *) cbmsgdata; *p1 && *p1 != '('; p1++);
 			if (*p1 != '(') {
-				StringCbCopy(logfont.lfFaceName, ARRAYSIZE(logfont.lfFaceName), (LPCSTR)cbmsgdata);
-				//strcpy(logfont.lfFaceName, (CHAR *) cbmsgdata);
+				StringCbCopy(logfont.lfFaceName, ARRAYSIZE(logfont.lfFaceName), (LPTSTR)cbmsgdata);
+				//_tcscpy(logfont.lfFaceName, (TCHAR *) cbmsgdata);
 			}
 			else {
-				*p1++ = '\0';
-				StringCbCopy(logfont.lfFaceName, ARRAYSIZE(logfont.lfFaceName), (LPCSTR)cbmsgdata);
-				//strcpy(logfont.lfFaceName, (CHAR *) cbmsgdata);
+				*p1++ = (TCHAR) '\0';
+				StringCbCopy(logfont.lfFaceName, ARRAYSIZE(logfont.lfFaceName), (LPTSTR)cbmsgdata);
+				//_tcscpy(logfont.lfFaceName, (TCHAR *) cbmsgdata);
 				while (*p1 != ')') {
 					while (*p1 == ',' || *p1 == ' ') p1++;
 					if (!guiamemicmp((BYTE *) p1, (BYTE *) "BOLD", 4)) {
@@ -6401,27 +6401,27 @@ nofontinit:
 	if (SendMessage(hwndmainwin, GUIAM_CHOOSEFONT, 0, (LPARAM) &choosefont)) {
 		commonDlgFlag = FALSE;
 		rc = 0;
-		p1 = (CHAR *) cbmsgdata;
-		strcpy(p1, logfont.lfFaceName);
-		p1 += strlen(p1);
+		p1 = (TCHAR *) cbmsgdata;
+		_tcscpy(p1, logfont.lfFaceName);
+		p1 += _tcslen(p1);
 		*p1++ = '(';
 		if (choosefont.iPointSize > 99) *p1++ = (choosefont.iPointSize / 100) + '0';
 		*p1++ = (choosefont.iPointSize % 100) / 10 + '0';
 		if (logfont.lfWeight >= FW_BOLD) {
-			strcpy(p1, ", BOLD");
+			_tcscpy(p1, ", BOLD");
 			p1 += 6;
 		}
 		if (logfont.lfItalic) {
-			strcpy(p1, ", ITALIC");
+			_tcscpy(p1, ", ITALIC");
 			p1 += 8;
 		}
 		if (logfont.lfUnderline) {
-			strcpy(p1, ", UNDERLINE");
+			_tcscpy(p1, ", UNDERLINE");
 			p1 += 11;
 		}
 		*p1++ = ')';
 		*p1 = 0;
-		rescb(res, DBC_MSGOK, 0, (INT)strlen((CHAR *) cbmsgdata));
+		rescb(res, DBC_MSGOK, 0, (INT)_tcslen((TCHAR *) cbmsgdata));
 	}
 	else {
 		commonDlgFlag = FALSE;
@@ -6954,7 +6954,7 @@ INT guiaChangeDlgTitle(RESOURCE *res)
 		guiaErrorMsg("Invalid parameter passed to guiaChangeDlgTitle()", 0);
 		return(RC_INVALID_VALUE);
 	}
-	if (!SetWindowText(res->hwnd, (CHAR *) res->title)) {
+	if (!SetWindowText(res->hwnd, (TCHAR *) res->title)) {
 		guiaErrorMsg("Change dialog text error", GetLastError());
 		return RC_ERROR;
 	}
@@ -7021,7 +7021,7 @@ static void guiaSetTabs(CONTROL *control)
 	INT tabstops[MAXBOXTABS];
 	INT i1, i2, avewidth;
 	HDC fhdc;
-	CHAR * meas = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	TCHAR * meas = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	SIZE size;
 
 	tabsptr = (INT *) control->listboxtabs;
@@ -7059,7 +7059,7 @@ void guiaChangeTableMinsert(RESOURCE *res, CONTROL* control, UCHAR** stringArray
  * Handle the GUI_INSERT change function to a dropbox or cdropbox column
  * in a table.
  */
-static void guiaChangeTableInsert(CONTROL* control, CHAR* string) {
+static void guiaChangeTableInsert(CONTROL* control, TCHAR* string) {
 	PTABLECOLUMN tblColumns;
 	ZHANDLE zh;
 	PTABLECELL cell;
@@ -7094,21 +7094,21 @@ static void guiaChangeTableInsert(CONTROL* control, CHAR* string) {
 	if (tblColumns[column].insertorder) {
 		switch (insstyle) {
 		case LIST_INSERTNORMAL:
-			SendMessage(control->ctlhandle, CB_ADDSTRING, 0L, (LPARAM)(LPCSTR)string);
+			SendMessage(control->ctlhandle, CB_ADDSTRING, 0L, (LPARAM)(LPTSTR)string);
  			//ComboBox_AddString(control->ctlhandle, string);
 			break;
 		case LIST_INSERTBEFORE:
-			SendMessage(control->ctlhandle, CB_INSERTSTRING, (WPARAM)(int)control->value3 - 1, (LPARAM)(LPCSTR)string);
+			SendMessage(control->ctlhandle, CB_INSERTSTRING, (WPARAM)(int)control->value3 - 1, (LPARAM)(LPTSTR)string);
  			//ComboBox_InsertString(control->ctlhandle, control->value3 - 1, string);
 			break;
 		case LIST_INSERTAFTER:
-			SendMessage(control->ctlhandle, CB_INSERTSTRING, (WPARAM)(int)control->value3, (LPARAM)(LPCSTR)string);
+			SendMessage(control->ctlhandle, CB_INSERTSTRING, (WPARAM)(int)control->value3, (LPARAM)(LPTSTR)string);
  			//ComboBox_InsertString(control->ctlhandle, control->value3, string);
 			break;
 		}
 	}
 	else {
-		SendMessage(control->ctlhandle, CB_ADDSTRING, 0L, (LPARAM)(LPCSTR)string);
+		SendMessage(control->ctlhandle, CB_ADDSTRING, 0L, (LPARAM)(LPTSTR)string);
 		//ComboBox_AddString(control->ctlhandle, string);
 	}
  	guiUnlockMem(control->table.columns);
@@ -7256,8 +7256,8 @@ static INT guiaChangeTree(RESOURCE *res, CONTROL *control, INT iCmd) {
 	RESOURCE* resicon;
 	TREESTRUCT *ptree, *ctree, *ntree;
 	TVINSERTSTRUCT tvins;
-	TVITEMEXA tvitem;
-	CHAR work[128];
+	TVITEMEX tvitem;
+	TCHAR work[128];
 	HICON hicon;
 	RECT rect;
 	USHORT usItemPos;
@@ -7353,7 +7353,7 @@ static INT guiaChangeTree(RESOURCE *res, CONTROL *control, INT iCmd) {
 			/* image not found */
 			ntreeicon = (TREEICONSTRUCT *) guiAllocMem(sizeof(TREEICONSTRUCT));
 			if (ntreeicon == NULL ) {
-				sprintf_s(work, ARRAYSIZE(work), "guiAllocMem returned Null in %s at GUI_ICON", __FUNCTION__);
+				_stprintf_s(work, ARRAYSIZE(work), _T("guiAllocMem returned Null in %s at GUI_ICON"), __FUNCTION__);
 				guiaErrorMsg(work, sizeof(TREEICONSTRUCT));
 				return RC_NO_MEM;
 			}
@@ -7374,8 +7374,8 @@ static INT guiaChangeTree(RESOURCE *res, CONTROL *control, INT iCmd) {
 	case GUI_INSERT:
 		ptree = (TREESTRUCT *) guiAllocMem(sizeof(TREESTRUCT));
 		if (ptree == NULL) {
-			sprintf_s(work, ARRAYSIZE(work),
-					"guiAllocMem returned Null in %s at GUI_INSERT (ptree)", __FUNCTION__);
+			_stprintf_s(work, ARRAYSIZE(work),
+					_T("guiAllocMem returned Null in %s at GUI_INSERT (ptree)"), __FUNCTION__);
 			guiaErrorMsg(work, 0);
 			return RC_NO_MEM;
 		}
@@ -7384,7 +7384,7 @@ static INT guiaChangeTree(RESOURCE *res, CONTROL *control, INT iCmd) {
 		ZeroMemory(&tvins, sizeof(TVINSERTSTRUCT));
 		tvitem.mask = TVIF_CHILDREN | TVIF_TEXT | TVIF_STATE;
 		tvitem.cChildren = 0;
-		tvitem.pszText = (CHAR *) control->changetext;
+		tvitem.pszText = (TCHAR *) control->changetext;
 		tvitem.stateMask = TVIS_STATEIMAGEMASK;
 		tvitem.state = INDEXTOSTATEIMAGEMASK(0); /* no image */
 		tvins.itemex = tvitem;
@@ -7409,25 +7409,25 @@ static INT guiaChangeTree(RESOURCE *res, CONTROL *control, INT iCmd) {
 			ptree->nextchild = control->tree.cpos->nextchild;
 		}
 		if (++control->tree.line > 1) control->tree.cpos->nextchild = ptree;
-		strncpy(ptree->text, (CHAR *) control->changetext, TREEVIEW_ITEM_MAX_SIZE - 2);
-		ptree->text[TREEVIEW_ITEM_MAX_SIZE - 1] = '\0';
+		strncpy(ptree->text, (TCHAR *) control->changetext, TREEVIEW_ITEM_MAX_SIZE - 2);
+		ptree->text[TREEVIEW_ITEM_MAX_SIZE - 1] = (TCHAR) '\0';
 		control->tree.cpos = ptree;
 		break;
 
 	case GUI_INSERTAFTER:
 		if (control->changetext == NULL) break;
-		if (!strlen((CHAR *) control->changetext)) break;
+		if (!_tcslen((TCHAR *) control->changetext)) break;
 		ptree = (TREESTRUCT *) guiAllocMem(sizeof(TREESTRUCT));
 		if (ptree == NULL) {
-			sprintf_s(work, ARRAYSIZE(work),
-					"guiAllocMem returned Null in %s at GUI_INSERTAFTER (ptree)", __FUNCTION__);
+			_stprintf_s(work, ARRAYSIZE(work),
+					_T("guiAllocMem returned Null in %s at GUI_INSERTAFTER (ptree)"), __FUNCTION__);
 			guiaErrorMsg(work, 0);
 			return RC_NO_MEM;
 		}
 		ZeroMemory(ptree, sizeof(TREESTRUCT));
 		tvitem.mask = TVIF_CHILDREN | TVIF_TEXT | TVIF_STATE;
 		tvitem.cChildren = 0;
-		tvitem.pszText = (CHAR *) control->changetext;
+		tvitem.pszText = (TCHAR *) control->changetext;
 		tvitem.stateMask = TVIS_STATEIMAGEMASK;
 		tvitem.state = INDEXTOSTATEIMAGEMASK(0); /* no image */
 		tvins.itemex = tvitem;
@@ -7455,18 +7455,18 @@ static INT guiaChangeTree(RESOURCE *res, CONTROL *control, INT iCmd) {
 			}
 		}
 		if (++control->tree.line > 1) control->tree.cpos->nextchild = ptree;
-		strncpy(ptree->text, (CHAR *) control->changetext, TREEVIEW_ITEM_MAX_SIZE - 2);
-		ptree->text[TREEVIEW_ITEM_MAX_SIZE - 1] = '\0';
+		strncpy(ptree->text, (TCHAR *) control->changetext, TREEVIEW_ITEM_MAX_SIZE - 2);
+		ptree->text[TREEVIEW_ITEM_MAX_SIZE - 1] = (TCHAR) '\0';
 		control->tree.cpos = ptree;
 		break;
 
 	case GUI_INSERTBEFORE:
 		if (control->changetext == NULL) break;
-		if (!strlen((CHAR *) control->changetext)) break;
+		if (!_tcslen((TCHAR *) control->changetext)) break;
 		ptree = (TREESTRUCT *) guiAllocMem(sizeof(TREESTRUCT));
 		if (ptree == NULL) {
-			sprintf_s(work, ARRAYSIZE(work),
-					"guiAllocMem returned Null in %s at GUI_INSERTBEFORE (ptree)", __FUNCTION__);
+			_stprintf_s(work, ARRAYSIZE(work),
+					_T("guiAllocMem returned Null in %s at GUI_INSERTBEFORE (ptree)"), __FUNCTION__);
 			guiaErrorMsg(work, 0);
 			return RC_NO_MEM;
 		}
@@ -7475,7 +7475,7 @@ static INT guiaChangeTree(RESOURCE *res, CONTROL *control, INT iCmd) {
 		tvitem.cChildren = 0;
 		tvitem.stateMask = TVIS_STATEIMAGEMASK;
 		tvitem.state = INDEXTOSTATEIMAGEMASK(0); /* no image */
-		tvitem.pszText = (CHAR *) control->changetext;
+		tvitem.pszText = (TCHAR *) control->changetext;
 		tvins.itemex = tvitem;
 		if (control->tree.cpos == NULL) {
 			tvins.hInsertAfter = TVI_FIRST;
@@ -7509,8 +7509,8 @@ static INT guiaChangeTree(RESOURCE *res, CONTROL *control, INT iCmd) {
 			control->tree.cpos->firstchild = ptree;
 		}
 		control->tree.line = 1;
-		strncpy(ptree->text, (CHAR *) control->changetext, TREEVIEW_ITEM_MAX_SIZE - 2);
-		ptree->text[TREEVIEW_ITEM_MAX_SIZE - 1] = '\0';
+		strncpy(ptree->text, (TCHAR *) control->changetext, TREEVIEW_ITEM_MAX_SIZE - 2);
+		ptree->text[TREEVIEW_ITEM_MAX_SIZE - 1] = (TCHAR) '\0';
 		control->tree.cpos = ptree;
 		break;
 
@@ -7520,7 +7520,7 @@ static INT guiaChangeTree(RESOURCE *res, CONTROL *control, INT iCmd) {
 		if (control->tree.level == 0) ptree = control->tree.root;
 		else ptree = control->tree.parent->firstchild;
 		while (ptree != NULL) {
-			if (!strcmp((CHAR *)control->changetext, ptree->text)) {
+			if (!strcmp((TCHAR *)control->changetext, ptree->text)) {
 				// Set ptree for use lower down in this function
 				if (iCmd == GUI_TEXTCOLORDATA) {
 					ptree->color = control->changecolor;
@@ -7627,7 +7627,7 @@ static INT guiaChangeTree(RESOURCE *res, CONTROL *control, INT iCmd) {
 				if (resicon->hsize != 16 || resicon->vsize != 16) return(RC_INVALID_VALUE);
 				hicon = createiconfromres(resicon, FALSE, &error);
 				if (hicon == NULL) {
-					guiaErrorMsg("Change tree icon error occured", error);
+					guiaErrorMsg(_T("Change tree icon error occured"), error);
 					return RC_ERROR;
 				}
 				if (ImageList_AddIcon(imagelist, hicon) < 0) return RC_ERROR;
@@ -7675,7 +7675,7 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 {
 	GUIAEXWINCREATESTRUCT ecsExtWinCreate;
 	WINDOW *win;
-	CHAR *origString, *thistabString, *cutString, work[128];
+	TCHAR *origString, *thistabString, *cutString, work[128];
 	BYTE *text;
 	INT iItemPos;
 	INT i1, i2, iMoveCnt, iResult, iLen, ptmp, thistabPos, cutPos, tabcount, changelen;
@@ -7693,7 +7693,7 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 	SIZE tabsize, size;
 	HDC fhdc;
 	TCITEM tcitem;
-	LPCSTR string;
+	LPTSTR string;
 
 	if (res == NULL || control == NULL) return(RC_INVALID_VALUE);
 
@@ -7719,34 +7719,34 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 		if (control->type == PANEL_FEDIT) {
 			pvistart(); /* control->changetext could be modified at same time in guiaControlProc */
 			/* control->changetext holds the new value of the mask, so copy it to control->mask */
-			control->mask = guiReallocMem(control->mask, (INT)(strlen((CHAR *)control->changetext) + 1) * sizeof(ZHANDLE));
+			control->mask = guiReallocMem(control->mask, (INT)(_tcslen((TCHAR *)control->changetext) + 1) * sizeof(ZHANDLE));
 			if (control->mask == NULL) {
 				pviend();
-				sprintf_s(work, ARRAYSIZE(work), "guiReallocMem returned a null in %s at GUI_FEDITMASK", __FUNCTION__);
+				_stprintf_s(work, ARRAYSIZE(work), "guiReallocMem returned a null in %s at GUI_FEDITMASK", __FUNCTION__);
 				guiaErrorMsg(work, 0);
 				return RC_NO_MEM;
 			}
-			strcpy((CHAR *)control->mask, (CHAR *)control->changetext);
+			_tcscpy((TCHAR *)control->mask, (TCHAR *)control->changetext);
 			/* control->changetext must now hold text of the FEDIT for guiFEditMaskText(), which is in control->textval */
 			control->changetext = guiReallocMem(control->changetext,
-					(INT)(strlen((CHAR *)control->textval) + 1) * sizeof(ZHANDLE));
+					(INT)(_tcslen((TCHAR *)control->textval) + 1) * sizeof(ZHANDLE));
 			if (control->changetext == NULL) {
 				pviend();
-				sprintf_s(work, ARRAYSIZE(work), "guiReallocMem returned a null in %s at GUI_FEDITMASK", __FUNCTION__);
+				_stprintf_s(work, ARRAYSIZE(work), "guiReallocMem returned a null in %s at GUI_FEDITMASK", __FUNCTION__);
 				guiaErrorMsg(work, 0);
 				return RC_NO_MEM;
 			}
-			strcpy((CHAR *)control->changetext, (CHAR *)control->textval);
+			_tcscpy((TCHAR *)control->changetext, (TCHAR *)control->textval);
 			/* control->textval must be empty string for guiaFEditMaskText() call */
-			control->textval[0] = '\0';
-			guiaFEditMaskText((CHAR *) control->changetext, (CHAR *) control->mask, (CHAR *) control->textval);
+			control->textval[0] = (TCHAR) '\0';
+			guiaFEditMaskText((TCHAR *) control->changetext, (TCHAR *) control->mask, (TCHAR *) control->textval);
 			pviend();
 		}
 		break;
 	case GUI_TEXT:
 		if (control->type == PANEL_FEDIT) {
 			pvistart(); /* control->changetext could be modified at same time in guiaControlProc */
-			guiaFEditMaskText((CHAR *) control->changetext, (CHAR *) control->mask, (CHAR *) control->textval);
+			guiaFEditMaskText((TCHAR *) control->changetext, (TCHAR *) control->mask, (TCHAR *) control->textval);
 			pviend();
 		}
 		break;
@@ -7828,12 +7828,12 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 		/* locate insert position */
 		tabsptr = (INT *) control->listboxtabs;
 		if (control->changetext == NULL) return 0;
-		changelen = iLen = (INT)strlen((CHAR *) control->changetext);
+		changelen = iLen = (INT)_tcslen((TCHAR *) control->changetext);
 		if (!iLen) return (0);
 
-		origString = (CHAR *) guiAllocString((BYTE *) control->changetext, iLen);
+		origString = (TCHAR *) guiAllocString((BYTE *) control->changetext, iLen);
 		if (origString == NULL) {
-			sprintf_s(work, ARRAYSIZE(work), "guiAllocString failed in %s at GUI_INSERT (origString)", __FUNCTION__);
+			_stprintf_s(work, ARRAYSIZE(work), "guiAllocString failed in %s at GUI_INSERT (origString)", __FUNCTION__);
 			guiaErrorMsg(work, iLen);
 			return RC_NO_MEM;
 		}
@@ -7841,18 +7841,18 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 		cutPos=0;
 		tabcount=0;
 		if (tabsptr != NULL) {
-			thistabString = (CHAR *) guiAllocMem((INT)strlen((CHAR *) control->changetext) + 1);
+			thistabString = (TCHAR *) guiAllocMem((INT)_tcslen((TCHAR *) control->changetext) + 1);
 			if (thistabString == NULL) {
 				guiFreeMem((ZHANDLE) origString);
-				sprintf_s(work, ARRAYSIZE(work), "guiAllocMem returned Null in %s at GUI_INSERT (thistabString)", __FUNCTION__);
+				_stprintf_s(work, ARRAYSIZE(work), "guiAllocMem returned Null in %s at GUI_INSERT (thistabString)", __FUNCTION__);
 				guiaErrorMsg(work, 0);
 				return RC_NO_MEM;
 			}
-			cutString = (CHAR *) guiAllocMem((INT)strlen((CHAR *) control->changetext) + 1);
+			cutString = (TCHAR *) guiAllocMem((INT)_tcslen((TCHAR *) control->changetext) + 1);
 			if (cutString == NULL) {
 				guiFreeMem((ZHANDLE) origString);
 				guiFreeMem((ZHANDLE) thistabString);
-				sprintf_s(work, ARRAYSIZE(work), "guiAllocMem returned Null in %s at GUI_INSERT (cutString)", __FUNCTION__);
+				_stprintf_s(work, ARRAYSIZE(work), "guiAllocMem returned Null in %s at GUI_INSERT (cutString)", __FUNCTION__);
 				guiaErrorMsg(work, 0);
 				return RC_NO_MEM;
 			}
@@ -7893,10 +7893,10 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 			ReleaseDC(NULL, fhdc);
 		}
 		else {
-			cutString = (CHAR *) guiAllocString((BYTE *) control->changetext, iLen);
+			cutString = (TCHAR *) guiAllocString((BYTE *) control->changetext, iLen);
 			if (cutString == NULL) {
 				guiFreeMem((ZHANDLE) origString);
-				sprintf_s(work, ARRAYSIZE(work), "guiAllocString failed in %s at GUI_INSERT", __FUNCTION__);
+				_stprintf_s(work, ARRAYSIZE(work), "guiAllocString failed in %s at GUI_INSERT", __FUNCTION__);
 				guiaErrorMsg(work, iLen);
 				return RC_NO_MEM;
 			}
@@ -7914,7 +7914,7 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 				if (control->itemattributes2 != NULL) guiFreeMem((BYTE *) control->itemattributes2);
 				guiFreeMem((ZHANDLE) origString);
 				guiFreeMem((ZHANDLE) cutString);
-				sprintf_s(work, ARRAYSIZE(work), "guiAllocMem returned Null in %s at GUI_INSERT", __FUNCTION__);
+				_stprintf_s(work, ARRAYSIZE(work), "guiAllocMem returned Null in %s at GUI_INSERT", __FUNCTION__);
 				guiaErrorMsg(work, 0);
 				return RC_NO_MEM;
 			}
@@ -7939,7 +7939,7 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 					if (newAttributesArray2 != NULL) guiFreeMem((BYTE *) newAttributesArray2);
 					guiFreeMem((ZHANDLE) origString);
 					guiFreeMem((ZHANDLE) cutString);
-					sprintf_s(work, ARRAYSIZE(work), "guiReallocMem returned a null in %s", __FUNCTION__);
+					_stprintf_s(work, ARRAYSIZE(work), "guiReallocMem returned a null in %s", __FUNCTION__);
 					guiaErrorMsg(work, 0);
 					return RC_NO_MEM;
 				}
@@ -7984,8 +7984,8 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 			break;
 		}
 		if (iItemPos < control->value) control->value++;  /* move selected item down one */
-		((CHAR **) control->itemarray)[iItemPos] = origString;
-		((CHAR **) control->itemcutarray)[iItemPos] = cutString;
+		((TCHAR **) control->itemarray)[iItemPos] = origString;
+		((TCHAR **) control->itemcutarray)[iItemPos] = cutString;
 		//control->itemattributes[usItemPos] = 0;
 		memset(&control->itemattributes2[iItemPos], 0, sizeof(ITEMATTRIBUTES));
 		control->value1++;
@@ -8189,13 +8189,13 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 			/* guiaFEditMaskText assumes memory allocated for control->textval is at */
 			/* least as large as the length of the mask... memory over-write problems */
 			/* occur otherwise - SSN */
-			i1 = (INT)strlen((CHAR *)guiMemToPtr(control->mask)) + 1;
+			i1 = (INT)_tcslen((TCHAR *)guiMemToPtr(control->mask)) + 1;
 			if (iLen < i1) iLen = i1;
 		}
 		if (control->textval != NULL) {
 			control->textval = guiReallocMem(control->textval, iLen);
 			if (control->textval == NULL) {
-				sprintf_s(work, ARRAYSIZE(work), "guiReallocMem returned Null in %s at GUI_PASTE", __FUNCTION__);
+				_stprintf_s(work, ARRAYSIZE(work), "guiReallocMem returned Null in %s at GUI_PASTE", __FUNCTION__);
 				guiaErrorMsg(work, iLen);
 				return RC_NO_MEM;
 			}
@@ -8203,13 +8203,13 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 		else {
 			control->textval = guiAllocMem(iLen);
 			if (control->textval == NULL) {
-				sprintf_s(work, ARRAYSIZE(work), "guiAllocMem returned Null in %s at GUI_PASTE", __FUNCTION__);
+				_stprintf_s(work, ARRAYSIZE(work), "guiAllocMem returned Null in %s at GUI_PASTE", __FUNCTION__);
 				guiaErrorMsg(work, iLen);
 				return RC_NO_MEM;
 			}
 		}
 		iLen = GetWindowText(control->ctlhandle, (LPSTR) control->textval, iLen);
-		control->textval[iLen] = '\0';
+		control->textval[iLen] = (TCHAR) '\0';
 		break;
 	case GUI_SETMAXCHARS:
 		if (!control->shownflag) break;
@@ -8219,13 +8219,13 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 			iLen++;
 			text = guiAllocMem(iLen);
 			if (text == NULL) {
-				sprintf_s(work, ARRAYSIZE(work), "guiAllocMem returned Null in %s at GUI_SETMAXCHARS", __FUNCTION__);
+				_stprintf_s(work, ARRAYSIZE(work), "guiAllocMem returned Null in %s at GUI_SETMAXCHARS", __FUNCTION__);
 				guiaErrorMsg(work, iLen);
 				return RC_NO_MEM;
 			}
-			GetWindowText(control->ctlhandle, (CHAR *) text, iLen);
-			text[control->maxtextchars] = '\0';
-			SetWindowText(control->ctlhandle, (CHAR *) text);
+			GetWindowText(control->ctlhandle, (TCHAR *) text, iLen);
+			text[control->maxtextchars] = (TCHAR) '\0';
+			SetWindowText(control->ctlhandle, (TCHAR *) text);
 			guiFreeMem(text);
 		}
 		break;
@@ -8533,7 +8533,7 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 				/* control when horizontal scrollbar appears based on width of inserted text */
 				fhdc = GetDC(NULL);
 				SelectObject(fhdc, control->font);
-				GetTextExtentPoint32(fhdc, cutString, (int)strlen(cutString), &size);
+				GetTextExtentPoint32(fhdc, cutString, (int)_tcslen(cutString), &size);
 				ReleaseDC(NULL, fhdc);
 				if (size.cx > control->maxlinewidth) {
 					control->maxlinewidth = size.cx;
@@ -8623,10 +8623,10 @@ INT guiaChangeControl(RESOURCE *res, CONTROL *control, INT iCmd)
 		control->shownflag = FALSE;
 		GetWindowRect(control->ctlhandle, &rect);
 		i1 = GetWindowTextLength(control->ctlhandle) + 1;
-		text = guiAllocMem(i1 * sizeof(CHAR));
+		text = guiAllocMem(i1 * sizeof(TCHAR));
 		if (text == NULL) {
-			sprintf_s(work, ARRAYSIZE(work), "guiAllocMem returned Null in %s at GUI_JUSTIFYx", __FUNCTION__);
-			guiaErrorMsg(work, i1 * sizeof(CHAR));
+			_stprintf_s(work, ARRAYSIZE(work), "guiAllocMem returned Null in %s at GUI_JUSTIFYx", __FUNCTION__);
+			guiaErrorMsg(work, i1 * sizeof(TCHAR));
 			return RC_NO_MEM;
 		}
 		GetWindowText(control->ctlhandle, text, i1);
@@ -8811,7 +8811,7 @@ static void guiaSetSingleLineEditCaretPos(CONTROL *control) {
 	SendMessage(control->ctlhandle, EM_SCROLLCARET, 0, 0);
 }
 
-static INT guiaGetSelectedTreeitemText(HWND hwnd, CHAR *data, INT datalen) {
+static INT guiaGetSelectedTreeitemText(HWND hwnd, TCHAR *data, INT datalen) {
 	GUIAGETWINTEXT gwtGetWinTextStruct;
 
 	gwtGetWinTextStruct.hwnd = hwnd;
@@ -8819,16 +8819,16 @@ static INT guiaGetSelectedTreeitemText(HWND hwnd, CHAR *data, INT datalen) {
 	gwtGetWinTextStruct.textlen = datalen;
 
 	SendMessage(hwndmainwin, GUIAM_GETSELECTEDTREEITEMTEXT, (WPARAM) 0, (LPARAM) &gwtGetWinTextStruct);
-	return (INT) strlen(data);
+	return (INT) _tcslen(data);
 }
 
 /*
  * return window text of a given control window
  */
-INT guiaGetControlText(CONTROL *control, CHAR *text, INT maxlen)
+INT guiaGetControlText(CONTROL *control, TCHAR *text, INT maxlen)
 {
 	INT len, pos;
-	CHAR *p1;
+	TCHAR *p1;
 
 	switch (control->type) {
 	case PANEL_EDIT:
@@ -8860,9 +8860,9 @@ INT guiaGetControlText(CONTROL *control, CHAR *text, INT maxlen)
 	case PANEL_FEDIT:
 		if (control->textval == NULL) len = 0;
 		else {
-			len = (INT)strlen((CHAR *) control->textval);
+			len = (INT)_tcslen((TCHAR *) control->textval);
 			if (len > maxlen) len = maxlen;
-			memcpy(text, control->textval, len * sizeof(CHAR));
+			memcpy(text, control->textval, len * sizeof(TCHAR));
 		}
 		break;
 	case PANEL_TREE:
@@ -8874,13 +8874,13 @@ INT guiaGetControlText(CONTROL *control, CHAR *text, INT maxlen)
 	case PANEL_LISTBOXHS:
 	case PANEL_DROPBOX:
 		/* copy string number control->value from control->textval */
-		p1 = (CHAR *) control->textval;
+		p1 = (TCHAR *) control->textval;
 		if (p1 == NULL || control->value >= control->value1) len = 0;
 		else {
 			for (len = 0, pos = 0; len < control->value; len++) {
 				while(p1[pos++]);
 			}
-			len = (INT)strlen(&p1[pos]);
+			len = (INT)_tcslen(&p1[pos]);
 			memcpy(text, &p1[pos], len);
 		}
 		break;
@@ -8906,7 +8906,7 @@ INT guiaGetControlSize(CONTROL *control, INT *width, INT *height)
 /*
  * call window callback routine
  */
-static void wincb(WINDOW *win, CHAR *function, INT datasize)
+static void wincb(WINDOW *win, TCHAR *function, INT datasize)
 {
 	if (win->cbfnc != NULL) {
 		memcpy(cbmsgname, win->name, 8);
@@ -8919,7 +8919,7 @@ static void wincb(WINDOW *win, CHAR *function, INT datasize)
 /*
  * call resource callback routine
  */
-void rescb(RESOURCE *res, CHAR *function, INT id, INT datasize)
+void rescb(RESOURCE *res, TCHAR *function, INT id, INT datasize)
 {
 	if (res->cbfnc != NULL) {
 		memcpy(cbmsgname, res->name, 8);
@@ -9500,7 +9500,7 @@ static BOOL guiaIsTableFocusable(CONTROL *control) {
 /*
  * format the source text through the format mask storing the result in Dest.
  */
-void guiaFEditMaskText(CHAR *source, CHAR *mask, CHAR *dest)
+void guiaFEditMaskText(TCHAR *source, TCHAR *mask, TCHAR *dest)
 {
 	INT i1, i2, i3, lft, negate, rgt, zeroflg;
 
@@ -9587,8 +9587,8 @@ void guiaFEditMaskText(CHAR *source, CHAR *mask, CHAR *dest)
 			}
 			else if (*mask == 'A' || *mask == 'U' || *mask == 'L') {  /* any char */
 				if (*source) {
-					if (*mask == 'U') *dest = (CHAR) toupper(*source);
-					else if (*mask == 'L') *dest = (CHAR) tolower(*source);
+					if (*mask == 'U') *dest = (TCHAR) toupper(*source);
+					else if (*mask == 'L') *dest = (TCHAR) tolower(*source);
 					else *dest = *source;
 					dest++;
 					source++;
@@ -9613,14 +9613,14 @@ void guiaFEditMaskText(CHAR *source, CHAR *mask, CHAR *dest)
  * NOTE: this routine assumes that the storage for dest is at least as long
  * as the length of the string plus one.
  */
-static void guiaFEditInsertChar(CHAR *source, CHAR *mask, CHAR *dest, INT newchar, INT *insertpos)
+static void guiaFEditInsertChar(TCHAR *source, TCHAR *mask, TCHAR *dest, INT newchar, INT *insertpos)
 {
 	INT i1, i2, lft, rgt, pos;
 	INT adjust, destpos, extrazeros, state;
 	INT spaces, negate, zeros, left, period, right;
 	INT savestate, savezeros, saveleft, saveright;
 	INT digitcnt, anycnt, speccnt;
-	CHAR c1, work[256], *savesource;
+	TCHAR c1, work[256], *savesource;
 
 	savesource = source;
 	pos = *insertpos;
@@ -9636,7 +9636,7 @@ static void guiaFEditInsertChar(CHAR *source, CHAR *mask, CHAR *dest, INT newcha
 				savezeros = zeros;
 				saveleft = left;
 				saveright = right;
-				c1 = (CHAR) newchar;
+				c1 = (TCHAR) newchar;
 			}
 			else c1 = source[i1 - 1];
 			if (!c1) break;
@@ -9834,8 +9834,8 @@ static void guiaFEditInsertChar(CHAR *source, CHAR *mask, CHAR *dest, INT newcha
 				digitcnt--;
 			}
 			else if (*mask == 'A' || *mask == 'U' || *mask == 'L') {
-				if (*mask == 'U') dest[destpos] = (CHAR) toupper(newchar);
-				else if (*mask == 'L') dest[destpos] = (CHAR) tolower(newchar);
+				if (*mask == 'U') dest[destpos] = (TCHAR) toupper(newchar);
+				else if (*mask == 'L') dest[destpos] = (TCHAR) tolower(newchar);
 				else dest[destpos] = (BYTE) newchar;
 				destpos++;
 				i1 = 0;
@@ -9854,7 +9854,7 @@ static void guiaFEditInsertChar(CHAR *source, CHAR *mask, CHAR *dest, INT newcha
 		*insertpos = destpos;
 
 /*** NOT COMPLETE YET, MUST SUPPORT SOME FORM OF TRUNCATION ***/
-		strcpy(&dest[destpos], source);
+		_tcscpy(&dest[destpos], source);
 #if 0
 		while (*mask) {
 			if (*mask == 'Z' || *mask == '9') {
@@ -9882,10 +9882,10 @@ static void guiaFEditInsertChar(CHAR *source, CHAR *mask, CHAR *dest, INT newcha
 	return;
 
 guiaFEditInsertCharX:
-	strcpy(dest, savesource);
+	_tcscpy(dest, savesource);
 }
 
-static INT isnummask(CHAR *mask, INT *left, INT *right)
+static INT isnummask(TCHAR *mask, INT *left, INT *right)
 {
 	INT numflg, lft, rgt;
 
@@ -9930,7 +9930,7 @@ static INT isnummask(CHAR *mask, INT *left, INT *right)
  */
 static void guiaScrollCallBack(RESOURCE *res, CONTROL *control, WPARAM wParam)
 {
-	CHAR *function;
+	TCHAR *function;
 
 	if (res->cbfnc == NULL) return;
 	switch(LOWORD(wParam)) {
@@ -9994,7 +9994,7 @@ static void guiaProcessAutoScrollBars(WINDOW *win, UINT nMessage, WPARAM wParam)
 	RECT rectClip;
 	RESOURCE *res;
 	WINDOWINFO wi;
-	CHAR *function;
+	TCHAR *function;
 
 	if (win->hwndstatusbar != NULL && win->statusbarshown) {
 		wi.cbSize = sizeof(WINDOWINFO);
@@ -10489,7 +10489,7 @@ INT guiaWinScrollRange(WINDOW *win, INT iScrollBar, INT iMin, INT iMax, INT iPag
  */
 static void guiaProcessWinScrollBars(WINDOW *win, UINT nMessage, WPARAM wParam)
 {
-	CHAR *function;
+	TCHAR *function;
 	INT scrollpos;
 	SCROLLINFO sInfo;
 
@@ -10989,12 +10989,12 @@ void guiaSetFont(ZHANDLE text)
 	HFONT hfont;
 	TEXTMETRIC tm;
 	PIXMAP *ppixDraw;
-	CHAR *tptr = (CHAR *) guiMemToPtr(text);
+	TCHAR *tptr = (TCHAR *) guiMemToPtr(text);
 
 	if (text == NULL) return;
 	ppixDraw = *drawpixhandle;
 	if (guiaParseFont(tptr,
-			(INT)strlen(tptr), &ppixDraw->lf, TRUE, ppixDraw->hdc) == 0) {
+			(INT)_tcslen(tptr), &ppixDraw->lf, TRUE, ppixDraw->hdc) == 0) {
 		hfont = getFont(&ppixDraw->lf);
 		SelectObject(ppixDraw->hdc, hfont);
 		ppixDraw->hfont = hfont;
@@ -11278,7 +11278,7 @@ void guiaDrawAngledText(ZHANDLE text, INT angle)
 	INT len;
 
 	if (text == NULL) return;
-	len = (INT)strlen((CHAR *) text);
+	len = (INT)_tcslen((TCHAR *) text);
 	/*
 	 * The angle used by fonts (escapement) has zero at 'east' or normal text. It goes counter clockwise
 	 * and is in tenths of a degree
@@ -11293,14 +11293,14 @@ void guiaDrawAngledText(ZHANDLE text, INT angle)
 	hfnt = getFont(&ppixDraw->lf);
 	hfntprev = SelectObject(ppixDraw->hdc, hfnt);
 	ppixDraw->lf.lfOrientation = ppixDraw->lf.lfEscapement = 0;
-	TextOut(ppixDraw->hdc, ppixDraw->pos1.x, ppixDraw->pos1.y, (LPCSTR) text, len);
+	TextOut(ppixDraw->hdc, ppixDraw->pos1.x, ppixDraw->pos1.y, (LPTSTR) text, len);
 	SelectObject(ppixDraw->hdc, hfntprev);
 	if (drawwinhandle != NULL) {
 		WINDOW *pwinDrawWin = *drawwinhandle;
 		RECT rect;
 		INT x = ppixDraw->pos1.x + ppixDraw->hshow - pwinDrawWin->scrollx;
 		INT y = ppixDraw->pos1.y + ppixDraw->vshow - pwinDrawWin->scrolly + pwinDrawWin->bordertop;
-		GetTextExtentPoint32(ppixDraw->hdc, (LPCSTR) text, len, &size);
+		GetTextExtentPoint32(ppixDraw->hdc, (LPTSTR) text, len, &size);
 		/*
 		 * Too much trouble to do the trig to find the optimal
 		 * 'minimum rectangle', and probably not worth it.
@@ -11328,7 +11328,7 @@ void guiaDrawText(ZHANDLE text, UINT align)
 	RECT rect;
 
 	if (text == NULL) return;
-	len = (INT)strlen((CHAR *) text);
+	len = (INT)_tcslen((TCHAR *) text);
 	switch (align) {
 		case DRAW_TEXT_LEFT: align = TA_LEFT; break;
 		case DRAW_TEXT_CENTER: align = TA_CENTER; break;
@@ -11337,8 +11337,8 @@ void guiaDrawText(ZHANDLE text, UINT align)
 	mask = TA_TOP | TA_NOUPDATECP | align;
 	ppixDraw = *drawpixhandle;
 	SetTextAlign(ppixDraw->hdc, mask);
-	TextOut(ppixDraw->hdc, ppixDraw->pos1.x, ppixDraw->pos1.y, (LPCSTR) text, len);
-	GetTextExtentPoint32(ppixDraw->hdc, (LPCSTR) text, len, &size);
+	TextOut(ppixDraw->hdc, ppixDraw->pos1.x, ppixDraw->pos1.y, (LPTSTR) text, len);
+	GetTextExtentPoint32(ppixDraw->hdc, (LPTSTR) text, len, &size);
 	if (drawwinhandle != NULL) {
 		pwinDrawWin = *drawwinhandle;
 		x = ppixDraw->pos1.x + ppixDraw->hshow - pwinDrawWin->scrollx;
@@ -12145,7 +12145,7 @@ static void guiaPixBitBlt(PIXMAP *destpix, INT destx, INT desty, INT destwidth, 
 /*
  * parse font string
  */
-static INT guiaParseFont(CHAR *font, INT fontlen, LOGFONT *lf, INT reset, HDC hdc)
+static INT guiaParseFont(TCHAR *font, INT fontlen, LOGFONT *lf, INT reset, HDC hdc)
 {
 	INT i1, size;
 	LONG saveHeight;
@@ -12223,7 +12223,7 @@ INT guiaGetCBText(BYTE *pucText, size_t *cbText)
 	}
 	lpString = GlobalLock(hgMemory);
 
-	iLen = strlen(lpString);
+	iLen = _tcslen(lpString);
 	if (iLen <= *cbText) {
 		StringCbCopy((LPSTR)pucText, *cbText, lpString);
 		//memcpy(pucText, lpString, iLen);
@@ -12244,14 +12244,14 @@ INT guiaPutCBText(BYTE *pucText, size_t cbText)
 	LPSTR lpString;
 	DWORD error;
 
-	hgMemory = GlobalAlloc(GHND, cbText + sizeof(CHAR));
+	hgMemory = GlobalAlloc(GHND, cbText + sizeof(TCHAR));
 	if (hgMemory == NULL) return RC_ERROR;
 
 	lpString = GlobalLock(hgMemory);
 	if (lpString == NULL) return RC_ERROR;
 
 	memcpy(lpString, pucText, cbText);
-	//lpString[cbText] = '\0'; Not needed, GlobalAlloc is zeroing memory
+	//lpString[cbText] = (TCHAR) '\0'; Not needed, GlobalAlloc is zeroing memory
 
 	GlobalUnlock(hgMemory);
 	/*
@@ -13074,19 +13074,19 @@ INT guiaSetCursorShape(WINDOW *win, INT cursortype)
 	return 0;
 }
 
-void guiaErrorMsg(CHAR *text, DWORD num)
+void guiaErrorMsg(TCHAR *text, DWORD num)
 {
-	CHAR worktext[90], worknum[6];
+	TCHAR worktext[90], worknum[6];
 
-	strcpy(worktext, text);
+	_tcscpy(worktext, text);
 	itonum5(num, (BYTE *) worknum);
-	worknum[5] = '\0';
-	strcat(worktext, worknum);
+	worknum[5] = (TCHAR) '\0';
+	_tcscat(worktext, worknum);
 	MessageBeep(MB_ICONSTOP);
-	if (MessageBox(NULL, worktext, "DB/C INTERNAL ERROR",
+	if (MessageBox(NULL, worktext, _T("DB/C INTERNAL ERROR"),
 		MB_OK | MB_ICONSTOP | MB_APPLMODAL | MB_SETFOREGROUND) == 0) {
-		CHAR bwork[1024];
-		sprintf_s(bwork, 1024, "Call to MessageBox Failed, message was '%s'   ", worktext);
+		TCHAR bwork[1024];
+		_stprintf_s(bwork, 1024, _T("Call to MessageBox Failed, message was '%s'   "), worktext);
 		svclogerror(bwork, GetLastError());
 	}
 }
@@ -13096,7 +13096,7 @@ INT makecontrol(CONTROL *control, INT xoffset, INT yoffset, HWND hwndshow, INT d
 	INT i1, x1, y1, height, width, rtextwidth;
 	DWORD style, exstyle, error;
 	LPSTR classptr, wintitle;
-	CHAR *cptr1;
+	TCHAR *cptr1;
 	RECT rect;
 	HDC fhdc, hdc;
 	SIZE size;
@@ -13389,7 +13389,7 @@ INT makecontrol(CONTROL *control, INT xoffset, INT yoffset, HWND hwndshow, INT d
 		style |= WS_CLIPSIBLINGS;
 		break;
 	}
-	control->ctlhandle = CreateWindowEx(exstyle, (LPCSTR) classptr, (LPCSTR) wintitle,
+	control->ctlhandle = CreateWindowEx(exstyle, (LPTSTR) classptr, (LPTSTR) wintitle,
 		style, x1 + xoffset, y1 + yoffset, width, height, hwndshow,
 		(HMENU) (INT_PTR) (control->useritem + ITEM_MSG_START),
 		hinstancemain,
@@ -13469,7 +13469,7 @@ INT makecontrol(CONTROL *control, INT xoffset, INT yoffset, HWND hwndshow, INT d
 	case PANEL_FEDIT:
 		guiaGetCtlTextBoxSize(control, "M", &i1, &height);
 		cptr1 = guiLockMem(control->mask);
-		SendMessage(control->ctlhandle, EM_LIMITTEXT, strlen((LPSTR)cptr1), 0L);
+		SendMessage(control->ctlhandle, EM_LIMITTEXT, _tcslen((LPSTR)cptr1), 0L);
 		guiUnlockMem(control->mask);
 		height += (height >> 2);
 		control->rect.bottom = control->rect.top + (height - 1); /* store height */
@@ -13572,8 +13572,8 @@ INT makecontrol(CONTROL *control, INT xoffset, INT yoffset, HWND hwndshow, INT d
 				/* LB_SETHORIZONTALEXTENT will be called again in guiaSetTabs */
 				fhdc = GetDC(NULL);
 				SelectObject(fhdc, control->font);
-				GetTextExtentPoint32(fhdc, (CHAR *) ((BYTE **) control->itemcutarray)[i1],
-						(int)strlen((CHAR *) ((BYTE **) control->itemcutarray)[i1]), &size);
+				GetTextExtentPoint32(fhdc, (TCHAR *) ((BYTE **) control->itemcutarray)[i1],
+						(int)_tcslen((TCHAR *) ((BYTE **) control->itemcutarray)[i1]), &size);
 				ReleaseDC(NULL, fhdc);
 				if (size.cx > control->maxlinewidth) control->maxlinewidth = size.cx;
 			}
@@ -13661,10 +13661,10 @@ WNDPROC setControlWndProc(CONTROL *control) {
 	}
 }
 
-static void treeposition(CHAR *buf, TREESTRUCT *root, TREESTRUCT *node)
+static void treeposition(TCHAR *buf, TREESTRUCT *root, TREESTRUCT *node)
 {
 	INT i1 = 1;
-	CHAR work[8];
+	TCHAR work[8];
 	TREESTRUCT *ptree;
 	if (node->parent == NULL) ptree = root;
 	else ptree = node->parent->firstchild;
@@ -13674,8 +13674,8 @@ static void treeposition(CHAR *buf, TREESTRUCT *root, TREESTRUCT *node)
 	}
 	if (node->parent != NULL) treeposition(buf, root, node->parent);
 	mscitoa(i1, work);
-	strcat(buf, work);
-	strcat(buf, ",");
+	_tcscat(buf, work);
+	_tcscat(buf, ",");
 	return;
 }
 
@@ -13731,7 +13731,7 @@ static void treeinsert(HWND ctlhandle, TREESTRUCT *node)
 	if (node == NULL) return;
 	tvitem.mask = TVIF_CHILDREN | TVIF_TEXT | TVIF_STATE;
 	tvitem.cChildren = 0;
-	tvitem.pszText = (CHAR *) node->text;
+	tvitem.pszText = (TCHAR *) node->text;
 	tvitem.stateMask = TVIS_STATEIMAGEMASK;
 	tvitem.state = INDEXTOSTATEIMAGEMASK(node->imageindex); /* 0 = no image */
 	tvins.item = tvitem;
@@ -13754,7 +13754,7 @@ static void treeinsert(HWND ctlhandle, TREESTRUCT *node)
 
 INT guiamemicmp(BYTE * src, BYTE * dest, INT len)
 {
-	while(len--) if (_totupper(((CHAR *) src)[len]) != _totupper(((CHAR *)dest)[len])) return(1);
+	while(len--) if (_totupper(((TCHAR *) src)[len]) != _totupper(((TCHAR *)dest)[len])) return(1);
 	return 0;
 }
 
@@ -13769,7 +13769,7 @@ INT guiaSetResFont(RESOURCE *res, BYTE *text, INT textlen, INT firstflag)
 	for (i1 = i2 = 0; i1 < textlen && i1 < 8 && isalnum(text[i1]); i1++) {
 		work[i2++] = toupper(text[i1]);
 	}
-	if (i2 == 7 && !strncmp((CHAR *) work, "DEFAULT", 7)) {
+	if (i2 == 7 && !strncmp((TCHAR *) work, "DEFAULT", 7)) {
 		res->font = NULL;
 		text += i1;
 		textlen -= i1;
@@ -13785,7 +13785,7 @@ INT guiaSetResFont(RESOURCE *res, BYTE *text, INT textlen, INT firstflag)
 		/*memcpy(&lf, &lastfont, sizeof(LOGFONT));*/
 		GetObject(res->font, sizeof(LOGFONT), &lf);
 	}
-	retval = guiaParseFont((CHAR *) text, textlen, &lf, FALSE, hdc);
+	retval = guiaParseFont((TCHAR *) text, textlen, &lf, FALSE, hdc);
 	res->font = getFont(&lf);
 	ReleaseDC(res->hwnd, hdc);
 	return retval;
@@ -13988,21 +13988,21 @@ CONTROL* guiaGetFocusControl(RESOURCE * res)
 	return res->ctlfocus;
 }
 
-void guiaMBDebug(CHAR * UserMessage, CHAR * UserTitle)
+void guiaMBDebug(TCHAR * UserMessage, TCHAR * UserTitle)
 {
 	HANDLE hStdOut;
 	DWORD count;
-	CHAR buffer[100];
+	TCHAR buffer[100];
 
-	buffer[0] = '\0';
-	lstrcat((LPSTR)buffer, (LPCSTR)UserMessage);
-	lstrcat((LPSTR)buffer, (LPCSTR)" -- ");
-	lstrcat((LPSTR)buffer, (LPCSTR)UserTitle);
-	lstrcat((LPSTR)buffer, (LPCSTR)"\n");
-	buffer[strlen((LPCSTR)buffer)] = 0;
+	buffer[0] = (TCHAR) '\0';
+	lstrcat((LPSTR)buffer, (LPTSTR)UserMessage);
+	lstrcat((LPSTR)buffer, (LPTSTR)" -- ");
+	lstrcat((LPSTR)buffer, (LPTSTR)UserTitle);
+	lstrcat((LPSTR)buffer, (LPTSTR)"\n");
+	buffer[_tcslen((LPTSTR)buffer)] = 0;
 	AllocConsole();
 	hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	WriteConsole(hStdOut, buffer, (DWORD)strlen((LPCSTR)buffer), &count, NULL);
+	WriteConsole(hStdOut, buffer, (DWORD)_tcslen((LPTSTR)buffer), &count, NULL);
 	return;
 }
 
@@ -14213,8 +14213,8 @@ LRESULT CALLBACK guiaWinProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 	INT i1, iCtlsave, iCtlNum, iWinWidth, iWinHeight, iCurCtrl;
 	INT textlen;
 	BOOL rc;
-	CHAR *msgid;
-	CHAR xtext[TREEVIEW_ITEM_MAX_SIZE];
+	TCHAR *msgid;
+	TCHAR xtext[TREEVIEW_ITEM_MAX_SIZE];
 	static BOOL outmsgsent = TRUE;
 	static BOOL focwasontab = FALSE;
 	static BOOL bIsPopupMenuActive = FALSE;
@@ -14445,14 +14445,14 @@ LRESULT CALLBACK guiaWinProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 	case GUIAM_DDESERVER:
 		ddeptr = (DBCDDE *) lParam;
 		ddeptr->hwndOwner = CreateWindow(serverclass,
-			(CHAR *) ddeptr->hApplication, WS_OVERLAPPEDWINDOW,
+			(TCHAR *) ddeptr->hApplication, WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 			CW_USEDEFAULT, NULL, NULL, hinstancemain, NULL);
 		return 0;
 	case GUIAM_DDECLIENT:
 		ddeptr = (DBCDDE *) lParam;
 		ddeptr->hwndOwner = CreateWindow(clientclass,
-			(CHAR *) ddeptr->hApplication, WS_OVERLAPPEDWINDOW,
+			(TCHAR *) ddeptr->hApplication, WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 			CW_USEDEFAULT, NULL, NULL, hinstancemain, NULL);
 		return 0;
@@ -14517,7 +14517,7 @@ LRESULT CALLBACK guiaWinProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 	case WM_SETTEXT:
 		if (hwnd != hwndmainwin) break;
 		if (!notifyIconData.cbSize) break;
-		StringCbCopy(notifyIconData.szTip, ARRAYSIZE(notifyIconData.szTip), (CHAR*) lParam);
+		StringCbCopy(notifyIconData.szTip, ARRAYSIZE(notifyIconData.szTip), (TCHAR*) lParam);
 		notifyIconData.uFlags = NIF_ICON | NIF_TIP | NIF_SHOWTIP;
 		Shell_NotifyIcon(NIM_MODIFY, &notifyIconData);
 		if (shell32_Major >= 5) {
@@ -14634,7 +14634,7 @@ LRESULT CALLBACK guiaWinProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 //					control->selectedtab = i1 - 1;
 //					if (control->tabsubgroup != i1) continue;
 //					if (control->type == PANEL_TAB) {
-//						if (res->itemmsgs && (textlen = (INT)strlen((LPSTR) control->textval))){
+//						if (res->itemmsgs && (textlen = (INT)_tcslen((LPSTR) control->textval))){
 //							memcpy(cbmsgdata, control->textval, min(textlen, MAXCBMSGSIZE - 17));
 //							rescb(res, DBC_MSGITEM, control->useritem, textlen);
 //						}
@@ -14650,7 +14650,7 @@ LRESULT CALLBACK guiaWinProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 //							// But not if it is a Table!
 //							if (control->type != PANEL_TABLE) setControlWndProc(control);
 //							if (ISEDIT(control) && control->type != PANEL_FEDIT) {
-//								SetWindowText(control->ctlhandle, (LPCSTR) control->textval);
+//								SetWindowText(control->ctlhandle, (LPTSTR) control->textval);
 //							}
 //						}
 //						control->changeflag = FALSE;
@@ -14724,7 +14724,7 @@ LRESULT CALLBACK guiaWinProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 						}
 					}
 					if (res->linemsgs) {
-						cbmsgdata[0] = '\0';
+						cbmsgdata[0] = (TCHAR) '\0';
 						if (nmhdr->code == TVN_KEYDOWN) {
 							tpos = treesearch(control->tree.root, control->tree.hitem);
 						}
@@ -14734,8 +14734,8 @@ LRESULT CALLBACK guiaWinProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 							}
 						}
 						if (tpos == NULL) break; /* should never happen */
-						treeposition((CHAR *) cbmsgdata, control->tree.root, tpos);
-						textlen = (INT)strlen((CHAR *) cbmsgdata);
+						treeposition((TCHAR *) cbmsgdata, control->tree.root, tpos);
+						textlen = (INT)_tcslen((TCHAR *) cbmsgdata);
 						/* remove trailing comma */
 						if (textlen > 0 && cbmsgdata[textlen - 1] == ',') cbmsgdata[--textlen] = 0;
 						rescb(res, msgid, control->useritem, textlen);
@@ -14748,12 +14748,12 @@ LRESULT CALLBACK guiaWinProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 							tvitem.pszText = &xtext[0];
 							tvitem.cchTextMax = TREEVIEW_ITEM_MAX_SIZE;
 							TreeView_GetItem(control->ctlhandle, &tvitem);
-							strcpy((CHAR *) cbmsgdata, xtext);
-							rescb(res, msgid, control->useritem, (INT)strlen(xtext));
+							_tcscpy((TCHAR *) cbmsgdata, xtext);
+							rescb(res, msgid, control->useritem, (INT)_tcslen(xtext));
 						}
 						else {
-							strcpy((CHAR *) cbmsgdata, control->tree.text);
-							rescb(res, msgid, control->useritem, (INT)strlen(control->tree.text));
+							_tcscpy((TCHAR *) cbmsgdata, control->tree.text);
+							rescb(res, msgid, control->useritem, (INT)_tcslen(control->tree.text));
 						}
 					}
 					break;
@@ -15502,8 +15502,8 @@ LRESULT CALLBACK guiaWinProc(HWND hwnd, UINT nMessage, WPARAM wParam, LPARAM lPa
 		if (!endsessionflag) {
 			MessageBeep(MB_ICONWARNING);
 			iCtlNum = MessageBox(NULL,
-				(LPCSTR)"Windows is shutting down while DB/C is\n still running, continue exit of Windows?",
-				(LPCSTR)pgmname, MB_ICONWARNING | MB_SYSTEMMODAL | MB_YESNO);
+				(LPTSTR)"Windows is shutting down while DB/C is\n still running, continue exit of Windows?",
+				(LPTSTR)pgmname, MB_ICONWARNING | MB_SYSTEMMODAL | MB_YESNO);
 			if (IDNO == iCtlNum) return 0;
 			endsessionflag = TRUE;
 		}
@@ -15690,13 +15690,13 @@ static void eraseWindowBackground(HWND hwnd, PAINTSTRUCT *ps) {
 }
 
 static void clearLastErrorMessage() {
-	lastErrorMessage[0] = '\0';
+	lastErrorMessage[0] = (TCHAR) '\0';
 }
 
-static void setLastErrorMessage (CHAR *msg) {
-	strcpy(lastErrorMessage, msg);
+static void setLastErrorMessage (TCHAR *msg) {
+	_tcscpy(lastErrorMessage, msg);
 }
 
-CHAR* guiaGetLastErrorMessage () {
+TCHAR* guiaGetLastErrorMessage () {
 	return lastErrorMessage;
 }

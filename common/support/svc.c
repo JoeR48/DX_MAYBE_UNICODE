@@ -21,15 +21,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-
+#include <tchar.h>
 #include "svc.h"
 
 static SVCINFO serviceinfo;
-static char *servicenamebuf;
+static TCHAR *servicenamebuf;
 static SERVICE_STATUS_HANDLE servicehandle;
 static SERVICE_STATUS servicestatus;
-static char serviceerror[512];
-static int (*programmain)(int, char **);
+static TCHAR serviceerror[512];
+static int (*programmain)(int, TCHAR **);
 static void (*programstop)(void);
 
 static VOID WINAPI service_main(DWORD, LPTSTR *);
@@ -37,16 +37,16 @@ static VOID WINAPI service_ctrl(DWORD);
 static int reportstatus(DWORD, DWORD);
 
 
-int svcinstall(SVCINFO *info, char *user, char *password, int argc, char **argv)
+int svcinstall(SVCINFO *info, TCHAR *user, TCHAR *password, int argc, TCHAR **argv)
 {
 	int i1, i2, rc, seconds;
 	DWORD checkpoint;
-	char path[MAX_PATH + 256], userwork[128], *pathptr;
+	TCHAR path[MAX_PATH + 256], userwork[128], *pathptr;
 	SC_HANDLE manager, service;
 
 	if (info == NULL || info->servicename == NULL || !info->servicename[0] ||
 	    info->servicedisplayname == NULL || !info->servicedisplayname[0]) {
-		strcpy(serviceerror, "svcinstall() failed: service name information required");
+		_tcscpy(serviceerror, _T("svcinstall() failed: service name information required"));
 		return -1;
 	}
 
@@ -54,9 +54,9 @@ int svcinstall(SVCINFO *info, char *user, char *password, int argc, char **argv)
 		if (*user) {
 			for (i1 = 0; user[i1] && user[i1] != '\\'; i1++);
 			if (!user[i1]) {
-				userwork[0] = '.';
-				userwork[1] = '\\';
-				strcpy(userwork + 2, user);
+				userwork[0] = (TCHAR) '.';
+				userwork[1] = (TCHAR) '\\';
+				_tcscpy(userwork + 2 * sizeof(TCHAR), user);
 				user = userwork;
 			}
 			if (password != NULL && !*password) password = NULL;
@@ -67,32 +67,32 @@ int svcinstall(SVCINFO *info, char *user, char *password, int argc, char **argv)
 
 	if (!GetModuleFileName(NULL, path + 1, sizeof(path) - 2)) {
 		if (argc < 1) {
-			sprintf(serviceerror, "GetModuleFileName() failed, error = %d\n", (int) GetLastError());
+			_stprintf(serviceerror, _T("GetModuleFileName() failed, error = %d\n"), (int) GetLastError());
 			return -1;
 		}
-		strcpy(path + 1, argv[0]);
+		_tcscpy(path + 1, argv[0]);
 	}
 	/* if path contains a space, must surround with quotes */
 	for (i1 = 1; path[i1] && !isspace(path[i1]); i1++);
 	if (path[i1]) {
-		path[0] = '"';
-		strcat(path, "\"");
+		path[0] = (TCHAR) '"';
+		_tcscat(path, _T("\""));
 		pathptr = path;
 	}
 	else pathptr = path + 1;
 	for (i1 = 0; ++i1 < argc; ) {  /* append any arguments */
 		/* if arg contains a space, must surround with quotes (assumes arg does not have a quote) */
 		for (i2 = 0; argv[i1][i2] && !isspace(argv[i1][i2]); i2++);
-		if (argv[i1][i2]) strcat(pathptr, " \"");
-		else strcat(pathptr, " ");
-		strcat(pathptr, argv[i1]);
-		if (argv[i1][i2]) strcat(pathptr, "\"");
+		if (argv[i1][i2]) _tcscat(pathptr, _T(" \""));
+		else _tcscat(pathptr, _T(" "));
+		_tcscat(pathptr, argv[i1]);
+		if (argv[i1][i2]) _tcscat(pathptr, _T("\""));
 	}
 
 	rc = 0;
 	manager = OpenSCManager(NULL, NULL, SC_MANAGER_CREATE_SERVICE);
 	if (manager) {
-		service = OpenServiceA(manager, info->servicename, SERVICE_ALL_ACCESS);
+		service = OpenService(manager, info->servicename, SERVICE_ALL_ACCESS);
 		if (service) {
 			if (QueryServiceStatus(service, &servicestatus)) {
 				if (servicestatus.dwCurrentState != SERVICE_STOPPED) {
@@ -118,13 +118,13 @@ int svcinstall(SVCINFO *info, char *user, char *password, int argc, char **argv)
 			pathptr, NULL, NULL, NULL, user, password);
 		if (service) CloseServiceHandle(service);
 		else {
-			sprintf(serviceerror, "CreateService() failed, error = %d\n", (int) GetLastError());
+			_stprintf(serviceerror, _T("CreateService() failed, error = %d\n"), (int) GetLastError());
 			rc = -1;
 		}
 		CloseServiceHandle(manager);
 	}
 	else {
-		sprintf(serviceerror, "OpenSCManager() failed, error = %d\n", (int) GetLastError());
+		_stprintf(serviceerror, _T("OpenSCManager() failed, error = %d\n"), (int) GetLastError());
 		rc = -1;
 	}
 	return rc;
@@ -137,7 +137,7 @@ int svcremove(SVCINFO *info)
 	SC_HANDLE manager, service;
 
 	if (info == NULL || info->servicename == NULL || !info->servicename[0]) {
-		strcpy(serviceerror, "svcremove() failed: service name information required");
+		_tcscpy(serviceerror, _T("svcremove() failed: service name information required"));
 		return -1;
 	}
 
@@ -163,7 +163,7 @@ int svcremove(SVCINFO *info)
 				}
 			}
 			if (!DeleteService(service)) {
-				sprintf(serviceerror, "DeleteService() failed, error = %d\n", (int) GetLastError());
+				_stprintf(serviceerror, _T("DeleteService() failed, error = %d\n"), (int) GetLastError());
 				rc = -1;
 			}
 			CloseServiceHandle(service);
@@ -171,7 +171,7 @@ int svcremove(SVCINFO *info)
 		else {
 			rc = GetLastError();
 			if (rc != ERROR_SERVICE_DOES_NOT_EXIST) {
-				sprintf(serviceerror, "OpenService() failed, error = %d\n", rc);
+				_stprintf(serviceerror, _T("OpenService() failed, error = %d\n"), rc);
 				rc = -1;
 			}
 			else rc = 1;
@@ -179,7 +179,7 @@ int svcremove(SVCINFO *info)
 		CloseServiceHandle(manager);
 	}
 	else {
-		sprintf(serviceerror, "OpenSCManager() failed, error = %d\n", (int) GetLastError());
+		_stprintf(serviceerror, _T("OpenSCManager() failed, error = %d\n"), (int) GetLastError());
 		rc = -1;
 	}
 	return rc;
@@ -192,7 +192,7 @@ int svcstart(SVCINFO *info)
 	SC_HANDLE manager, service;
 
 	if (info == NULL || info->servicename == NULL || !info->servicename[0]) {
-		strcpy(serviceerror, "svcstart() failed: service name information required");
+		_tcscpy(serviceerror, _T("svcstart() failed: service name information required"));
 		return -1;
 	}
 
@@ -220,7 +220,7 @@ int svcstart(SVCINFO *info)
 			if (StartService(service, 0, NULL)) {
 				for (seconds = -1; ; seconds--) {
 					if (!QueryServiceStatus(service, &servicestatus)) {
-						sprintf(serviceerror, "QueryServiceStatus() failed, error = %d\n", (int) GetLastError());
+						_stprintf(serviceerror, _T("QueryServiceStatus() failed, error = %d\n"), (int) GetLastError());
 						rc = -1;
 						break;
 					}
@@ -230,7 +230,7 @@ int svcstart(SVCINFO *info)
 						break;
 					}
 					if (!seconds && checkpoint >= servicestatus.dwCheckPoint) {
-						sprintf(serviceerror, "service not started:\n   Current State: %d\n   Check Point: %d\n   Wait Hint: %d",
+						_stprintf(serviceerror, _T("service not started:\n   Current State: %d\n   Check Point: %d\n   Wait Hint: %d"),
 							(int) servicestatus.dwCurrentState, (int) servicestatus.dwCheckPoint, (int) servicestatus.dwWaitHint);
 						rc = -1;
 						break;
@@ -243,19 +243,19 @@ int svcstart(SVCINFO *info)
 				}
 			}
 			else {
-				sprintf(serviceerror, "StartService() failed, error = %d\n", (int) GetLastError());
+				_stprintf(serviceerror, _T("StartService() failed, error = %d\n"), (int) GetLastError());
 				rc = -1;
 			}
 			CloseServiceHandle(service);
 		}
 		else {
-			sprintf(serviceerror, "OpenService() failed, error = %d\n", (int) GetLastError());
+			_stprintf(serviceerror, _T("OpenService() failed, error = %d\n"), (int) GetLastError());
 			rc = -1;
 		}
 		CloseServiceHandle(manager);
 	}
 	else {
-		sprintf(serviceerror, "OpenSCManager() failed, error = %d\n", (int) GetLastError());
+		_stprintf(serviceerror, _T("OpenSCManager() failed, error = %d\n"), (int) GetLastError());
 		rc = -1;
 	}
 	return rc;
@@ -268,7 +268,7 @@ int svcstop(SVCINFO *info)
 	SC_HANDLE manager, service;
 
 	if (info == NULL || info->servicename == NULL || !info->servicename[0]) {
-		strcpy(serviceerror, "svcstop() failed: service name information required");
+		_tcscpy(serviceerror, _T("svcstop() failed: service name information required"));
 		return -1;
 	}
 
@@ -278,20 +278,20 @@ int svcstop(SVCINFO *info)
 		service = OpenService(manager, info->servicename, SERVICE_ALL_ACCESS);
 		if (service) {
 			if (!QueryServiceStatus(service, &servicestatus)) {
-				sprintf(serviceerror, "QueryServiceStatus() failed, error = %d\n", (int) GetLastError());
+				_stprintf(serviceerror, _T("QueryServiceStatus() failed, error = %d\n"), (int) GetLastError());
 				rc = -1;
 			}
 			if (servicestatus.dwCurrentState == SERVICE_STOPPED) rc = 1;
 			else if (ControlService(service, SERVICE_CONTROL_STOP, &servicestatus)) {
 				for (seconds = -1; ; seconds--) {
 					if (!QueryServiceStatus(service, &servicestatus)) {
-						sprintf(serviceerror, "QueryServiceStatus() failed, error = %d\n", (int) GetLastError());
+						_stprintf(serviceerror, _T("QueryServiceStatus() failed, error = %d\n"), (int) GetLastError());
 						rc = -1;
 						break;
 					}
 					if (servicestatus.dwCurrentState != SERVICE_STOP_PENDING) break;
 					if (!seconds && checkpoint >= servicestatus.dwCheckPoint) {
-						sprintf(serviceerror, "service not stopped:\n   Current State: %d\n   Check Point: %d\n   Wait Hint: %d",
+						_stprintf(serviceerror, _T("service not stopped:\n   Current State: %d\n   Check Point: %d\n   Wait Hint: %d"),
 							(int) servicestatus.dwCurrentState, (int) servicestatus.dwCheckPoint, (int) servicestatus.dwWaitHint);
 						rc = -1;
 						break;
@@ -306,7 +306,7 @@ int svcstop(SVCINFO *info)
 			else {
 				rc = GetLastError();
 				if (rc != ERROR_SERVICE_NOT_ACTIVE) {
-					sprintf(serviceerror, "ControlService() failed, error = %d\n", rc);
+					_stprintf(serviceerror, _T("ControlService() failed, error = %d\n"), rc);
 					rc = -1;
 				}
 				else rc = 1;
@@ -314,19 +314,19 @@ int svcstop(SVCINFO *info)
 			CloseServiceHandle(service);
 		}
 		else {
-			sprintf(serviceerror, "OpenService() failed, error = %d\n", (int) GetLastError());
+			_stprintf(serviceerror, _T("OpenService() failed, error = %d\n"), (int) GetLastError());
 			rc = -1;
 		}
 		CloseServiceHandle(manager);
 	}
 	else {
-		sprintf(serviceerror, "OpenSCManager() failed, error = %d\n", (int) GetLastError());
+		_stprintf(serviceerror, _T("OpenSCManager() failed, error = %d\n"), (int) GetLastError());
 		rc = -1;
 	}
 	return rc;
 }
 
-void svcrun(SVCINFO *info, int (*progmain)(int, char **), void (*progstop)(void))
+void svcrun(SVCINFO *info, int (*progmain)(int, TCHAR **), void (*progstop)(void))
 {
 	int i1, i2;
 	SERVICE_TABLE_ENTRY dispatchtable[] = {
@@ -339,14 +339,14 @@ void svcrun(SVCINFO *info, int (*progmain)(int, char **), void (*progstop)(void)
 
 	if (info == NULL || info->servicename == NULL || !info->servicename[0] ||
 	    info->servicedisplayname == NULL || !info->servicedisplayname[0]) {
-		svclogerror("svcrun() failed: service name information required", 0);
+		svclogerror(_T("svcrun() failed: service name information required"), 0);
 		return;
 	}
-	i1 = (INT)strlen(info->servicename) + 1;
-	i2 = (INT)strlen(info->servicedisplayname) + 1;
+	i1 = (INT)wcslen(info->servicename) + 1;
+	i2 = (INT)wcslen(info->servicedisplayname) + 1;
 	servicenamebuf = malloc(i1 + i2);
 	if (servicenamebuf == NULL) {
-		svclogerror("svcrun() failed: unable to allocate memory", 0);
+		svclogerror(_T("svcrun() failed: unable to allocate memory"), 0);
 		return;
 	}
 	memcpy(servicenamebuf, info->servicename, i1);
@@ -356,7 +356,7 @@ void svcrun(SVCINFO *info, int (*progmain)(int, char **), void (*progstop)(void)
 
 	dispatchtable[0].lpServiceName = serviceinfo.servicename;
 	if (!StartServiceCtrlDispatcher(dispatchtable))
-		svclogerror("StartServiceCtrlDispatcher() failed", (int) GetLastError());
+		svclogerror(_T("StartServiceCtrlDispatcher() failed"), (int) GetLastError());
 }
 
 int svcisstarting(SVCINFO *info)
@@ -367,9 +367,9 @@ int svcisstarting(SVCINFO *info)
 	if (info == NULL || info->servicename == NULL || !info->servicename[0]) return FALSE;
 
 	startingflag = FALSE;
-	manager = OpenSCManagerA(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+	manager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
 	if (manager) {
-		service = OpenServiceA(manager, info->servicename, SERVICE_ALL_ACCESS);
+		service = OpenService(manager, info->servicename, SERVICE_ALL_ACCESS);
 		if (service) {
 			if (QueryServiceStatus(service, &servicestatus)) {
 				if (servicestatus.dwCurrentState == SERVICE_START_PENDING) startingflag = TRUE;
@@ -394,40 +394,40 @@ void svcstatus(int type, int waittime)
 	reportstatus(statustype, (DWORD) waittime);
 }
 
-void svclogerror(char *errormsg, int errornum)
+void svclogerror(TCHAR *errormsg, int errornum)
 {
 	int i1;
-	char num[128], *servicename;
+	TCHAR num[128], *servicename;
 	LPTSTR strings[2];
 	HANDLE eventsource;
 
-	if (serviceinfo.servicename == NULL || !serviceinfo.servicename[0]) servicename = "DBCService";
+	if (serviceinfo.servicename == NULL || !serviceinfo.servicename[0]) servicename = _T("DBCService");
 	else servicename = serviceinfo.servicename;
 
 	i1 = 0;
 	if (errormsg != NULL && *errormsg) strings[i1++] = errormsg;
 	if (errornum) {
-		memcpy(num, "error = ", 8);
-		_itoa(errornum, num + 8, 10);
+		memcpy(num, _T("error = "), 8 * sizeof(TCHAR));
+		_itot(errornum, num + 8 * sizeof(TCHAR), 10);
 		strings[i1++] = num;
 	}
 	if (i1) {
 		eventsource = RegisterEventSource(NULL, servicename);
 		if (eventsource != NULL) {
-			ReportEvent(eventsource, EVENTLOG_ERROR_TYPE, 0, 0, NULL, (WORD) i1, 0, (const char **) strings, NULL);
+			ReportEvent(eventsource, EVENTLOG_ERROR_TYPE, 0, 0, NULL, (WORD) i1, 0, (const TCHAR **) strings, NULL);
 			DeregisterEventSource(eventsource);
 		}
 	}
 }
 
-void svcloginfo(char *msg)
+void svcloginfo(TCHAR *msg)
 {
 	int i1 = 0;
-	char *servicename;
-	LPSTR strings[1];
+	TCHAR *servicename;
+	LPTSTR strings[1];
 	HANDLE eventsource;
 
-	if (serviceinfo.servicename == NULL || !serviceinfo.servicename[0]) servicename = "DBCService";
+	if (serviceinfo.servicename == NULL || !serviceinfo.servicename[0]) servicename = _T("DBCService");
 	else servicename = serviceinfo.servicename;
 
 	if (msg != NULL && *msg) strings[i1++] = msg;
@@ -439,14 +439,14 @@ void svcloginfo(char *msg)
 				NULL,	// Pointer to current user's security identifier (sid)
 				(WORD) i1,	// number of strings in the array
 				0,		// number of bytes of event specific data
-				(const char **) strings,
+				(const TCHAR **) strings,
 				NULL		// Pointer to a buffer containing event specific data
 				);
 		DeregisterEventSource(eventsource);
 	}
 }
 
-char *svcgeterror()
+TCHAR *svcgeterror()
 {
 	return serviceerror;
 }
@@ -464,7 +464,7 @@ static void WINAPI service_main(DWORD argc, LPTSTR *argv)
 		if (reportstatus(SERVICE_START_PENDING, 2000) && programmain != NULL) programmain(argc, argv);
 		reportstatus(SERVICE_STOPPED, 0);
 	}
-	else svclogerror("RegisterServiceCtrlHandler() failed", GetLastError());
+	else svclogerror(_T("RegisterServiceCtrlHandler() failed"), GetLastError());
 }
 
 VOID WINAPI service_ctrl(DWORD controlcode)
@@ -497,6 +497,6 @@ static int reportstatus(DWORD currentstate, DWORD waittime)
 	servicestatus.dwWaitHint = waittime;
 
 	if (!(result = SetServiceStatus(servicehandle, &servicestatus)))
-		svclogerror("SetServiceStatus() failed", GetLastError());
+		svclogerror(_T("SetServiceStatus() failed"), GetLastError());
 	return result;
 }

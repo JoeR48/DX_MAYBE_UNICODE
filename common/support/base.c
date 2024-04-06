@@ -811,7 +811,7 @@ int mscis_integer(CHAR* src, INT srclength)
 	int state = 0;
 	int i1;
 	for (i1 = 0; i1 < srclength; i1++) {
-		char c1 = src[i1];
+		TCHAR c1 = src[i1];
 		switch (state) {
 			case 0:			// Scanning whitespace
 				if (isspace(c1)) continue;
@@ -1060,7 +1060,7 @@ void msctimestamp(UCHAR *dest)
  * Returns zero for success.
  * Returns RC_ERROR if anthing goes wrong
  */
-int prpinit(ELEMENT *root, CHAR *xmlprefix)
+int prpinit(ELEMENT *root, TCHAR *xmlprefix)
 {
 	ELEMENT *e1;
 	if (root == NULL) return RC_ERROR;
@@ -1074,7 +1074,7 @@ int prpinit(ELEMENT *root, CHAR *xmlprefix)
 	return 0;
 }
 
-int prpname(char **value) {
+int prpname(TCHAR **value) {
 	if (prppos == NULL) return 1;
 	*value = prppos->tag;
 	return 0;
@@ -1131,9 +1131,9 @@ INT prpgetvol(CHAR *volname, CHAR *ptr, INT maxlen) {
 /**
  * Return 0 if found, 1 if not
  */
-int prpget(char *key1, char *key2, char *key3, char *key4, char **value, int flags) {
+int prpget(TCHAR *key1, TCHAR *key2, TCHAR *key3, TCHAR *key4, TCHAR **value, int flags) {
 	int reduced = FALSE;
-	char *ptr;
+	TCHAR *ptr;
 	ATTRIBUTE *a1;
 	ELEMENT *e1, *e2, *e3, *e4;
 	if (prptree == NULL) return 1;
@@ -1160,8 +1160,8 @@ int prpget(char *key1, char *key2, char *key3, char *key4, char **value, int fla
 		*value = prppos->firstsubelement->tag;
 		if (flags & (PRP_LOWER | PRP_UPPER)) {
 			for (ptr = *value; *ptr; ptr++) {
-				if (flags & PRP_LOWER) *ptr = (char) tolower(*ptr);
-				else *ptr = (char) toupper(*ptr);
+				if (flags & PRP_LOWER) *ptr = (TCHAR) tolower(*ptr);
+				else *ptr = (TCHAR) toupper(*ptr);
 			}
 		}
 		return 0;
@@ -1196,8 +1196,8 @@ int prpget(char *key1, char *key2, char *key3, char *key4, char **value, int fla
 													*value = prppos->firstsubelement->tag;
 													if (flags & (PRP_LOWER | PRP_UPPER)) {
 														for (ptr = *value; *ptr; ptr++) {
-															if (flags & PRP_LOWER) *ptr = (char) tolower(*ptr);
-															else *ptr = (char) toupper(*ptr);
+															if (flags & PRP_LOWER) *ptr = (TCHAR) tolower(*ptr);
+															else *ptr = (TCHAR) toupper(*ptr);
 														}
 													}
 													return 0;
@@ -1219,8 +1219,8 @@ int prpget(char *key1, char *key2, char *key3, char *key4, char **value, int fla
 											*value = prppos->firstsubelement->tag;
 											if (flags & (PRP_LOWER | PRP_UPPER)) {
 												for (ptr = *value; *ptr; ptr++) {
-													if (flags & PRP_LOWER) *ptr = (char) tolower(*ptr);
-													else *ptr = (char) toupper(*ptr);
+													if (flags & PRP_LOWER) *ptr = (TCHAR) tolower(*ptr);
+													else *ptr = (TCHAR) toupper(*ptr);
 												}
 											}
 											return 0;
@@ -1243,8 +1243,8 @@ int prpget(char *key1, char *key2, char *key3, char *key4, char **value, int fla
 								*value = prppos->firstsubelement->tag;
 								if (flags & (PRP_LOWER | PRP_UPPER)) {
 									for (ptr = *value; *ptr; ptr++) {
-										if (flags & PRP_LOWER) *ptr = (char) tolower(*ptr);
-										else *ptr = (char) toupper(*ptr);
+										if (flags & PRP_LOWER) *ptr = (TCHAR) tolower(*ptr);
+										else *ptr = (TCHAR) toupper(*ptr);
 									}
 								}
 								return 0;
@@ -1267,8 +1267,8 @@ int prpget(char *key1, char *key2, char *key3, char *key4, char **value, int fla
 					*value = prppos->firstsubelement->tag;
 					if (flags & (PRP_LOWER | PRP_UPPER)) {
 						for (ptr = *value; *ptr; ptr++) {
-							if (flags & PRP_LOWER) *ptr = (char) tolower(*ptr);
-							else *ptr = (char) toupper(*ptr);
+							if (flags & PRP_LOWER) *ptr = (TCHAR) tolower(*ptr);
+							else *ptr = (TCHAR) toupper(*ptr);
 						}
 					}
 					return 0;
@@ -1281,13 +1281,13 @@ int prpget(char *key1, char *key2, char *key3, char *key4, char **value, int fla
 	return 1; /* not found */
 }
 
-int prptranslate(char *ptr, unsigned char *map)
+int prptranslate(TCHAR *ptr, TCHAR *map)
 {
 	int i1, i2, i3;
 
 	for ( ; ; ) {
 		while (isspace((int)*ptr)) ptr++;
-		if (*ptr == ';') {
+		if (*ptr == (TCHAR) ';') {
 			ptr++;
 			continue;
 		}
@@ -1295,7 +1295,7 @@ int prptranslate(char *ptr, unsigned char *map)
 		if (!isdigit((int)*ptr)) return RC_ERROR;
 		for (i1 = 0; isdigit((int)*ptr); ptr++) i1 = i1 * 10 + *ptr - '0';
 		while (isspace((int)*ptr)) ptr++;
-		if (*ptr == '-') {
+		if (*ptr == (TCHAR) '-') {
 			ptr++;
 			while (isspace((int)*ptr)) ptr++;
 			if (!isdigit((int)*ptr)) return RC_ERROR;
@@ -1303,13 +1303,13 @@ int prptranslate(char *ptr, unsigned char *map)
 			while (isspace((int)*ptr)) ptr++;
 		}
 		else i2 = i1;
-		if (*ptr != ':') return RC_ERROR;
+		if (*ptr != (TCHAR) ':') return RC_ERROR;
 		ptr++;
 		while (isspace((int)*ptr)) ptr++;
 		if (!isdigit((int)*ptr)) return RC_ERROR;
-		for (i3 = 0; isdigit((int)*ptr); ptr++) i3 = i3 * 10 + *ptr - '0';
+		for (i3 = 0; isdigit((int)*ptr); ptr++) i3 = i3 * 10 + *ptr - (TCHAR) '0';
 		if (i1 > UCHAR_MAX || i2 > UCHAR_MAX || i3 + (i2 - i1) > UCHAR_MAX) return RC_ERROR;
-		while (i1 <= i2) map[i1++] = (unsigned char) i3++;
+		while (i1 <= i2) map[i1++] = (TCHAR) i3++;
 	}
 	return 0;
 }
@@ -1399,13 +1399,13 @@ void dspsilent()
 	silentflag = TRUE;
 }
 
-void dspstring(char *str)
+void dspstring(TCHAR *str)
 {
 	static int firstflag = TRUE;
 	static int dspmapflag = FALSE;
-	static unsigned char dspmap[UCHAR_MAX + 1];
+	static unsigned TCHAR dspmap[UCHAR_MAX + 1];
 	int i1;
-	char *ptr, work[256];
+	TCHAR *ptr, work[256];
 
 	if (!silentflag) {
 		if (str == NULL) {
@@ -1415,14 +1415,14 @@ void dspstring(char *str)
 		if (firstflag) {
 			firstflag = FALSE;
 			if (!prpget("display", "translate", NULL, NULL, &ptr, 0)) {
-				for (i1 = 0; i1 <= UCHAR_MAX; i1++) dspmap[i1] = (unsigned char) i1;
+				for (i1 = 0; i1 <= UCHAR_MAX; i1++) dspmap[i1] = (unsigned TCHAR) i1;
 				if (prptranslate(ptr, dspmap)) fputs("Invalid translate-spec for dbcdx.display.translate, translate not used\n", stdout);
 				else dspmapflag = TRUE;
 			}
 		}
 		if (dspmapflag) {
 			while (*str) {
-				for (i1 = 0; i1 < (INT) (sizeof(work) - 1) && str[i1]; i1++) work[i1] = dspmap[(unsigned char)str[i1]];
+				for (i1 = 0; i1 < (INT) (sizeof(work) - 1) && str[i1]; i1++) work[i1] = dspmap[(unsigned TCHAR)str[i1]];
 				work[i1] = '\0';
 				fputs(work, stdout);
 				str += i1;
@@ -1432,9 +1432,9 @@ void dspstring(char *str)
 	}
 }
 
-void dspchar(char chr)
+void dspchar(TCHAR chr)
 {
-	char work[2];
+	TCHAR work[2];
 
 	work[0] = chr;
 	work[1] = '\0';
@@ -1448,11 +1448,11 @@ void dspflush()
 
 #if 0
 /* memmove is necessary only for those runtime libraries that don't already include it */
-char *memmove(s1, s2, n)
-char *s1, *s2;
+TCHAR *memmove(s1, s2, n)
+TCHAR *s1, *s2;
 int n;
 {
-	char *s;
+	TCHAR *s;
 
 	s = s1;
 	if ((unsigned int) s2 > (unsigned int) s1) while (n--) *s1++ = *s2++;
@@ -1751,9 +1751,9 @@ static void logTimeStampForDump(CHAR *buffer,
 		SYSTEMTIME logentrytime)
 #endif
 {
-	char time_string[40];
+	TCHAR time_string[40];
 #if OS_UNIX
-	char huns[4];
+	TCHAR huns[4];
 	int hundredths;
 	struct tm* plocaltm = localtime(&logentrytime.tv_sec);
 	strftime(time_string, sizeof(time_string), "%Y%m%d %H:%M:%S:", plocaltm);
@@ -1825,7 +1825,7 @@ static void logBuildEntry(enum LOGEVENTTYPE type, void* ldata, int doStackTrace)
 }
 
 void logOverflowEvent(CHAR *info) {
-	static char verbiage[] = "overflow";
+	static TCHAR verbiage[] = "overflow";
 	CHAR work[LOGDATAMAXSIZE];
 	strcpy(work, verbiage);
 	if (info != NULL) strcat(work, info);
@@ -1834,7 +1834,7 @@ void logOverflowEvent(CHAR *info) {
 }
 
 static void logMemcompactEvent(CHAR *optionalInfo) {
-	static char verbiage[] = "memcompact";
+	static TCHAR verbiage[] = "memcompact";
 	CHAR work[LOGDATAMAXSIZE];
 	strcpy(work, verbiage);
 	if (optionalInfo != NULL) strcat(work, optionalInfo);
@@ -1912,7 +1912,7 @@ static void logDumpEventStackTrace(INT index, INT fileHandle, FHANDLE osHandle) 
 	CHAR buffer[1024];
 	LOGENTRY *le;
 	void *sbuffer;
-	char **strings;
+	TCHAR **strings;
 	int nptrs, j1;
 	le = &internalLog[index];
 	sbuffer = le->backtrace;
@@ -1985,8 +1985,8 @@ static void logDumpChainEvent(CHAR* buffer, LOGENTRY *logentry, INT fileHandle, 
 }
 
 static void logDumpLoadmodEvent(CHAR* buffer, LOGENTRY *logentry, INT fileHandle, FHANDLE osHandle) {
-	static char lmverbiage1[] = "loadmod ";
-	static char lmverbiage2[] = "ploadmod ";
+	static TCHAR lmverbiage1[] = "loadmod ";
+	static TCHAR lmverbiage2[] = "ploadmod ";
 	CHAR work2[64];
 	LOADMODEVENTDATA *ledata = &logentry->DATA.lmedata;
 

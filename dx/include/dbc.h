@@ -27,7 +27,7 @@
 INT dbcflags = 0;		/* various condition flags and db/c execution flags */
 INT dbgflags = DBGFLAGS_FIRST;
 INT srcfile = -1;
-CHAR *GuiCtlfont = NULL;
+TCHAR *GuiCtlfont = NULL;
 INT counterBrkhi;
 INT counterBrkptr = -1;
 #else
@@ -35,7 +35,7 @@ INT counterBrkptr = -1;
 EXTERN INT dbcflags;	/* various condition flags and db/c execution flags */
 EXTERN INT dbgflags;
 EXTERN INT srcfile;
-EXTERN CHAR *GuiCtlfont;
+EXTERN TCHAR *GuiCtlfont;
 EXTERN INT counterBrkhi;
 EXTERN INT counterBrkptr;
 #endif
@@ -46,8 +46,8 @@ EXTERN INT counterBrkptr;
 
 EXTERN UCHAR *data;		/* pointer to data area location 0 of current module */
 EXTERN UCHAR *pgm;		/* pointer to program location 0 of current module */
-EXTERN CHAR name[4096];	/* parameter for several routines */
-EXTERN CHAR DXAboutInfoString[512];
+EXTERN TCHAR name[4096];	/* parameter for several routines */
+EXTERN TCHAR DXAboutInfoString[512];
 EXTERN INT datamodule;	/* current execution data module number */
 EXTERN INT pgmmodule;	/* current execution program module number */
 EXTERN INT pcount;		/* current execution program address */
@@ -62,7 +62,7 @@ EXTERN UCHAR vbcode, lsvbcode, vx;  /* current, previous, extended verb codes */
 EXTERN UCHAR dbcbuf[65504];  /* DB/C buffer for miscellaneous use */
 EXTERN UCHAR dsperrflg;
 EXTERN UCHAR writeUntrappedErrorsFlag;
-EXTERN CHAR writeUntrappedErrorsFile[MAX_PATH];
+EXTERN TCHAR writeUntrappedErrorsFile[MAX_PATH];
 
 
 #define SMARTCLIENTISIOS (smartClientSubType[0] != '\0' \
@@ -77,12 +77,12 @@ EXTERN CHAR writeUntrappedErrorsFile[MAX_PATH];
  * If we are running in SC mode, and if the type was seen in the <hello/> message,
  * then put it in here for future reference.
  */
-EXTERN CHAR smartClientSubType[MAX_SCSUBTYPE_CHARS + 1];
+EXTERN TCHAR smartClientSubType[MAX_SCSUBTYPE_CHARS + 1];
 /*
  * If we are running in SC mode, and if the attribute 'utcoffset' was seen in the <smartclient/> message,
  * then put it in here for future reference.
  */
-EXTERN CHAR smartClientUTCOffset[6];
+EXTERN TCHAR smartClientUTCOffset[6];
 
 /*
  * This info is kept to check for capabilities.
@@ -94,10 +94,10 @@ EXTERN INT smartClientMajorVersion;
 EXTERN INT smartClientMinorVersion;
 
 
-#define DBCSMALLICONNAME "DBCSMALL"
-#define DBCLARGEICONNAME "DBCBIG"
-#define DBCCSMALLICONNAME "DBCCSMAL"
-#define DBCCLARGEICONNAME "DBCCBIG"
+#define DBCSMALLICONNAME _T("DBCSMALL")
+#define DBCLARGEICONNAME _T("DBCBIG")
+#define DBCCSMALLICONNAME _T("DBCCSMAL")
+#define DBCCLARGEICONNAME _T("DBCCBIG")
 
 /* DB/C flags - do NOT change these values without changing dbcgetflags() */
 #define DBCFLAG_EOS			0x0001
@@ -360,11 +360,11 @@ struct queuestruct;
 /* function prototypes */
 
 /* dbc.c */
-extern INT main(INT, CHAR **, CHAR **);
-extern INT mainentry(INT, CHAR **, CHAR **);
+extern INT main(INT, TCHAR **, TCHAR **);
+extern INT mainentry(INT, TCHAR **, TCHAR **);
 
 /* dbcctl.c */
-extern void dbcinit(INT, CHAR **, CHAR **);
+extern void dbcinit(INT, TCHAR **, TCHAR **);
 extern INT dbcgetbrkevt(void);
 #if OS_WIN32
 __declspec (noreturn) extern void dbcerrinfo(INT, UCHAR *, INT);
@@ -409,7 +409,7 @@ extern void resetKaTimer(void);
 #endif
 
 /* dbcctl2.c */
-extern void logUntrappedError(CHAR * errormsg, INT errornum);
+extern void logUntrappedError(TCHAR * errormsg, INT errornum);
 #if OS_UNIX && defined(Linux)
 extern void logVbcode(UCHAR code, INT pcount);
 extern void logVxcode(UCHAR code);
@@ -452,7 +452,7 @@ typedef struct datamodstruct {
 	 */
 	INT lextsize;
 	INT varsize;		/* class inherited variable pointers table size */
-	CHAR **nameptr;		/* instance/class name (allocated 1st) */
+	TCHAR **nameptr;		/* instance/class name (allocated 1st) */
 	UCHAR **dataptr;	/* data (allocated 2nd) */
 	UCHAR **ltabptr;	/* label table pointer (allocated 3rd) */
 	/*
@@ -480,8 +480,8 @@ typedef struct codeinfostruct {
 	 */
 	UCHAR **xrefptr;
 	UCHAR **xdefptr;	/* external definition table pointers (allocated 3rd) */
-	CHAR **fileptr;		/* file name (allocated 2nd) */
-	CHAR **nameptr;		/* program name (allocated 1st) */
+	TCHAR **fileptr;		/* file name (allocated 2nd) */
+	TCHAR **nameptr;		/* program name (allocated 1st) */
 	UCHAR version;		/* version number */
 	UCHAR stdcmp;		/* standard compile */
 	INT pgmsize;		/* size of program module */
@@ -513,7 +513,7 @@ typedef struct pgmmodstruct {
 	UCHAR **xrefptr;	/* class external reference table pointers (allocated 3rd) */
 } PGMMOD;
 
-extern INT newmod(INT, CHAR *, CHAR *, INT *, INT);
+extern INT newmod(INT, TCHAR *, TCHAR *, INT *, INT);
 extern INT vunload(INT, INT);
 extern INT unloadclass(INT, INT);
 extern void setpgmdata(void);
@@ -527,10 +527,10 @@ extern INT getpgmmod(INT);
 extern INT getmver(INT);
 extern void getmtime(INT, INT *, INT *);
 extern INT getmtype(INT);
-extern CHAR *getdname(INT);
-extern CHAR *getpname(INT);
-extern CHAR *getmname(INT, INT, INT);
-extern void findmname(CHAR *, INT *, INT *);
+extern TCHAR *getdname(INT);
+extern TCHAR *getpname(INT);
+extern TCHAR *getmname(INT, INT, INT);
+extern void findmname(TCHAR *, INT *, INT *);
 extern struct daqb *getmdev(void);
 extern void chgpcnt(INT);
 extern void chgmethod(INT, INT);
@@ -554,15 +554,15 @@ extern INT skipvar(UCHAR *, INT);
 extern void skipadr(void);
 extern INT gettype(INT *, INT *, INT *);
 extern UCHAR *findvar(INT, INT);
-extern INT makevar(CHAR *, UCHAR *, INT);
-extern CHAR *getmodules(INT);
+extern INT makevar(TCHAR *, UCHAR *, INT);
+extern TCHAR *getmodules(INT);
 extern void getlastvar(INT *, INT *);
 extern void setlastvar(INT, INT);
-extern INT getglobal(INT, CHAR **, INT *);
+extern INT getglobal(INT, TCHAR **, INT *);
 extern PGMMOD** getpgmtabptr(void);
 extern DATAMOD** getdatatabptr(void);
 extern INT getpgmmax(void);
-extern CHAR* getHttpErrorMsg(void);
+extern TCHAR* getHttpErrorMsg(void);
 
 /* dbcmov.c */
 extern void vmove(INT);
@@ -597,8 +597,8 @@ extern INT recputv(UCHAR *, INT, UCHAR *, UINT *, UINT *, UINT, UCHAR *);
 extern void dioflag(INT);
 extern void dioclosemod(INT);
 extern void diorenmod(INT, INT);
-extern CHAR *diofilename(INT);
-extern CHAR *dioindexname(INT);
+extern TCHAR *diofilename(INT);
+extern TCHAR *dioindexname(INT);
 
 /* dbckds.c */
 extern INT kdsinit(void);
@@ -612,7 +612,7 @@ extern void vscrnrest(INT);
 extern void vbeep(void);
 extern void kdssound(INT, INT);
 extern void kdscmd(INT32);
-extern void kdsdsp(CHAR *);
+extern void kdsdsp(TCHAR *);
 extern INT kdspause(INT);
 
 /* dbcprt.c */
@@ -662,25 +662,25 @@ extern void setnullvar(UCHAR *, INT);
 extern int atoi_internal(const char *);
 
 /* dbcdbg.c */
-extern void dbginit(INT, CHAR *);
+extern void dbginit(INT, TCHAR *);
 extern void dbgexit(void);
 extern void vdebug(INT);
-extern void dbgconsole(CHAR *s, INT msglength);
-extern INT appendfplpplclause(CHAR* prefix);
-extern void dbgerror(INT, CHAR *);
-extern CHAR* dbggetfiletypedesc(CHAR *prefix, UCHAR *adr);
-extern CHAR* dbggetspecialtypedesc(CHAR *prefix, UCHAR *adr);
+extern void dbgconsole(TCHAR *s, INT msglength);
+extern INT appendfplpplclause(TCHAR* prefix);
+extern void dbgerror(INT, TCHAR *);
+extern TCHAR* dbggetfiletypedesc(TCHAR *prefix, UCHAR *adr);
+extern TCHAR* dbggetspecialtypedesc(TCHAR *prefix, UCHAR *adr);
 extern INT dbgopendbg(INT);
 extern void dbgsetbrk(int*);
 extern void dbgsetmem(void);
-extern INT dbgstrcmp(CHAR *, CHAR *, INT);
+extern INT dbgstrcmp(TCHAR *, TCHAR *, INT);
 extern void dbgtestcall(void);
 extern void dbgtestreturn(void);
 
 /* dbcddt.c */
 extern void ddtdebug(INT op);
-extern void ddtinit(CHAR *);
-extern void ddtinitserver(CHAR *);
+extern void ddtinit(TCHAR *);
+extern void ddtinitserver(TCHAR *);
 extern int isddtconnected(void);
 extern void setddtconnected(int);
 extern void convertCounterBPToRealBP(INT, int);
@@ -739,11 +739,11 @@ extern int srvgeterror(char *msg, int msglength);
 //#endif
 
 /* dbcsys.c */
-extern INT sysinit(INT, CHAR **, CHAR **);
+extern INT sysinit(INT, TCHAR **, TCHAR **);
 extern void sysexit(void);
 extern void vexecute(void);
 extern void vrollout(void);
-extern INT utilexec(CHAR *);
+extern INT utilexec(TCHAR *);
 extern void vconsole(void);
 extern void vclock(void);
 extern void vclockClient(void);
@@ -761,20 +761,20 @@ extern void dbcresetparm(void);
 extern UCHAR *dbcgetdata(INT);
 
 /* dbctcx.c */
-extern SOCKET dbctcxconnect(INT, CHAR *,void (*recvcallback)(INT));
-extern SOCKET dbctcxconnectserver(INT channel, CHAR *port,void (*recvcallback)(INT), int timeout);
+extern SOCKET dbctcxconnect(INT, TCHAR *,void (*recvcallback)(INT));
+extern SOCKET dbctcxconnectserver(INT channel, TCHAR *port,void (*recvcallback)(INT), int timeout);
 extern void dbctcxdisconnect(INT channel);
 extern void dbctcxflushincoming(INT channel);
-extern void dbctcxputtag(INT, CHAR *);
-extern void dbctcxputattr(INT, CHAR *, CHAR *);
-extern void dbctcxputsub(INT, CHAR *);
+extern void dbctcxputtag(INT, TCHAR *);
+extern void dbctcxputattr(INT, TCHAR *, TCHAR *);
+extern void dbctcxputsub(INT, TCHAR *);
 extern void dbctcxput(INT);
 extern INT dbctcxget(INT);
-extern CHAR *dbctcxgettag(INT);
-extern CHAR *dbctcxgetnextattr(INT);
-extern CHAR *dbctcxgetattrvalue(INT);
-extern CHAR *dbctcxgetnextchild(INT);
-extern CHAR *dbctcxerror(void);
+extern TCHAR *dbctcxgettag(INT);
+extern TCHAR *dbctcxgetnextattr(INT);
+extern TCHAR *dbctcxgetattrvalue(INT);
+extern TCHAR *dbctcxgetnextchild(INT);
+extern TCHAR *dbctcxerror(void);
 extern void dbctcxprocessbytes(UCHAR *mem, INT len);
 
 #if OS_WIN32
@@ -837,7 +837,7 @@ typedef struct {
 
 typedef struct {
 	INT mod;		/* module number of break point */
-	CHAR module[32];/* module name of breakpoint */
+	TCHAR module[32];/* module name of breakpoint */
 	INT ptidx;		/* index to program line */
 	INT pcnt;		/* pcount of break point */
 	INT line;		/* zero based line number */
@@ -866,13 +866,13 @@ typedef struct {	/* class table */
 EXTERN DATADEF *datatable;
 EXTERN BREAKDEF dbgbrk[DEBUG_BRKMAX];
 EXTERN COUNTERBREAKDEF dbgCounterbrk[DEBUG_BRKMAX];
-EXTERN CHAR dbgerrorstring[256];
+EXTERN TCHAR dbgerrorstring[256];
 EXTERN INT dbgpgmmod, dbgdatamod;
 EXTERN INT dbgpcount;
 EXTERN INT dtsize;
 EXTERN INT ctsize;
 EXTERN INT events[2];
-EXTERN CHAR *nametable;
+EXTERN TCHAR *nametable;
 EXTERN PGMDEF *pgmtable;
 EXTERN INT ptsize;
 EXTERN RTNDEF *routinetable;

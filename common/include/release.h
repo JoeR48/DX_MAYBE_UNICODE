@@ -16,10 +16,10 @@
  *
  ******************************************************************************/
 
-#define RELEASEPROGRAM "DB/C "
-#define RELEASE "101"
-#define COPYRIGHT "  (c) Copyright 2023 Portable Software Company"
-#define CFG_PREFIX "dbcdx"
+#define RELEASEPROGRAM _T("DB/C ")
+#define RELEASE _T("101")
+#define COPYRIGHT _T("  (c) Copyright 2023 Portable Software Company")
+#define CFG_PREFIX _T("dbcdx")
 #define DX_MAJOR_VERSION 101
 #define DX_MINOR_VERSION 0
 #define DX_SUB_VERSION 0

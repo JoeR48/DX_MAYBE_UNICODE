@@ -16,6 +16,8 @@
  *
  ******************************************************************************/
 
+#include <tchar.h>
+
 #define INC_STDIO
 #define INC_STRING
 #define INC_CTYPE
@@ -104,30 +106,30 @@ static OFFSET slotsiz;			/* size of slot */
 static INT worksiz;				/* working size of slot for this pass */
 static OFFSET workoff;			/* working offset in slot for this pass */
 
-static char *errormsg[] = {
-	"HALTED - user interrupt",
-	"Invalid parameter ->",
-	"Invalid parameter value ->",
-	"Unable to initialize",
-	"Unable to allocate memory for buffers",
-	"Unable to open",
-	"Unable to create",
-	"Unable to close file",
-	"Unable to read from file",
-	"Unable to write to file",
-	"Too many selection parameters",
-	"Too many keys",
-	"Too many arguments",
-	"-F option must be specified with the -S option",
-	"-F=nnn option must be specified when text file is empty",
-	"-F option detects invalid record length",
-	"More records in input file than expected",
-	"-E option not valid on pre-version 8 AIM",
-	"Invalid AIM header block",
-	"Unable to read 256 bytes from DBC_CASEMAP",
-	"-J option is mutually exclusive with the -Y option",
-	"Input file contains EOF character before physical EOF",
-	"-F option must be specified with the -P option",
+static TCHAR *errormsg[] = {
+	_T("HALTED - user interrupt"),
+	_T("Invalid parameter ->"),
+	_T("Invalid parameter value ->"),
+	_T("Unable to initialize"),
+	_T("Unable to allocate memory for buffers"),
+	_T("Unable to open"),
+	_T("Unable to create"),
+	_T("Unable to close file"),
+	_T("Unable to read from file"),
+	_T("Unable to write to file"),
+	_T("Too many selection parameters"),
+	_T("Too many keys"),
+	_T("Too many arguments"),
+	_T("-F option must be specified with the -S option"),
+	_T("-F=nnn option must be specified when text file is empty"),
+	_T("-F option detects invalid record length"),
+	_T("More records in input file than expected"),
+	_T("-E option not valid on pre-version 8 AIM"),
+	_T("Invalid AIM header block"),
+	_T("Unable to read 256 bytes from DBC_CASEMAP"),
+	_T("-J option is mutually exclusive with the -Y option"),
+	_T("Input file contains EOF character before physical EOF"),
+	_T("-F option must be specified with the -P option"),
 };
 
 /* routine definitions */
@@ -137,21 +139,21 @@ static INT axdel(void);
 static INT axinit(void);
 static INT axend(void);
 static INT axwrite(void);
-static int axnextparm(char *, int);
+static int axnextparm(TCHAR *, int);
 
 #if OS_WIN32
-__declspec (noreturn) static void death(INT, INT, CHAR *);
+__declspec (noreturn) static void death(INT, INT, TCHAR *);
 __declspec (noreturn) static void quitsig(INT);
 __declspec (noreturn) static void usage(void);
 #else
-static void death(INT, INT, CHAR *)  __attribute__((__noreturn__));
+static void death(INT, INT, TCHAR *)  __attribute__((__noreturn__));
 static void quitsig(INT)  __attribute__((__noreturn__));
 static void usage(void)  __attribute__((__noreturn__));
 #endif
 
 
 
-INT main(INT argc, CHAR **argv)
+INT _tmain(INT argc, TCHAR **argv)
 {
 	INT i1, i2, i3, i4, arecsiz = 0, reclen, recsiz, highkey, arghi;
 	/*
@@ -161,8 +163,8 @@ INT main(INT argc, CHAR **argv)
 	INT selhi, selflg, selcmp, selpos, sellen, seleqlflg;
 	INT namelen, openflg, version;
 	OFFSET eofpos, pos, prirec, secrec;
-	CHAR cfgname[MAX_NAMESIZE], inname[MAX_NAMESIZE], outname[MAX_NAMESIZE];
-	CHAR work[300], *ptr;
+	TCHAR cfgname[MAX_NAMESIZE], inname[MAX_NAMESIZE], outname[MAX_NAMESIZE];
+	TCHAR work[300], *ptr;
 	UCHAR c1, c2, umatch;
 	/*
 	 * TRUE if the -F option is used
@@ -182,16 +184,16 @@ INT main(INT argc, CHAR **argv)
 
 	/* initialize */
 	if (meminit(100 << 10, 0, 32) == -1) death(DEATH_INIT, ERR_NOMEM, NULL);
-	cfgname[0] = 0;
+	cfgname[0] = (TCHAR) '\0';
 	while (!argget(ARG_NEXT | ARG_IGNOREOPT, work, sizeof(work))) {
-		if (work[0] == '-') {
-			if (work[1] == '?') usage();
-			if (toupper(work[1]) == 'C' && toupper(work[2]) == 'F' &&
-			    toupper(work[3]) == 'G' && work[4] == '=') strcpy(cfgname, &work[5]);
+		if (work[0] == (TCHAR) '-') {
+			if (work[1] == (TCHAR) '?') usage();
+			if (toupper(work[1]) == (TCHAR) 'C' && toupper(work[2]) == (TCHAR) 'F' &&
+			    toupper(work[3]) == (TCHAR) 'G' && work[4] == (TCHAR) '=') _tcscpy(cfgname, &work[5]);
 		}
 	}
 	if (cfginit(cfgname, FALSE)) death(DEATH_INIT, 0, cfggeterror());
-	if (prpinit(cfggetxml(), CFG_PREFIX "cfg")) ptr = fioinit(NULL, FALSE);
+	if (prpinit(cfggetxml(), CFG_PREFIX _T("cfg"))) ptr = fioinit(NULL, FALSE);
 	else ptr = fioinit(&parms, FALSE);
 	if (ptr != NULL) death(DEATH_INIT, 0, ptr);
 
@@ -221,16 +223,16 @@ INT main(INT argc, CHAR **argv)
 	if (!i1) i1 = argget(ARG_NEXT, outname, sizeof(outname));
 	if (i1 < 0) death(DEATH_INIT, i1, NULL);
 	if (i1 == 1) usage();
-	namelen = (INT)strlen(inname);
+	namelen = (INT)wcslen(inname);
 	for (i1 = 0; isdigit(outname[i1]); i1++);
 	if (i1 && outname[i1] == '-') for (i1++; isdigit(outname[i1]); i1++);
 	if (outname[0] == '-' || !outname[i1]) {
-		strcpy(ptr, outname);
-		strcpy(outname, inname);
-		miofixname(outname, ".aim", FIXNAME_EXT_ADD | FIXNAME_EXT_REPLACE);
+		_tcscpy(ptr, outname);
+		_tcscpy(outname, inname);
+		miofixname(outname, _T(".aim"), FIXNAME_EXT_ADD | FIXNAME_EXT_REPLACE);
 		goto scanparm;
 	}
-	miofixname(outname, ".aim", FIXNAME_EXT_ADD);
+	miofixname(outname, _T(".aim"), FIXNAME_EXT_ADD);
 
 	/* get next parameter */
 	while (!axnextparm(ptr, sizeof(work))) {
@@ -242,7 +244,7 @@ scanparm:
 					break;
 				case 'A':
 					if (ptr[2] != '=' || !ptr[3]) death(DEATH_INVPARM, 0, ptr);
-					memsize = atol(&ptr[3]) << 10;
+					memsize = _tcstol(&ptr[3], NULL, 10) << 10;
 					if (memsize < 1) death(DEATH_INVPARMVAL, 0, ptr);
 					break;
 				case 'C':
@@ -256,7 +258,7 @@ scanparm:
 					break;
 				case 'F':
 					if (ptr[2] == '=') {
-						reclen = atoi(&ptr[3]);
+						reclen = _tstoi(&ptr[3]);
 						if (reclen < 1 || reclen > RIO_MAX_RECSIZE) death(DEATH_INVPARMVAL, 0, ptr);
 					}
 					fixflg = TRUE;
@@ -276,7 +278,7 @@ scanparm:
 						i1 = 4;
 					}
 					else i1 = 3;
-					prirec = atol(&ptr[i1]);
+					prirec = _tcstol(&ptr[i1], NULL, 10);
 					if (prirec < 1L) death(DEATH_INVPARMVAL, 0, ptr);
 					break;
 				case 'P':
@@ -309,7 +311,7 @@ scanparm:
 							else if (c2 == 'E') i3 = LESS | EQUAL;
 						}
 					}
-					i4 = (INT)strlen(&ptr[++i1]);
+					i4 = (INT)wcslen(&ptr[++i1]);
 					if (!i3 || !i4) death(DEATH_INVPARMVAL, 0, ptr);
 					if (i2 > 1) i3 |= STRING;
 					if (orflg) i3 |= OR;
@@ -342,7 +344,7 @@ scanparm:
 				case 'X':
 					if (ptr[2]) {
 						if (ptr[2] != '=') death(DEATH_INVPARM, 0, ptr);
-						secrec = atol(&ptr[3]);
+						secrec = _tcstol(&ptr[3], NULL, 10);
 						if (secrec < 1L) death(DEATH_INVPARMVAL, 0, ptr);
 					}
 					else xselflg = TRUE;
@@ -352,7 +354,7 @@ scanparm:
 					break;
 				case 'Z':
 					if (ptr[2] != '=') death(DEATH_INVPARM, 0, ptr);
-					zvalue = atoi(&ptr[3]);
+					zvalue = _tstoi(&ptr[3]);
 					if (zvalue < 40 || zvalue > 2000) death(DEATH_INVPARMVAL, 0, ptr);
 					break;
 				default:
@@ -386,7 +388,7 @@ scanparm:
 		else death(DEATH_INVPARM, 0, ptr);
 
 		/* save the argument */
-		i1 = (INT)strlen(ptr);
+		i1 = (INT)wcslen(ptr);
 		if (namelen + arghi + i1 > ARGSIZE) death(DEATH_TOOMANYARG, 0, NULL);
 		memcpy(&arglit[arghi], ptr, (UINT) i1);
 		arghi += i1;
@@ -435,7 +437,7 @@ scanparm:
 		}
 
 		/* rename */
-		i3 = (INT)strlen(inname);
+		i3 = (INT)wcslen(inname);
 		if (version >= 9) {
 			i4 = i3 + 101;
 			for (i2 = 101; i2 < i1 && record[i2] != DBCEOR; i2++);
@@ -477,7 +479,7 @@ scanparm:
 	if (inhndl < 0) death(DEATH_OPEN, inhndl, inname);
 
 	/* change prep directory to be same as input file */
-	if (!prpget("file", "utilprep", NULL, NULL, &ptr, PRP_LOWER) && !strcmp(ptr, "dos")) {
+	if (!prpget(_T("file"), _T("utilprep"), NULL, NULL, &ptr, PRP_LOWER) && !_tcscmp(ptr, _T("dos"))) {
 		ptr = fioname(inhndl);
 		if (ptr != NULL) {
 			i1 = fioaslash(ptr) + 1;
@@ -547,7 +549,7 @@ scanparm:
 	mscoffto6x(secrec, &record[60]);  /* cmd line secondary rec count */
 	record[99] = '9';
 	record[100] = DBCEOR;
-	i1 = (INT)strlen(inname);
+	i1 = (INT)_tcslen(inname);
 	memcpy(&record[101], inname, (UINT) i1);
 	i1 += 101;
 	record[i1++] = DBCEOR;
@@ -610,7 +612,7 @@ scanparm:
 				selpos = selptr[i4].pos;
 				seleqlflg = selptr[i4].eqlflg;
 				i3 = selptr[i4].ptr;
-				if (seleqlflg & STRING) sellen = (INT)strlen((CHAR *) &selchr[i3]);
+				if (seleqlflg & STRING) sellen = (INT)wcslen((TCHAR *) &selchr[i3]);
 				else sellen = 1;
 				if (selpos + sellen > recsiz) selflg = 0;
 				if (!selflg) continue;
@@ -652,12 +654,12 @@ scanparm:
 	i1 = rioclose(inhndl);
 	if (i1) death(DEATH_CLOSE, i1, NULL);
 	if (dspflags & DSPFLAGS_DSPXTRA) {
-		mscofftoa(recproc, (CHAR *) record);
-		dspstring("\rAimdex complete, ");
-		dspstring((CHAR *) record);
-		dspstring(" records processed\n");
+		mscofftoa(recproc, (TCHAR *) record);
+		dspstring(_T("\rAimdex complete, "));
+		dspstring((TCHAR *) record);
+		dspstring(_T(" records processed\n"));
 	}
-	else if (dspflags & DSPFLAGS_VERBOSE) dspstring("Aimdex complete\n");
+	else if (dspflags & DSPFLAGS_VERBOSE) dspstring(_T("Aimdex complete\n"));
 	cfgexit();
 	exit(0);
 	return(0);
@@ -707,10 +709,10 @@ static INT axrec()
 	if (dspflags & DSPFLAGS_DSPXTRA) {
 		recproc++;
 		if (!(recproc & 0x01FF)) {
-			mscofftoa(recproc, (CHAR *) record);
+			mscofftoa(recproc, (TCHAR *) record);
 			dspchar('\r');
-			dspstring((CHAR *) record);
-			dspstring(" records processed");
+			dspstring((TCHAR *) record);
+			dspstring(_T(" records processed"));
 			dspflush();
 		}
 	}
@@ -784,14 +786,14 @@ static INT axinit()
 	if (dspflags & DSPFLAGS_DSPXTRA) {
 		npass = (INT)(slotsiz / worksiz);
 		if (slotsiz % worksiz) npass++;
-		mscitoa(memsize, (CHAR *) record);
-		dspstring("Allocated ");
-		dspstring((CHAR *) record);
-		dspstring(" bytes for buffers, ");
-		mscitoa(npass, (CHAR *) record);
-		dspstring((CHAR *) record);
-		if (npass == 1L) dspstring(" output pass required\n");
-		else dspstring(" output passes required\n");
+		mscitoa(memsize, (TCHAR *) record);
+		dspstring(_T("Allocated "));
+		dspstring((TCHAR *) record);
+		dspstring(_T(" bytes for buffers, "));
+		mscitoa(npass, (TCHAR *) record);
+		dspstring((TCHAR *) record);
+		if (npass == 1L) dspstring(_T(" output pass required\n"));
+		else dspstring(_T(" output passes required\n"));
 	}
 	return(0);
 }
@@ -816,12 +818,12 @@ static INT axwrite()
 	static OFFSET passnum;
 	INT i1, i2, bufpos;
 	OFFSET pos;
-	CHAR work[32];
+	TCHAR work[32];
 
 	if (dspflags & DSPFLAGS_DSPXTRA) {
 		passnum++;
 		mscofftoa(passnum, work);
-		dspstring("\r                           \rOutput pass ");
+		dspstring(_T("\r                           \rOutput pass "));
 		dspstring(work);
 		dspflush();
 	}
@@ -851,7 +853,7 @@ static INT axwrite()
 
 /* AXNEXTPARM */
 /* get next command line parameter */
-static int axnextparm(char *parm, int size)
+static int axnextparm(TCHAR *parm, int size)
 {
 	static INT parmptr = 101;
 	int i1;
@@ -877,37 +879,37 @@ static int axnextparm(char *parm, int size)
 /* USAGE */
 static void usage()
 {
-	dspstring("AIMDEX command  " RELEASEPROGRAM RELEASE COPYRIGHT);
-	dspchar('\n');
-	dspstring("Usage:  aimdex file1 [file2] key-spec [key-spec...] [-A=n] [-CFG=cfgfile] [-D]\n");
-	dspstring("               [-E] [-F[=n]] [-J[R]] [-M=c] [-N=[+]n] [-O=optfile] [OR]\n");
-	dspstring("               [-Pn[-n]EQc[c...]] [-Pn[-n]NEc[c...]] [-Pn[-n]GTc[c...]]\n");
-	dspstring("               [-Pn[-n]GEc[c...]] [-Pn[-n]LTc[c...]] [-Pn[-n]LEc[c...]] [-R]\n");
-	dspstring("               [-S] [-T] [-V] [-X[=n]] [-Y] [-Z=n] [-!]\n");
+	dspstring(_T("AIMDEX command  " RELEASEPROGRAM RELEASE COPYRIGHT));
+	dspchar((TCHAR) '\n');
+	dspstring(_T("Usage:  aimdex file1 [file2] key-spec [key-spec...] [-A=n] [-CFG=cfgfile] [-D]\n"));
+	dspstring(_T("               [-E] [-F[=n]] [-J[R]] [-M=c] [-N=[+]n] [-O=optfile] [OR]\n"));
+	dspstring(_T("               [-Pn[-n]EQc[c...]] [-Pn[-n]NEc[c...]] [-Pn[-n]GTc[c...]]\n"));
+	dspstring(_T("               [-Pn[-n]GEc[c...]] [-Pn[-n]LTc[c...]] [-Pn[-n]LEc[c...]] [-R]\n"));
+	dspstring(_T("               [-S] [-T] [-V] [-X[=n]] [-Y] [-Z=n] [-!]\n"));
 	exit(1);
 }
 
 /* DEATH */
-static void death(INT n, INT e, CHAR *s)
+static void death(INT n, INT e, TCHAR *s)
 {
-	CHAR work[17];
+	TCHAR work[17];
 
 	if (n < (INT) (sizeof(errormsg) / sizeof(*errormsg))) dspstring(errormsg[n]);
 	else {
 		mscitoa(n, work);
-		dspstring("*** UNKNOWN ERROR ");
+		dspstring(_T("*** UNKNOWN ERROR "));
 		dspstring(work);
-		dspstring("***");
+		dspstring(_T("***"));
 	}
 	if (e) {
-		dspstring(": ");
+		dspstring(_T(": "));
 		dspstring(fioerrstr(e));
 	}
 	if (s != NULL) {
-		dspstring(": ");
+		dspstring(_T(": "));
 		dspstring(s);
 	}
-	dspchar('\n');
+	dspchar((TCHAR) '\n');
 	cfgexit();
 	exit(1);
 }
@@ -916,9 +918,9 @@ static void death(INT n, INT e, CHAR *s)
 static void quitsig(INT sig)
 {
 	signal(sig, SIG_IGN); // @suppress("Type cannot be resolved")
-	dspchar('\n');
+	dspchar((TCHAR) '\n');
 	dspstring(errormsg[DEATH_INTERRUPT]);
-	dspchar('\n');
+	dspchar((TCHAR) '\n');
 	cfgexit();
 	exit(1);
 }

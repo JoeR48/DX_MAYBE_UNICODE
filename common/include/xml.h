@@ -21,8 +21,8 @@
 
 typedef struct ATTRIBUTE_STRUCT {
 	struct ATTRIBUTE_STRUCT *nextattribute;
-	CHAR *tag;
-	CHAR *value;
+	TCHAR *tag;
+	TCHAR *value;
 	/*
 	 * possible future use, count of bytes including terminating NULL
 	 */
@@ -31,14 +31,14 @@ typedef struct ATTRIBUTE_STRUCT {
 
 typedef struct ELEMENT_STRUCT {
 	INT cdataflag;
-	CHAR *tag;
+	TCHAR *tag;
 	ATTRIBUTE *firstattribute;
 	struct ELEMENT_STRUCT *nextelement;
 	struct ELEMENT_STRUCT *firstsubelement;
 } ELEMENT;
 
-extern INT xmlparse(CHAR *input, INT inputsize, void *outputbuffer, size_t outputsize);
-extern INT xmlflatten(ELEMENT *input, INT streamflag, CHAR *outputbuffer, size_t outputsize);
+extern INT xmlparse(TCHAR *input, INT inputsize, void *outputbuffer, size_t outputsize);
+extern INT xmlflatten(ELEMENT *input, INT streamflag, TCHAR *outputbuffer, size_t outputsize);
 extern CHAR *xmlgeterror(void);
 
 #endif  /* _XML_INCLUDED */

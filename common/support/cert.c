@@ -25,64 +25,65 @@
  *
  */
 #include <openssl/bio.h>
+#include <tchar.h>
 
 #define INC_STRING 1
 #include "includes.h"
 #include "base.h"
 
-static const char* defaultCertFileName = "dbcserver.crt";
-static char certBioErrorMsg[300];
-static const char* c1 = "-----BEGIN CERTIFICATE-----";
-static const char* c2 = "-----END CERTIFICATE-----";
-static const char* c3 = "-----BEGIN RSA PRIVATE KEY-----";
-static const char* c4 = "-----END RSA PRIVATE KEY-----";
+static const TCHAR* defaultCertFileName = _T("dbcserver.crt");
+static TCHAR certBioErrorMsg[300];
+static const TCHAR* c1 = _T("-----BEGIN CERTIFICATE-----");
+static const TCHAR* c2 = _T("-----END CERTIFICATE-----");
+static const TCHAR* c3 = _T("-----BEGIN RSA PRIVATE KEY-----");
+static const TCHAR* c4 = _T("-----END RSA PRIVATE KEY-----");
 static BIO *memoryBio = NULL;
-static CHAR* buffer;
+static TCHAR* buffer;
 static FILE* crtfile;
 
 /**
  * Called only from two places in clientstart() in dbcclnt.c
  * Only when this is a server
  */
-BIO* GetCertBio(char* certificatefilename) {
+BIO* GetCertBio(TCHAR* certificatefilename) {
 
 	if (memoryBio == NULL) {
-		certBioErrorMsg[0] = '\0';
-		if (certificatefilename == NULL || strlen(certificatefilename) == 0) certificatefilename = (char*)defaultCertFileName;
-		crtfile = fopen(certificatefilename, "rb");
+		certBioErrorMsg[0] = (TCHAR) '\0';
+		if (certificatefilename == NULL || wcslen(certificatefilename) == 0) certificatefilename = (TCHAR*)defaultCertFileName;
+		crtfile = _tfopen(certificatefilename, _T("rb"));
 		if (crtfile == NULL) {
-			sprintf(certBioErrorMsg, "Failure opening certificate file. File name used='%s'", certificatefilename);
+			_stprintf(certBioErrorMsg, _T("Failure opening certificate file. File name used='%s'"), certificatefilename);
 			return NULL;
 		}
 		fseek(crtfile, 0, SEEK_END);
 		size_t filesize = ftell(crtfile);
 		if ((long int) filesize < 0) {
-			sprintf(certBioErrorMsg, "Failure getting size of certificate file. File name used='%s'", certificatefilename);
+			_stprintf(certBioErrorMsg, _T("Failure getting size of certificate file. File name used='%s'"), certificatefilename);
 			return NULL;
 		}
 		fseek(crtfile, 0, SEEK_SET);
-		buffer = (CHAR *) malloc(filesize + sizeof(CHAR));
+		buffer = (TCHAR *) malloc(filesize + sizeof(TCHAR));
 		if (buffer == NULL) {
 			fclose(crtfile);
-			sprintf(certBioErrorMsg, "Failure getting certificate file '%s'. Unable to allocate memory for a read buffer", certificatefilename);
+			_stprintf(certBioErrorMsg, _T("Failure getting certificate file '%s'. Unable to allocate memory for a read buffer"), certificatefilename);
 			return NULL;
 		}
 		size_t i1 = fread(buffer, 1, filesize, crtfile);
 		if (i1 != filesize) {
 			free(buffer);
-			sprintf(certBioErrorMsg, "Failure reading certificate file. File name used='%s'", certificatefilename);
+			_stprintf(certBioErrorMsg, _T("Failure reading certificate file. File name used='%s'"), certificatefilename);
 			return NULL;
 		}
 		if (filesize < 150) {
-			sprintf(certBioErrorMsg, "Failure in the certificate file '%s'. It is mal-formed", certificatefilename);
+			_stprintf(certBioErrorMsg, _T("Failure in the certificate file '%s'. It is mal-formed"), certificatefilename);
 			return NULL;
 		}
-		if (strstr((const char *)(buffer), c1) == NULL || strstr((const char *)(buffer), c2) == NULL) {
-			sprintf(certBioErrorMsg, "Failure in the certificate file '%s'. It is missing the certificate", certificatefilename);
+		if (_tcsstr((const TCHAR *)(buffer), c1) == NULL || _tcsstr((const TCHAR *)(buffer), c2) == NULL) {
+			_stprintf(certBioErrorMsg, _T("Failure in the certificate file '%s'. It is missing the certificate"), certificatefilename);
 			return NULL;
 		}
-		if (strstr((const char *)(buffer), c3) == NULL || strstr((const char *)(buffer), c4) == NULL) {
-			sprintf(certBioErrorMsg, "Failure in the certificate file '%s'. It is missing the key", certificatefilename);
+		if (_tcsstr((const TCHAR *)(buffer), c3) == NULL || _tcsstr((const TCHAR *)(buffer), c4) == NULL) {
+			_stprintf(certBioErrorMsg, _T("Failure in the certificate file '%s'. It is missing the key"), certificatefilename);
 			return NULL;
 		}
 		// The below call creates a read-only memory BIO
@@ -102,6 +103,6 @@ void FreeCertBio() {
 	}
 }
 
-CHAR* GetCertBioErrorMsg() {
+TCHAR* GetCertBioErrorMsg() {
 	return certBioErrorMsg;
 }

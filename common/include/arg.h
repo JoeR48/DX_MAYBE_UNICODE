@@ -24,7 +24,7 @@
 #define ARG_PROGRAM		0x04
 #define ARG_IGNOREOPT	0x08
 
-extern void arginit(int, char **, int *);
-extern int argget(int, char *, int);
+extern void arginit(int, TCHAR **, int *);
+extern int argget(int, TCHAR *, int);
 
 #endif  /* _ARG_INCLUDED */

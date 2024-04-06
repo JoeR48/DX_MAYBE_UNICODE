@@ -26,10 +26,10 @@
 #include "base.h"
 
 static int argcnt;
-static char **argvar = NULL;
+static TCHAR **argvar = NULL;
 static int argnext;
 
-void arginit(int argc, char **argv, int *displayflag)
+void arginit(int argc, TCHAR **argv, int *displayflag)
 {
 	if (displayflag != NULL) *displayflag = TRUE;
 	if (argc > 1 && argv[argc - 1][0] == '-' && argv[argc - 1][1] == '-' && !argv[argc - 1][2]) {
@@ -46,14 +46,14 @@ void arginit(int argc, char **argv, int *displayflag)
 	argnext = 1;
 }
 
-int argget(int flags, char *buf, int size)
+int argget(int flags, TCHAR *buf, int size)
 {
 	static int optnext;
-	static char **optbuf = NULL;
+	static TCHAR **optbuf = NULL;
 	int i1, i2, i3, i4, handle, quoteflag;
 	OFFSET offset;
-	char *argptr, *bufptr, work[MAX_NAMESIZE];
-	unsigned char c1;
+	TCHAR *argptr, *bufptr, work[MAX_NAMESIZE];
+	TCHAR c1;
 
 	if (argvar == NULL || !(flags & (ARG_FIRST | ARG_NEXT | ARG_PROGRAM))) return ERR_INVAR;
 
@@ -62,7 +62,7 @@ int argget(int flags, char *buf, int size)
 		if (flags & ARG_FIRST) {
 			argnext = 1;
 			if (optbuf != NULL) {
-				memfree((unsigned char **) optbuf);
+				memfree((UCHAR **) optbuf);
 				optbuf = NULL;
 			}
 		}
@@ -70,11 +70,11 @@ int argget(int flags, char *buf, int size)
 			if (optbuf != NULL) {
 				argptr = *optbuf + optnext;
 				if (!*argptr) {
-					memfree((unsigned char **) optbuf);
+					memfree((UCHAR **) optbuf);
 					optbuf = NULL;
 					continue;
 				}
-				optnext += (INT)(strlen(argptr) + 1);
+				optnext += (INT)(_tcslen(argptr) + 1);
 			}
 			else {
 				if (argnext >= argcnt) return 1;
@@ -82,30 +82,30 @@ int argget(int flags, char *buf, int size)
 				if (argptr[0] == '-' && toupper(argptr[1]) == 'O' && argptr[2] == '=' && argptr[3]) {
 					if (flags & ARG_IGNOREOPT) continue;
 					/* open file through fio to use search path */
-					strcpy(work, &argptr[3]);
-					miofixname(work, ".txt", FIXNAME_EXT_ADD);
+					_tcscpy(work, &argptr[3]);
+					miofixname(work, _T(".txt"), FIXNAME_EXT_ADD);
 					handle = fioopen(work, FIO_M_SRO | FIO_P_TXT);
 					if (handle < 0) return ERR_NOOPT;
 					fiogetsize(handle, &offset);
 					i1 = (int) offset;
-					optbuf = (char **) memalloc(i1 + 1, 0);
+					optbuf = (TCHAR **) memalloc(i1 + 1, 0);
 					if (optbuf == NULL) return ERR_NOMEM;
-					i2 = fioread(handle, 0, (unsigned char *) *optbuf, i1);
+					i2 = fioread(handle, 0, (TCHAR *) *optbuf, i1);
 					fioclose(handle);
 					if (i2 != i1) {
-						memfree((unsigned char **) optbuf);
+						memfree((TCHAR **) optbuf);
 						optbuf = NULL;
 						return ERR_RDOPT;
 					}
 		
 					/* clean-up options file */
 					for (i2 = i3 = i4 = 0, bufptr = *optbuf, quoteflag = FALSE; i2 < i1; ) {
-						c1 = (unsigned char) bufptr[i2++];
+						c1 = (TCHAR) bufptr[i2++];
 						if (c1 == '"') {
 							quoteflag = !quoteflag;
 							continue;
 						}
-						if (c1 == '\\' && bufptr[i2] == '"') c1 = (unsigned char) bufptr[i2++];
+						if (c1 == '\\' && bufptr[i2] == '"') c1 = (TCHAR) bufptr[i2++];
 						else if (c1 == 0x0D || c1 == 0x0A || c1 == 0x1A || c1 == 0xFA || c1 == 0xFB || (!quoteflag && isspace(c1))) {
 							if (i4 != i3) {
 								bufptr[i4++] = '\0';
@@ -114,7 +114,7 @@ int argget(int flags, char *buf, int size)
 							quoteflag = FALSE;
 							continue;
 						}
-						bufptr[i4++] = (char) c1;
+						bufptr[i4++] = (TCHAR) c1;
 					}
 					if (i4 != i3) bufptr[i4++] = '\0';
 					bufptr[i4] = '\0';
@@ -126,7 +126,7 @@ int argget(int flags, char *buf, int size)
 		}
 	}
 
-	i1 = (INT)(strlen(argptr) + 1);
+	i1 = (INT)(_tcslen(argptr) + 1);
 	if (i1 > size) return ERR_SHORT;
 	memcpy(buf, argptr, i1);
 	return 0;

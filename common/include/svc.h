@@ -17,8 +17,8 @@
  ******************************************************************************/
 
 typedef struct {
-	char *servicename;
-	char *servicedisplayname;
+	TCHAR *servicename;
+	TCHAR *servicedisplayname;
 } SVCINFO;
 
 #define SVC_STARTING	1
@@ -26,13 +26,13 @@ typedef struct {
 #define SVC_STOPPING	3
 #define SVC_STOPPED		4
 
-extern int svcinstall(SVCINFO *, char *, char *, int, char **);
+extern int svcinstall(SVCINFO *, TCHAR *, TCHAR *, int, TCHAR **);
 extern int svcremove(SVCINFO *);
 extern int svcstart(SVCINFO *);
 extern int svcstop(SVCINFO *);
-extern void svcrun(SVCINFO *, int (*)(int, char **), void (*)(void));
+extern void svcrun(SVCINFO *, int (*)(int, TCHAR **), void (*)(void));
 extern int svcisstarting(SVCINFO *);
 extern void svcstatus(int, int);
-extern void svclogerror(char *, int);
-extern void svcloginfo(char *msg);
-extern char *svcgeterror(void);
+extern void svclogerror(TCHAR *, int);
+extern void svcloginfo(TCHAR *msg);
+extern TCHAR *svcgeterror(void);

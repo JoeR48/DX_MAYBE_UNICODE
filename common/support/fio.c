@@ -55,38 +55,38 @@ static INT openlimit;		/* maximum number of operating system files to be open */
 static INT filetimeout;		/* filepi timeout in seconds */
 static INT rectimeout;		/* record lock timeout in seconds */
 static OFFSET maxoffset = 0x7FFFFFFF;  /* decare here so optimizer won't produce overflow warning */
-static CHAR **openpath = NULL;
-static CHAR **preppath = NULL;
-static CHAR **srcpath = NULL;
-static CHAR **dbcpath = NULL;
-static CHAR **editcfgpath = NULL;
-static CHAR **dbdpath = NULL;
-static CHAR **prtpath = NULL;
-static CHAR **tdfpath = NULL;
-static CHAR **tdbpath = NULL;
-static CHAR **imgpath = NULL;
-static CHAR **cftpath = NULL; /* Smart Client File Transfer */
+static TCHAR **openpath = NULL;
+static TCHAR **preppath = NULL;
+static TCHAR **srcpath = NULL;
+static TCHAR **dbcpath = NULL;
+static TCHAR **editcfgpath = NULL;
+static TCHAR **dbdpath = NULL;
+static TCHAR **prtpath = NULL;
+static TCHAR **tdfpath = NULL;
+static TCHAR **tdbpath = NULL;
+static TCHAR **imgpath = NULL;
+static TCHAR **cftpath = NULL; /* Smart Client File Transfer */
 static UCHAR **casemap = NULL;
 static UCHAR **collatemap = NULL;
-static INT (*cvtvolfnc)(CHAR *, CHAR ***);	/* function to convert :VOLUME to dirctory */
-static CHAR **findpath = NULL;
-static CHAR **findfile = NULL;
+static INT (*cvtvolfnc)(TCHAR *, TCHAR ***);	/* function to convert :VOLUME to dirctory */
+static TCHAR **findpath = NULL;
+static TCHAR **findfile = NULL;
 
 /* local routine declarations */
-static INT fioxop(INT, CHAR *, CHAR *, INT, FHANDLE *, INT *);
-static INT fiolibsrch(FHANDLE, CHAR *, OFFSET *, OFFSET *);
-static INT fiolibmod(FHANDLE, CHAR *, OFFSET, OFFSET, INT);
-static CHAR *fioinitprops(FIOPARMS *);
-static INT fioinitcvtvol(CHAR *, CHAR ***);
+static INT fioxop(INT, TCHAR *, TCHAR *, INT, FHANDLE *, INT *);
+static INT fiolibsrch(FHANDLE, TCHAR *, OFFSET *, OFFSET *);
+static INT fiolibmod(FHANDLE, TCHAR *, OFFSET, OFFSET, INT);
+static TCHAR *fioinitprops(FIOPARMS *);
+static INT fioinitcvtvol(TCHAR *, TCHAR ***);
 
 /* FIOINITCFG */
 /* initialize using a prefix and from a .cfg file */
-CHAR *fioinit(FIOPARMS *parms, INT initialized)
+TCHAR *fioinit(FIOPARMS *parms, INT initialized)
 {
 	INT i1, i2, parmflags;
 	OFFSET offset;
 	FIOAINITSTRUCT fioaparms;
-	CHAR *errmsg;
+	TCHAR *errmsg;
 
 /* initialize ftab structures */
 	if (ftabmax) return("attempt to call fioinit twice");
@@ -143,57 +143,57 @@ CHAR *fioinit(FIOPARMS *parms, INT initialized)
 #endif
 		if (parms->openpath[0]) {
 			i2 = (INT)strlen(parms->openpath);
-			openpath = (CHAR **) memalloc(i2 + 1, 0);
+			openpath = (TCHAR **) memalloc(i2 + 1, 0);
 			strcpy(*openpath, parms->openpath);
 		}
 		if (parms->preppath[0]) {
 			i2 = (INT)strlen(parms->preppath);
-			preppath = (CHAR **) memalloc(i2 + 1, 0);
+			preppath = (TCHAR **) memalloc(i2 + 1, 0);
 			strcpy(*preppath, parms->preppath);
 		}
 		if (parms->srcpath[0]) {
 			i2 = (INT)strlen(parms->srcpath);
-			srcpath = (CHAR **) memalloc(i2 + 1, 0);
+			srcpath = (TCHAR **) memalloc(i2 + 1, 0);
 			strcpy(*srcpath, parms->srcpath);
 		}
 		if (parms->dbcpath[0]) {
 			i2 = (INT)strlen(parms->dbcpath);
-			dbcpath = (CHAR **) memalloc(i2 + 1, 0);
+			dbcpath = (TCHAR **) memalloc(i2 + 1, 0);
 			strcpy(*dbcpath, parms->dbcpath);
 		}
 		if (parms->editcfgpath[0]) {
 			i2 = (INT)strlen(parms->editcfgpath);
-			editcfgpath = (CHAR **) memalloc(i2 + 1, 0);
+			editcfgpath = (TCHAR **) memalloc(i2 + 1, 0);
 			strcpy(*editcfgpath, parms->editcfgpath);
 		}
 		if (parms->dbdpath[0]) {
 			i2 = (INT)strlen(parms->dbdpath);
-			dbdpath = (CHAR **) memalloc(i2 + 1, 0);
+			dbdpath = (TCHAR **) memalloc(i2 + 1, 0);
 			strcpy(*dbdpath, parms->dbdpath);
 		}
 		if (parms->prtpath[0]) {
 			i2 = (INT)strlen(parms->prtpath);
-			prtpath = (CHAR **) memalloc(i2 + 1, 0);
+			prtpath = (TCHAR **) memalloc(i2 + 1, 0);
 			strcpy(*prtpath, parms->prtpath);
 		}
 		if (parms->tdfpath[0]) {
 			i2 = (INT)strlen(parms->tdfpath);
-			tdfpath = (CHAR **) memalloc(i2 + 1, 0);
+			tdfpath = (TCHAR **) memalloc(i2 + 1, 0);
 			strcpy(*tdfpath, parms->tdfpath);
 		}
 		if (parms->tdbpath[0]) {
 			i2 = (INT)strlen(parms->tdbpath);
-			tdbpath = (CHAR **) memalloc(i2 + 1, 0);
+			tdbpath = (TCHAR **) memalloc(i2 + 1, 0);
 			strcpy(*tdbpath, parms->tdbpath);
 		}
 		if (parms->imgpath[0]) {
 			i2 = (INT)strlen(parms->imgpath);
-			imgpath = (CHAR **) memalloc(i2 + 1, 0);
+			imgpath = (TCHAR **) memalloc(i2 + 1, 0);
 			strcpy(*imgpath, parms->imgpath);
 		}
 		if (parms->cftpath[0]) {
 			i2 = (INT)strlen(parms->cftpath);
-			cftpath = (CHAR **) memalloc(i2 + 1, 0);
+			cftpath = (TCHAR **) memalloc(i2 + 1, 0);
 			strcpy(*cftpath, parms->cftpath);
 		}
 		for (i1 = 0; i1 <= UCHAR_MAX && !parms->casemap[i1]; i1++);
@@ -274,7 +274,7 @@ INT fiogetflags()
 INT fiosetopt(INT opt, UCHAR *value)
 {
 	INT i1;
-	CHAR ***ppptr;
+	TCHAR ***ppptr;
 
 	if (opt >= FIO_OPT_OPENPATH && opt <= FIO_OPT_IMGPATH) {
 		switch (opt) {
@@ -313,9 +313,9 @@ INT fiosetopt(INT opt, UCHAR *value)
 		}
 		memfree((UCHAR **) *ppptr);
 		if (value != NULL) {
-			*ppptr = (CHAR **) memalloc((INT)strlen((CHAR *) value) + 1, 0);
+			*ppptr = (TCHAR **) memalloc((INT)strlen((TCHAR *) value) + 1, 0);
 			if (*ppptr == NULL) return(ERR_NOMEM);
-			strcpy(**ppptr, (CHAR *) value);
+			strcpy(**ppptr, (TCHAR *) value);
 		}
 		else *ppptr = NULL;
 		return(0);
@@ -392,7 +392,7 @@ UCHAR **fiogetopt(INT opt)
 }
 
 /* FIOCVTVOL */
-INT fiocvtvol(CHAR *volume, CHAR ***directory)
+INT fiocvtvol(TCHAR *volume, TCHAR ***directory)
 {
 	if (cvtvolfnc == NULL) return RC_ERROR;
 	return(cvtvolfnc(volume, directory));
@@ -403,14 +403,14 @@ INT fiocvtvol(CHAR *volume, CHAR ***directory)
  * Returns a negative number for error, positive file handle for success
  * Might move memory
  */
-INT fioopen(CHAR *name, INT opts)  /* open a file */
+INT fioopen(TCHAR *name, INT opts)  /* open a file */
 {
 	INT i1, fnum, opnflg, savemode = 0, search;
 	SHORT mode;
 	FHANDLE handle;
 	OFFSET pos, length;
-	CHAR filename[MAX_NAMESIZE + 1], memname[MEMBERSIZ + 1], dbcvol[VOLUMESIZ + 8];
-	CHAR *ptr, *ptr1, *ptr2, **pptr, **pptr1, **pptr2;
+	TCHAR filename[MAX_NAMESIZE + 1], memname[MEMBERSIZ + 1], dbcvol[VOLUMESIZ + 8];
+	TCHAR *ptr, *ptr1, *ptr2, **pptr, **pptr1, **pptr2;
 	UCHAR **hptr;
 	UCHAR **libptr;
 	struct ftab *f;
@@ -449,7 +449,7 @@ INT fioopen(CHAR *name, INT opts)  /* open a file */
 	if (memname[0]) {
 		i1 = (INT)strlen(memname);
 		if (MEMBERSIZ - i1 > 0) memset(&memname[i1], ' ', MEMBERSIZ - i1);
-		while (i1--) memname[i1] = (CHAR) toupper(memname[i1]);
+		while (i1--) memname[i1] = (TCHAR) toupper(memname[i1]);
 		miofixname(filename, ".lib", FIXNAME_EXT_ADD);
 		savemode = mode;
 		if (mode >= FIO_M_PRP) {
@@ -471,18 +471,18 @@ INT fioopen(CHAR *name, INT opts)  /* open a file */
 		/* check for directory or drive specification */
 		if (fioaslash(filename) >= 0) search = FIO_P_WRK;
 		if (search == FIO_P_TXT) {
-			pptr1 = (CHAR **) openpath;
-			pptr2 = (CHAR **) preppath;
+			pptr1 = (TCHAR **) openpath;
+			pptr2 = (TCHAR **) preppath;
 		}
-		else if (search == FIO_P_SRC) pptr1 = pptr2 = (CHAR **) srcpath;
-		else if (search == FIO_P_DBC) pptr1 = pptr2 = (CHAR **) dbcpath;
-		else if (search == FIO_P_CFG) pptr1 = pptr2 = (CHAR **) editcfgpath;
-		else if (search == FIO_P_DBD) pptr1 = pptr2 = (CHAR **) dbdpath;
-		else if (search == FIO_P_PRT) pptr1 = pptr2 = (CHAR **) prtpath;
-		else if (search == FIO_P_TDF) pptr1 = pptr2 = (CHAR **) tdfpath;
-		else if (search == FIO_P_TDB) pptr1 = pptr2 = (CHAR **) tdbpath;
-		else if (search == FIO_P_IMG) pptr1 = pptr2 = (CHAR **) imgpath;
-		else if (search == FIO_P_CFT) pptr1 = pptr2 = (CHAR **) cftpath;
+		else if (search == FIO_P_SRC) pptr1 = pptr2 = (TCHAR **) srcpath;
+		else if (search == FIO_P_DBC) pptr1 = pptr2 = (TCHAR **) dbcpath;
+		else if (search == FIO_P_CFG) pptr1 = pptr2 = (TCHAR **) editcfgpath;
+		else if (search == FIO_P_DBD) pptr1 = pptr2 = (TCHAR **) dbdpath;
+		else if (search == FIO_P_PRT) pptr1 = pptr2 = (TCHAR **) prtpath;
+		else if (search == FIO_P_TDF) pptr1 = pptr2 = (TCHAR **) tdfpath;
+		else if (search == FIO_P_TDB) pptr1 = pptr2 = (TCHAR **) tdbpath;
+		else if (search == FIO_P_IMG) pptr1 = pptr2 = (TCHAR **) imgpath;
+		else if (search == FIO_P_CFT) pptr1 = pptr2 = (TCHAR **) cftpath;
 		else pptr1 = pptr2 = NULL;
 	}
 
@@ -491,7 +491,7 @@ INT fioopen(CHAR *name, INT opts)  /* open a file */
 		ptr = "";
 	}
 	i1 = (INT)strlen(*pptr1) + 1;
-	pptr = (CHAR **) memalloc(i1, 0);
+	pptr = (TCHAR **) memalloc(i1, 0);
 	if (pptr == NULL) return(ERR_NOMEM);
 	memcpy(*pptr, *pptr1, i1);
 	/* attempt to open name in search paths specified */
@@ -505,7 +505,7 @@ INT fioopen(CHAR *name, INT opts)  /* open a file */
 			ptr = "";
 		}
 		i1 = (INT)strlen(*pptr2) + 1;
-		pptr = (CHAR **) memalloc(i1, 0);
+		pptr = (TCHAR **) memalloc(i1, 0);
 		if (pptr == NULL) return(ERR_NOMEM);
 		memcpy(*pptr, *pptr2, i1);
 		i1 = fioxop(1, filename, *pptr, mode, &handle, &opnflg);
@@ -527,7 +527,7 @@ INT fioopen(CHAR *name, INT opts)  /* open a file */
 	}
 	else {  /* new filename, alloc htab */
 		i1 = (INT)strlen(filename);
-		hptr = memalloc(sizeof(struct htab) - (MAX_NAMESIZE - i1) * sizeof(CHAR), 0);
+		hptr = memalloc(sizeof(struct htab) - (MAX_NAMESIZE - i1) * sizeof(TCHAR), 0);
 		if (hptr == NULL) {
 			fioaclose(handle);
 			opencnt--;
@@ -601,11 +601,11 @@ INT fioopen(CHAR *name, INT opts)  /* open a file */
  * if create is non-zero, then only attempt create on first path
  * return 0 for success, negative error value for failure
  */
-static INT fioxop(INT create, CHAR *name, CHAR *path, INT mode, FHANDLE *phandle, INT *opnflg)
+static INT fioxop(INT create, TCHAR *name, TCHAR *path, INT mode, FHANDLE *phandle, INT *opnflg)
 {
 	INT i1;
 	FHANDLE handle;
-	CHAR work[MAX_NAMESIZE + 1];
+	TCHAR work[MAX_NAMESIZE + 1];
 	struct ftab *f;
 	struct htab *h = NULL;
 
@@ -656,7 +656,7 @@ static INT fioxop(INT create, CHAR *name, CHAR *path, INT mode, FHANDLE *phandle
  * search library for member and
  * return 0 if found, 1 if not found, and error if error
  */
-static INT fiolibsrch(FHANDLE handle, CHAR *member, OFFSET *posptr, OFFSET *lenptr)
+static INT fiolibsrch(FHANDLE handle, TCHAR *member, OFFSET *posptr, OFFSET *lenptr)
 {
 	INT i1, i2;
 	OFFSET pos;
@@ -737,7 +737,7 @@ INT fioclose(INT fnum)  /* close fnum */
 INT fiokill(INT fnum)  /* close fnum and delete file */
 {
 	INT i1;
-	CHAR *ptr;
+	TCHAR *ptr;
 	struct ftab *f;
 	struct htab *h;
 	struct ltab *lib;
@@ -778,7 +778,7 @@ INT fiokill(INT fnum)  /* close fnum and delete file */
 /* FIOLIBMOD */
 /* if delflg == FALSE, add or replace entry, if TRUE then delete entrys */
 /* return 0 if successful, -1 if error */
-static INT fiolibmod(FHANDLE handle, CHAR *member, OFFSET filepos, OFFSET length, INT delflg)  /* modify library directory */
+static INT fiolibmod(FHANDLE handle, TCHAR *member, OFFSET filepos, OFFSET length, INT delflg)  /* modify library directory */
 {
 	INT i1, i2, addflg, chgflg;
 	OFFSET pos, lastpos;
@@ -1120,7 +1120,7 @@ INT fiotrunc(INT fnum, OFFSET size)
 /* FIONAME */
 /* return pointer to associated filename */
 /* return of NULL is because of ERR_NOTOP */
-CHAR *fioname(INT fnum)
+TCHAR *fioname(INT fnum)
 {
 	struct ftab *f;
 	struct htab *h;
@@ -1457,10 +1457,10 @@ void fioulkpos(INT fnum, OFFSET pos)
 	}
 }
 
-INT fiorename(INT fnum, CHAR *newname)
+INT fiorename(INT fnum, TCHAR *newname)
 {
 	INT i1;
-	CHAR oldname[MAX_NAMESIZE], work[MAX_NAMESIZE], *ptr1, *ptr2, **pptr;
+	TCHAR oldname[MAX_NAMESIZE], work[MAX_NAMESIZE], *ptr1, *ptr2, **pptr;
 	struct ftab *f;
 	struct htab *h;
 
@@ -1522,11 +1522,11 @@ INT fiorename(INT fnum, CHAR *newname)
 	return i1;
 }
 
-INT fiofindfirst(CHAR *name, INT search, CHAR **found)
+INT fiofindfirst(TCHAR *name, INT search, TCHAR **found)
 {
 	INT i1, i2;
-	CHAR filename[MAX_NAMESIZE + 1], memname[MEMBERSIZ + 1], dbcvol[VOLUMESIZ + 8], work[MAX_NAMESIZE + 1];
-	CHAR *file, *ptr, *ptr1, *ptr2, **pptr;
+	TCHAR filename[MAX_NAMESIZE + 1], memname[MEMBERSIZ + 1], dbcvol[VOLUMESIZ + 8], work[MAX_NAMESIZE + 1];
+	TCHAR *file, *ptr, *ptr1, *ptr2, **pptr;
 
 	if (findpath != NULL) {
 		memfree((UCHAR **) findpath);
@@ -1549,7 +1549,7 @@ INT fiofindfirst(CHAR *name, INT search, CHAR **found)
 /*** CODE: CURRENTLY NOT SUPPORTED ***/
 		i1 = (INT)strlen(memname);
 		if (MEMBERSIZ - i1 > 0) memset(&memname[i1], ' ', MEMBERSIZ - i1);
-		while (i1--) memname[i1] = (CHAR) toupper(memname[i1]);
+		while (i1--) memname[i1] = (TCHAR) toupper(memname[i1]);
 		miofixname(filename, ".lib", FIXNAME_EXT_ADD);
 		savemode = mode;
 		if (mode >= FIO_M_PRP) {
@@ -1583,15 +1583,15 @@ INT fiofindfirst(CHAR *name, INT search, CHAR **found)
 			file = &filename[i1 + 1];
 			search = FIO_P_WRK;
 		}
-		if (search == FIO_P_TXT) pptr = (CHAR **) openpath;
-		else if (search == FIO_P_SRC) pptr = (CHAR **) srcpath;
-		else if (search == FIO_P_DBC) pptr = (CHAR **) dbcpath;
-		else if (search == FIO_P_CFG) pptr = (CHAR **) editcfgpath;
-		else if (search == FIO_P_DBD) pptr = (CHAR **) dbdpath;
-		else if (search == FIO_P_PRT) pptr = (CHAR **) prtpath;
-		else if (search == FIO_P_TDF) pptr = (CHAR **) tdfpath;
-		else if (search == FIO_P_TDB) pptr = (CHAR **) tdbpath;
-		else if (search == FIO_P_IMG) pptr = (CHAR **) imgpath;
+		if (search == FIO_P_TXT) pptr = (TCHAR **) openpath;
+		else if (search == FIO_P_SRC) pptr = (TCHAR **) srcpath;
+		else if (search == FIO_P_DBC) pptr = (TCHAR **) dbcpath;
+		else if (search == FIO_P_CFG) pptr = (TCHAR **) editcfgpath;
+		else if (search == FIO_P_DBD) pptr = (TCHAR **) dbdpath;
+		else if (search == FIO_P_PRT) pptr = (TCHAR **) prtpath;
+		else if (search == FIO_P_TDF) pptr = (TCHAR **) tdfpath;
+		else if (search == FIO_P_TDB) pptr = (TCHAR **) tdbpath;
+		else if (search == FIO_P_IMG) pptr = (TCHAR **) imgpath;
 		else pptr = &ptr;
 	}
 	if (pptr == NULL) {
@@ -1599,7 +1599,7 @@ INT fiofindfirst(CHAR *name, INT search, CHAR **found)
 		ptr = "";
 	}
 	i1 = (INT)strlen(*pptr) + 1;
-	findpath = (CHAR **) memalloc(i1, 0);
+	findpath = (TCHAR **) memalloc(i1, 0);
 	if (findpath == NULL) return ERR_NOMEM;
 	memcpy(*findpath, *pptr, i1);
 
@@ -1611,7 +1611,7 @@ INT fiofindfirst(CHAR *name, INT search, CHAR **found)
 	} while (i1 == ERR_FNOTF && !miostrscan(*findpath, work));
 	if (!i1) {
 		i2 = (INT)strlen(file) + 1;
-		findfile = (CHAR **) memalloc(i2, 0);
+		findfile = (TCHAR **) memalloc(i2, 0);
 		if (findfile != NULL) memcpy(*findfile, file, i2);
 		else i1 = ERR_NOMEM;
 	}
@@ -1622,10 +1622,10 @@ INT fiofindfirst(CHAR *name, INT search, CHAR **found)
 	return i1;
 }
 
-INT fiofindnext(CHAR **found)
+INT fiofindnext(TCHAR **found)
 {
 	INT i1;
-	CHAR work[MAX_NAMESIZE + 1];
+	TCHAR work[MAX_NAMESIZE + 1];
 
 	if (findpath == NULL) return ERR_NOTOP;
 
@@ -1655,10 +1655,10 @@ INT fiofindclose()
 	return i1;
 }
 
-CHAR *fioerrstr(INT err)
+TCHAR *fioerrstr(INT err)
 {
-	static CHAR work[64];
-	CHAR *ptr;
+	static TCHAR work[64];
+	TCHAR *ptr;
 
 	switch (err) {
 		case ERR_NOTOP: return("file not open");
@@ -1741,12 +1741,12 @@ CHAR *fioerrstr(INT err)
 	return(work);
 }
 
-static CHAR *fioinitprops(FIOPARMS *parms)
+static TCHAR *fioinitprops(FIOPARMS *parms)
 {
-	/*static CHAR errmsg[256];*/
+	/*static TCHAR errmsg[256];*/
 	INT i1, i2;
 	OFFSET off;
-	CHAR *ptr;
+	TCHAR *ptr;
 	assert (parms != NULL);
 	memset(parms, 0, sizeof(*parms));
 
@@ -1931,11 +1931,11 @@ static CHAR *fioinitprops(FIOPARMS *parms)
  * Returns 0 for success, 1 for not found, RC_NO_MEM if malloc failed
  * Does not move memory
  */
-static INT fioinitcvtvol(CHAR *volume, CHAR ***directory)
+static INT fioinitcvtvol(TCHAR *volume, TCHAR ***directory)
 {
-	static CHAR *staticptr = NULL;
+	static TCHAR *staticptr = NULL;
 	if (staticptr == NULL) {
-		staticptr = (CHAR *) malloc(4096 * sizeof(CHAR));
+		staticptr = (TCHAR *) malloc(4096 * sizeof(TCHAR));
 		if (staticptr == NULL) return RC_NO_MEM;
 	}
 	staticptr[0] = '\0';

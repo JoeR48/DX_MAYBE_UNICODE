@@ -55,17 +55,17 @@ extern UINT walkmemory(void);
 #define DEBUG_NOTIME		0x01
 #define DEBUG_NONEWLINE		0x02
 
-extern int prpinit(ELEMENT *, char *);
-extern int prpname(char **);
+extern int prpinit(ELEMENT *, TCHAR *);
+extern int prpname(TCHAR **);
 ELEMENT *prpgetprppos(void);
 void prpsetprppos(ELEMENT *);
-void SetDebugLogFileName(CHAR* name);
-extern int prpgetvol(CHAR *, CHAR *, INT);
+void SetDebugLogFileName(TCHAR* name);
+extern int prpgetvol(TCHAR *, TCHAR *, INT);
 /**
  * Return 0 if found, 1 if not
  */
-extern int prpget(char *, char *, char *, char *, char **, int);
-extern int prptranslate(char *, unsigned char *);
+extern int prpget(TCHAR *, TCHAR *, TCHAR *, TCHAR *, TCHAR **, int);
+extern int prptranslate(TCHAR *ptr, TCHAR *map);
 
 /* prevent interrupt functions */
 extern void pvistart(void);
@@ -77,14 +77,14 @@ extern LONG pvi_getpviflag(void);
 
 /* console display functions */
 extern void dspsilent(void);
-extern void dspstring(char *);
-extern void dspchar(char);
+extern void dspstring(TCHAR *);
+extern void dspchar(TCHAR);
 extern void dspflush(void);
 
 /* miscellaneous functions */
 extern INT fromprintable(UCHAR *, INT, UCHAR *, INT *);
 extern INT makeprintable(UCHAR *idata, INT ilen, UCHAR *odata, INT *olen);
-extern void mscatooff(CHAR *, OFFSET *);
+extern void mscatooff(TCHAR *, OFFSET *);
 extern void mscntoi(UCHAR *, INT *, INT);
 extern void mscntooff(UCHAR *, OFFSET *, INT);
 extern void msc9tooff(UCHAR *, OFFSET *);
@@ -92,21 +92,21 @@ extern void msc6xtooff(UCHAR *, OFFSET *);
 #ifndef _Out_
 #define _Out_
 #endif
-extern int mscis_integer(CHAR* src, INT srclength);
-extern int mscitoa(INT src, _Out_ CHAR *dest);
-extern int mscofftoa(OFFSET, CHAR *);
+extern int mscis_integer(TCHAR* src, INT srclength);
+extern int mscitoa(INT src, _Out_ TCHAR *dest);
+extern int mscofftoa(OFFSET, TCHAR *);
 extern void msciton(INT, UCHAR *, INT);
 extern void mscoffton(OFFSET, UCHAR *, INT);
 extern void mscoffto9(OFFSET, UCHAR *);
 extern void mscoffto6x(OFFSET, UCHAR *);
 extern void msctimestamp(UCHAR *);
-extern void mscgetparms(CHAR ***, INT *, CHAR *);
-extern void debugmessage(CHAR* msg, INT flags);
+extern void mscgetparms(TCHAR ***, INT *, TCHAR *);
+extern void debugmessage(TCHAR* msg, INT flags);
 extern void debugmessageW(wchar_t* msg, INT flags);
 extern void debugflock(INT flag);
 extern void itonum5(INT, UCHAR *);
 #ifdef NEED_FCVT
-extern CHAR *fcvt(double value, INT ndec, INT *decptr, INT *signptr);
+extern TCHAR *fcvt(double value, INT ndec, INT *decptr, INT *signptr);
 #endif
 
 /**

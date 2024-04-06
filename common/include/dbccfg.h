@@ -32,8 +32,8 @@
  * indicates that an error occurred.  Call cfggeterror() to return the error
  * message.
  */
-INT cfginit(CHAR *, INT);
-CHAR * cfggeterror(void);
+INT cfginit(TCHAR *, INT);
+TCHAR * cfggeterror(void);
 ELEMENT * cfggetxml(void);
 void cfgexit(void);
 

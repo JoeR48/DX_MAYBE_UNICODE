@@ -53,20 +53,20 @@ struct fioparmsstruct {
 	OFFSET fileoffset;		/* file offset of lock byte for filepi */
 	OFFSET recoffset;		/* file offset of lock byte for record locking */
 	OFFSET excloffset;		/* exclusive open file offset of lock byte */
-	CHAR openpath[4096];	/* open directories */
-	CHAR preppath[512];		/* prepare directory */
-	CHAR srcpath[4096];		/* source directories */
-	CHAR dbcpath[1024];		/* dbc file directories */
-	CHAR editcfgpath[1024];	/* edit config directories */
-	CHAR dbdpath[1024];		/* dbd file directories */
-	CHAR prtpath[1024];		/* print file directories */
-	CHAR tdfpath[512];		/* termdef source file directories */
-	CHAR tdbpath[512];		/* termdef binary file directories */
-	CHAR imgpath[1024];		/* image file directories */
-	CHAR cftpath[MAX_PATH]; /* Smart Client file transfer directory */
+	TCHAR openpath[4096];	/* open directories */
+	TCHAR preppath[512];		/* prepare directory */
+	TCHAR srcpath[4096];		/* source directories */
+	TCHAR dbcpath[1024];		/* dbc file directories */
+	TCHAR editcfgpath[1024];	/* edit config directories */
+	TCHAR dbdpath[1024];		/* dbd file directories */
+	TCHAR prtpath[1024];		/* print file directories */
+	TCHAR tdfpath[512];		/* termdef source file directories */
+	TCHAR tdbpath[512];		/* termdef binary file directories */
+	TCHAR imgpath[1024];		/* image file directories */
+	TCHAR cftpath[MAX_PATH]; /* Smart Client file transfer directory */
 	UCHAR casemap[256];		/* case map */
 	UCHAR collatemap[256];	/* collating order */
-	INT (*cvtvolfnc)(CHAR *, CHAR ***);	/* function to translate :VOLUME to directory */
+	INT (*cvtvolfnc)(TCHAR *, TCHAR ***);	/* function to translate :VOLUME to directory */
 };
 
 struct ftab {			/* file access table */
@@ -86,11 +86,11 @@ struct htab {			/* operating system handle number table */
 	OFFSET lpos;		/* last position on read or write */
 	UINT luse;		/* least recently used algorithm marker */
 	UCHAR **pptr;		/* pointer to locked positions list */
-	CHAR fnam[MAX_NAMESIZE + 1];	/* file name */
+	TCHAR fnam[MAX_NAMESIZE + 1];	/* file name */
 };
 
 struct ltab {			/* library table */
-	CHAR member[8];	/* member name */
+	TCHAR member[8];	/* member name */
 	UCHAR createflg;	/* created entry */
 	OFFSET filepos;		/* starting file position in library */
 	OFFSET length;		/* size of member */
@@ -103,7 +103,7 @@ struct ptab {
 };
 
 struct rtab {			/* record access information table */
-	CHAR type;			/* 'R' */
+	TCHAR type;			/* 'R' */
 	OFFSET lpos;		/* last position */
 	OFFSET npos;		/* next position */
 	OFFSET bpos;		/* buffer start file position */
@@ -118,7 +118,7 @@ struct rtab {			/* record access information table */
 };
 
 struct xtab {			/* index access information table */
-	CHAR type;		/* 'X' */
+	TCHAR type;		/* 'X' */
 	UCHAR version;		/* version number */
 	SHORT opts;		/* opts from open */
 	SHORT blksize;		/* block size */
@@ -140,7 +140,7 @@ struct xtab {			/* index access information table */
 };
 
 struct atab {			/* aim access information table */
-	CHAR type;		/* 'A' */
+	TCHAR type;		/* 'A' */
 	UCHAR status;		/* current read status */
 					/* 0 = an error has occurred */
 					/* 1 = empty lookup key status */
@@ -472,15 +472,15 @@ typedef struct {
 /* function prototypes */
 
 /* fio.c */
-extern CHAR *fioinit(FIOPARMS *, INT);
+extern TCHAR *fioinit(FIOPARMS *, INT);
 extern void fioexit(void);
 extern void fiosetflags(INT);
 extern INT fiogetflags(void);
 extern FHANDLE fiogetOSHandle(INT fnum);
 extern INT fiosetopt(INT, UCHAR *);
 extern UCHAR **fiogetopt(INT);
-extern INT fiocvtvol(CHAR *, CHAR ***);
-extern INT fioopen(CHAR *, INT);
+extern INT fiocvtvol(TCHAR *, TCHAR ***);
+extern INT fioopen(TCHAR *, INT);
 extern INT fioclose(INT);
 extern INT fiokill(INT);
 extern INT fioread(INT, OFFSET, UCHAR *, INT);
@@ -490,38 +490,38 @@ extern INT fioclru(INT);
 extern INT fiotouch(INT);
 extern INT fioflush(INT);
 extern INT fiotrunc(INT, OFFSET);
-extern CHAR *fioname(INT);
+extern TCHAR *fioname(INT);
 extern INT fiolock(INT *);
 extern void fiounlock(INT);
 extern INT fioflck(INT);
 extern void fiofulk(INT);
 extern INT fiolckpos(INT, OFFSET, INT);
 extern void fioulkpos(INT, OFFSET);
-extern INT fiorename(INT fnum, CHAR *newname);
-extern INT fiofindfirst(CHAR *name, INT search, CHAR **found);
-extern INT fiofindnext(CHAR **found);
+extern INT fiorename(INT fnum, TCHAR *newname);
+extern INT fiofindfirst(TCHAR *name, INT search, TCHAR **found);
+extern INT fiofindnext(TCHAR **found);
 extern INT fiofindclose(void);
-extern CHAR *fioerrstr(INT);
+extern TCHAR *fioerrstr(INT);
 extern INT fiogetlpos(INT, OFFSET *);
 extern INT fiosetlpos(INT, OFFSET);
 extern UCHAR **fiogetwptr(INT);
 extern INT fiosetwptr(INT, UCHAR **);
 
 /* mio.c */
-extern INT miofixname(CHAR *, CHAR *, INT);
-extern INT miogetenv(CHAR *, CHAR **);
-extern INT miostrscan(CHAR *, CHAR *);
-extern INT mioinitparm(INT, CHAR **);
-extern INT mionextparm(CHAR *);
-extern INT miogetfilebytes(CHAR *, UCHAR *, INT);
-extern INT miogetfilechgtime(CHAR *, UCHAR *);
-extern INT miogettextrec(CHAR **, CHAR *, INT);
-extern void miogetname(CHAR **, CHAR **);
+extern INT miofixname(TCHAR *, TCHAR *, INT);
+extern INT miogetenv(TCHAR *, TCHAR **);
+extern INT miostrscan(TCHAR *, TCHAR *);
+extern INT mioinitparm(INT, TCHAR **);
+extern INT mionextparm(TCHAR *);
+extern INT miogetfilebytes(TCHAR *, UCHAR *, INT);
+extern INT miogetfilechgtime(TCHAR *, UCHAR *);
+extern INT miogettextrec(TCHAR **, TCHAR *, INT);
+extern void miogetname(TCHAR **, TCHAR **);
 
 /* rio.c */
-extern INT riologstart(CHAR *, CHAR *, CHAR *, INT);
+extern INT riologstart(TCHAR *, TCHAR *, TCHAR *, INT);
 extern INT riologend(void);
-extern INT rioopen(CHAR *name, INT opts, INT bufs, INT maxlen);
+extern INT rioopen(TCHAR *name, INT opts, INT bufs, INT maxlen);
 extern INT rioclose(INT);
 extern INT riokill(INT);
 extern INT rioget(INT, UCHAR *, INT);
@@ -542,7 +542,7 @@ extern INT riolock(INT, INT);
 extern void riounlock(INT, OFFSET);
 
 /* xio.c */
-extern INT xioopen(CHAR *, INT, INT, INT, OFFSET *, CHAR *);
+extern INT xioopen(TCHAR *, INT, INT, INT, OFFSET *, TCHAR *);
 extern INT xioclose(INT);
 extern INT xiokill(INT);
 extern INT xiofind(INT, UCHAR *, INT);
@@ -556,7 +556,7 @@ extern INT xiodelrec(INT);
 extern INT xioflush(INT);
 
 /* aio.c */
-extern INT aioopen(CHAR *, INT, INT, OFFSET *, CHAR *, INT *, CHAR *, INT, INT);
+extern INT aioopen(TCHAR *, INT, INT, OFFSET *, TCHAR *, INT *, TCHAR *, INT, INT);
 extern INT aioclose(INT);
 extern INT aiokill(INT);
 extern INT aionew(INT);
@@ -570,7 +570,7 @@ extern void aiomatch(INT, INT);
 
 /* fioa???.c */
 extern INT fioainit(INT *, FIOAINITSTRUCT *);
-extern INT fioaopen(CHAR *, INT, INT, FHANDLE *);
+extern INT fioaopen(TCHAR *, INT, INT, FHANDLE *);
 extern INT fioaclose(FHANDLE);
 extern INT fioaread(FHANDLE, UCHAR *, INT, OFFSET, INT *);
 extern INT fioawrite(FHANDLE, UCHAR *, size_t, OFFSET, size_t *);
@@ -578,12 +578,12 @@ extern INT fioalseek(FHANDLE, OFFSET, INT, OFFSET *);
 extern INT fioalock(FHANDLE, INT, OFFSET, INT);
 extern INT fioaflush(FHANDLE);
 extern INT fioatrunc(FHANDLE, OFFSET);
-extern INT fioadelete(CHAR *);
-extern INT fioarename(CHAR *oldname, CHAR *newname);
-extern INT fioafindfirst(CHAR *path, CHAR *file, CHAR **found);
-extern INT fioafindnext(CHAR **found);
+extern INT fioadelete(TCHAR *);
+extern INT fioarename(TCHAR *oldname, TCHAR *newname);
+extern INT fioafindfirst(TCHAR *path, TCHAR *file, TCHAR **found);
+extern INT fioafindnext(TCHAR **found);
 extern INT fioafindclose(void);
-extern INT fioaslash(CHAR *);
-extern void fioaslashx(CHAR *);
+extern INT fioaslash(TCHAR *);
+extern void fioaslashx(TCHAR *);
 
 #endif  /* _FIO_INCLUDED */

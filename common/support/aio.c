@@ -46,13 +46,13 @@ static void aioxpurge(INT);
 /* AIOOPEN */
 /* open aim file */
 /* return positive integer file number if successful, else return error */
-INT aioopen(CHAR *name, INT opts, INT reclen, OFFSET *txtpos, CHAR *txtname, INT *fixflg, CHAR *keyinfo,
+INT aioopen(TCHAR *name, INT opts, INT reclen, OFFSET *txtpos, TCHAR *txtname, INT *fixflg, TCHAR *keyinfo,
 	INT dstnctflg, INT matchc)
 {
 	static UCHAR firstflg = TRUE;
 	INT i1, i2, i3, fnum, from, len, nkeys, version, zvalue;
 	OFFSET offset;
-	CHAR filename[MAX_NAMESIZE + 1], *ptr;
+	TCHAR filename[MAX_NAMESIZE + 1], *ptr;
 	UCHAR c1, *blk, **blkptr, **aptr;
 	struct keydef *keys, **keysptr;
 
@@ -266,13 +266,13 @@ INT aioopen(CHAR *name, INT opts, INT reclen, OFFSET *txtpos, CHAR *txtname, INT
 		i3 = 166;
 	}
 	blk[i1] = 0;
-	if (blk[55] == 'T' && fioaslash((CHAR *) &blk[101]) < 0) {
+	if (blk[55] == 'T' && fioaslash((TCHAR *) &blk[101]) < 0) {
 		ptr = fioname(fnum);
 		i2 = fioaslash(ptr);
 		if (++i2) memcpy(txtname, ptr, i2);
 	}
 	else i2 = 0;
-	strcpy(&txtname[i2], (CHAR *) &blk[101]);
+	_tcscpy(&txtname[i2], (TCHAR *) &blk[101]);
 
 	/* build the key definition table */
 	keysptr = (struct keydef **) memalloc(KEYSINIT * sizeof(struct keydef), 0);
