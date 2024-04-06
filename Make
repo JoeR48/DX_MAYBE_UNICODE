@@ -1,0 +1,12 @@
+INC:=-Icommon/include -Iopenssl/include
+CFLAGS:=-D_UNICODE -DUNICODE -D_CRT_SECURE_NO_WARNINGS
+
+all:
+	clang -c common/support/svc.c $(CFLAGS) $(INC)
+	clang -c common/support/cert.c $(CFLAGS) $(INC)
+
+aimdex.exe: arg.o
+	clang common/utils/aimdex.c -o aimdex.exe $(CFLAGS) $(INC)
+
+arg.o: common/support/arg.c
+	clang -c common/support/arg.c $(CFLAGS) $(INC)
