@@ -20,6 +20,10 @@
 #define _DBCCFG_INCLUDED
 
 #include "xml.h"
+
+#if OS_WIN32 && defined(_UNICODE)
+#include <tchar.h>
+#endif
  
 #define CFG_MAX_KEYLENGTH 256
 #define CFG_MAX_KEYDEPTH 4

@@ -93,7 +93,7 @@ static UCHAR chartype[256] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0								/* 245-255 */
 };
 
-static CHAR xmlerrorstring[256];
+static TCHAR xmlerrorstring[256];
 
 /* used by xmlflatten and flattenstring */
 #define FLATTEN_STREAM	0x01
@@ -101,16 +101,16 @@ static CHAR xmlerrorstring[256];
 
 static INT flattenstring(CHAR *, INT, INT, CHAR *output, size_t cbOutput);
 static INT invalidxml(CHAR *msg1, CHAR *msg2, INT len);
-static CHAR *gettag(CHAR *ptr1, INT len);
+static TCHAR *gettag(CHAR *ptr1, INT len);
 
 /*
  * Returns zero for success, -1 if needs more memory, -2 for xml syntax error
  */
-INT xmlparse(CHAR *input, INT inputsize, void *outputbuffer, size_t cbOutputbuf)
+INT xmlparse(TCHAR *input, INT inputsize, void *outputbuffer, size_t cbOutputbuf)
 {
 	INT i1, i2, base, endflag, len, level, value, taglen[MAXDEPTH];
 	size_t lowmark, himark;
-	CHAR chr, quote, *ptr1, *ptr2;
+	TCHAR chr, quote, *ptr1, *ptr2;
 	ELEMENT *output, **elementptr, *outputpath[MAXDEPTH];
 	ATTRIBUTE *attrib, **attribptr;
 
@@ -464,7 +464,7 @@ INT xmlflatten(ELEMENT *input, INT streamflag, CHAR *outputbuffer, size_t cbOutp
 }
 
 /* return the last error message */
-CHAR *xmlgeterror()
+TCHAR *xmlgeterror()
 {
 	return xmlerrorstring;
 }

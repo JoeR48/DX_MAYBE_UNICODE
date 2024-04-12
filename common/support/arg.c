@@ -32,11 +32,11 @@ static int argnext;
 void arginit(int argc, TCHAR **argv, int *displayflag)
 {
 	if (displayflag != NULL) *displayflag = TRUE;
-	if (argc > 1 && argv[argc - 1][0] == '-' && argv[argc - 1][1] == '-' && !argv[argc - 1][2]) {
+	if (argc > 1 && argv[argc - 1][0] == (TCHAR) '-' && argv[argc - 1][1] == (TCHAR) '-' && !argv[argc - 1][2]) {
 		argc--;
 		if (displayflag != NULL) *displayflag = FALSE;
 	}
-	if (argc > 1 && argv[argc - 1][0] == '-' && argv[argc - 1][1] == '+' && !argv[argc - 1][2]) {
+	if (argc > 1 && argv[argc - 1][0] == (TCHAR) '-' && argv[argc - 1][1] == (TCHAR) '+' && !argv[argc - 1][2]) {
 		argc--;
 		if (displayflag != NULL) *displayflag = TRUE;
 	}
@@ -79,7 +79,7 @@ int argget(int flags, TCHAR *buf, int size)
 			else {
 				if (argnext >= argcnt) return 1;
 				argptr = argvar[argnext++];
-				if (argptr[0] == '-' && toupper(argptr[1]) == 'O' && argptr[2] == '=' && argptr[3]) {
+				if (argptr[0] == '-' && _totupper(argptr[1]) == (TCHAR) 'O' && argptr[2] == (TCHAR) '=' && argptr[3]) {
 					if (flags & ARG_IGNOREOPT) continue;
 					/* open file through fio to use search path */
 					_tcscpy(work, &argptr[3]);
@@ -90,10 +90,10 @@ int argget(int flags, TCHAR *buf, int size)
 					i1 = (int) offset;
 					optbuf = (TCHAR **) memalloc(i1 + 1, 0);
 					if (optbuf == NULL) return ERR_NOMEM;
-					i2 = fioread(handle, 0, (TCHAR *) *optbuf, i1);
+					i2 = fioread(handle, 0, (UCHAR *) *optbuf, i1);
 					fioclose(handle);
 					if (i2 != i1) {
-						memfree((TCHAR **) optbuf);
+						memfree((UCHAR **) optbuf);
 						optbuf = NULL;
 						return ERR_RDOPT;
 					}
@@ -101,14 +101,15 @@ int argget(int flags, TCHAR *buf, int size)
 					/* clean-up options file */
 					for (i2 = i3 = i4 = 0, bufptr = *optbuf, quoteflag = FALSE; i2 < i1; ) {
 						c1 = (TCHAR) bufptr[i2++];
-						if (c1 == '"') {
+						if (c1 == (TCHAR) '"') {
 							quoteflag = !quoteflag;
 							continue;
 						}
-						if (c1 == '\\' && bufptr[i2] == '"') c1 = (TCHAR) bufptr[i2++];
-						else if (c1 == 0x0D || c1 == 0x0A || c1 == 0x1A || c1 == 0xFA || c1 == 0xFB || (!quoteflag && isspace(c1))) {
+						if (c1 == (TCHAR) '\\' && bufptr[i2] == (TCHAR) '"') c1 = (TCHAR) bufptr[i2++];
+						else if (c1 == (TCHAR) 0x0D || c1 == (TCHAR) 0x0A || c1 == (TCHAR) 0x1A || c1 == (TCHAR) 0xFA
+							|| c1 == (TCHAR) 0xFB || (!quoteflag && _istspace(c1))) {
 							if (i4 != i3) {
-								bufptr[i4++] = '\0';
+								bufptr[i4++] = (TCHAR) '\0';
 								i3 = i4;
 							}
 							quoteflag = FALSE;
@@ -116,8 +117,8 @@ int argget(int flags, TCHAR *buf, int size)
 						}
 						bufptr[i4++] = (TCHAR) c1;
 					}
-					if (i4 != i3) bufptr[i4++] = '\0';
-					bufptr[i4] = '\0';
+					if (i4 != i3) bufptr[i4++] = (TCHAR) '\0';
+					bufptr[i4] = (TCHAR) '\0';
 					optnext = 0;
 					continue;
 				}

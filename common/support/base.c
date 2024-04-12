@@ -44,6 +44,9 @@
 #include <execinfo.h>
 #endif
 #endif
+#else
+#include <tchar.h>
+#include <wchar.h>
 #endif
 
 struct memdef {
@@ -117,7 +120,7 @@ static struct memdef *memchkptr(UCHAR **);
 static UCHAR *memoryalloc(UINT, struct memdef **, struct memdef **);
 
 #if 0
-static void logMemcompactEvent(CHAR * optionalInfo);
+static void logMemcompactEvent(TCHAR * optionalInfo);
 static USHORT circularEventLogNumberOfEntries;
 static USHORT circularEventLogLastIndexUsed;
 static INT circularEventLogRecycling;	// boolean
@@ -451,7 +454,7 @@ INT memchange(UCHAR **pptr, UINT size, INT flags)
 
 	/* error if rightptr1 = null or new pointers = old pointers */
 	if (rightptr1 == NULL || leftptr1 == leftptr2 || rightptr1 == rightptr2) {
-		fputs("MEMCHANGE INTERNAL ERROR 1\n", stderr);
+		_fputts(_T("MEMCHANGE INTERNAL ERROR 1\n"), stderr);
 		exit(1);
 	}
 	/* unlink old memory pointer */
@@ -663,17 +666,17 @@ static struct memdef *memchkptr(UCHAR **pptr)
 
 	memptr = (struct memdef *) pptr;
 	if (memptr == NULL || memptr->bufptr == NULL) {  /* should not happen */
-		fputs("*** invalid memory pointer (1) ***\n", stdout);
+		_fputts(_T("*** invalid memory pointer (1) ***\n"), stdout);
 		exit(1);
 		return(NULL);
 	}
 	if (memptr->bufptr < membuf) {  /* should not happen */
-		fputs("*** invalid memory pointer (2) ***\n", stdout);
+		_fputts(_T("*** invalid memory pointer (2) ***\n"), stdout);
 		exit(1);
 		return(NULL);
 	}
 	if (memptr->bufptr + memptr->size > membuf + memsize) {  /* should not happen */
-		fputs("*** invalid memory pointer (3) ***\n", stdout);
+		_fputts(_T("*** invalid memory pointer (3) ***\n"), stdout);
 		exit(1);
 		return(NULL);
 	}
@@ -806,7 +809,7 @@ static UCHAR *memoryalloc(UINT size, struct memdef **leftptr, struct memdef **ri
  * Will accept a minus sign before the first digit.
  * Returns TRUE if the string is syntactically an integer
  */
-int mscis_integer(CHAR* src, INT srclength)
+int mscis_integer(TCHAR* src, INT srclength)
 {
 	int state = 0;
 	int i1;
@@ -814,28 +817,28 @@ int mscis_integer(CHAR* src, INT srclength)
 		TCHAR c1 = src[i1];
 		switch (state) {
 			case 0:			// Scanning whitespace
-				if (isspace(c1)) continue;
-				if (c1 == '-' || isdigit(c1)) {
+				if (_istspace(c1)) continue;
+				if (c1 == '-' || _istdigit(c1)) {
 					state = 1;
 					continue;
 				}
 				return FALSE;
 			case 1:
-				if (isdigit(c1)) continue;
+				if (_istdigit(c1)) continue;
 				return FALSE;
 		}
 	}
 	return TRUE;
 }
 
-void mscatooff(CHAR *src, OFFSET *dest)
+void mscatooff(TCHAR *src, OFFSET *dest)
 {
 	INT i1, negflg;
 	OFFSET num;
 
 	negflg = FALSE;
 	for (i1 = -1, num = 0; src[++i1]; )
-		if (isdigit((int)src[i1])) num = num * 10 + src[i1] - '0';
+		if (_istdigit((int)src[i1])) num = num * 10 + src[i1] - '0';
 		else if (src[i1] == '-') negflg = TRUE;
 	if (negflg) *dest = -num;
 	else *dest = num;
@@ -847,7 +850,7 @@ void mscntoi(UCHAR *src, INT *dest, INT srcsize)
 
 	negflg = FALSE;
 	for (i1 = -1, num = 0; ++i1 < srcsize; )
-		if (isdigit((int)src[i1])) num = num * 10 + src[i1] - '0';
+		if (_istdigit((int)src[i1])) num = num * 10 + src[i1] - '0';
 		else if (src[i1] == '-') negflg = TRUE;
 	if (negflg) *dest = -num;
 	else *dest = num;
@@ -860,7 +863,7 @@ void mscntooff(UCHAR *src, OFFSET *dest, INT n)
 
 	negflg = FALSE;
 	for (i1 = -1, num = 0L; ++i1 < n; )
-		if (isdigit((int)src[i1])) num = num * 10 + src[i1] - '0';
+		if (_istdigit((int)src[i1])) num = num * 10 + src[i1] - '0';
 		else if (src[i1] == '-') negflg = TRUE;
 	if (negflg) *dest = -num;
 	else *dest = num;
@@ -873,7 +876,7 @@ void msc9tooff(UCHAR *src, OFFSET *dest)
 
 	num = 0;
 	i1 = 0;
-	do if (isdigit((int)src[i1])) num = num * 10 + src[i1] - '0';
+	do if (_istdigit((int)src[i1])) num = num * 10 + src[i1] - '0';
 	while (++i1 < 9);
 
 	*dest = num;
@@ -893,14 +896,14 @@ void msc6xtooff(UCHAR *src, OFFSET *dest)
 }
 
 /**
- * Using strcpy, convert the src to a decimal ascii string and
+ * Using _tcscpy, convert the src to a decimal ascii string and
  * copy it to dest.
  * There will be a NULL right after the digits string
  */
-int mscitoa(INT src, CHAR *dest)
+int mscitoa(INT src, TCHAR *dest)
 {
 	INT i1, negflg;
-	CHAR work[16];
+	TCHAR work[16];
 
 	if (src < 0) {
 		src = -src;
@@ -908,19 +911,19 @@ int mscitoa(INT src, CHAR *dest)
 	}
 	else negflg = FALSE;
 
-	work[sizeof(work) - 1] = '\0';
-	i1 = sizeof(work) - 1;
-	do work[--i1] = (CHAR)(src % 10 + '0');
+	work[ARRAYSIZE(work) - 1] = (TCHAR) '\0';
+	i1 = ARRAYSIZE(work) - 1;
+	do work[--i1] = (TCHAR)(src % 10 + (TCHAR) '0');
 	while (src /= 10);
-	if (negflg) work[--i1] = '-';
-	strcpy(dest, &work[i1]);
-	return sizeof(work) - 1 - i1;
+	if (negflg) work[--i1] = (TCHAR) '-';
+	_tcscpy(dest, &work[i1]);
+	return ARRAYSIZE(work) - 1 - i1;
 }
 
-int mscofftoa(OFFSET src, CHAR *dest)
+int mscofftoa(OFFSET src, TCHAR *dest)
 {
 	INT i1, negflg;
-	CHAR work[32];
+	TCHAR work[32];
 
 	if (src < 0) {
 		src = -src;
@@ -928,13 +931,13 @@ int mscofftoa(OFFSET src, CHAR *dest)
 	}
 	else negflg = FALSE;
 
-	work[sizeof(work) - 1] = '\0';
-	i1 = sizeof(work) - 1;
-	do work[--i1] = (CHAR)(src % 10 + '0');
+	work[ARRAYSIZE(work) - 1] = (TCHAR) '\0';
+	i1 = ARRAYSIZE(work) - 1;
+	do work[--i1] = (TCHAR)(src % 10 + (TCHAR) '0');
 	while (src /= 10);
-	if (negflg) work[--i1] = '-';
-	strcpy(dest, &work[i1]);
-	return sizeof(work) - 1 - i1;
+	if (negflg) work[--i1] = (TCHAR) '-';
+	_tcscpy(dest, &work[i1]);
+	return ARRAYSIZE(work) - 1 - i1;
 }
 
 /**
@@ -959,7 +962,7 @@ void msciton(INT src, UCHAR *dest, INT n)
 	}
 	else negflg = FALSE;
 
-	do dest[--n] = (CHAR)(src % 10 + '0');
+	do dest[--n] = (TCHAR)(src % 10 + '0');
 	while ((src /= 10) && n);
 	if (negflg && n) dest[--n] = '-';
 	while (n) dest[--n] = ' ';
@@ -976,7 +979,7 @@ void mscoffton(OFFSET src, UCHAR *dest, INT n)
 	}
 	else negflg = FALSE;
 
-	do dest[--n] = (CHAR)(src % 10 + '0');
+	do dest[--n] = (TCHAR)(src % 10 + '0');
 	while ((src /= 10) && n);
 	if (negflg && n) dest[--n] = '-';
 	while (n) dest[--n] = ' ';
@@ -988,7 +991,7 @@ void mscoffto9(OFFSET src, UCHAR *dest)
 
 	if (src < 0) return;
 	i1 = 9;
-	do dest[--i1] = (CHAR)(src % 10 + '0');
+	do dest[--i1] = (TCHAR)(src % 10 + '0');
 	while ((src /= 10) && i1);
 	while (i1) dest[--i1] = ' ';
 }
@@ -1066,7 +1069,7 @@ int prpinit(ELEMENT *root, TCHAR *xmlprefix)
 	if (root == NULL) return RC_ERROR;
 	e1 = root;
 	while (e1 != NULL) {
-		if (!strcmp(e1->tag, xmlprefix)) break;
+		if (!_tcscmp(e1->tag, xmlprefix)) break;
 		e1 = e1->nextelement;
 	}
 	if (e1 == NULL) return RC_ERROR;
@@ -1092,28 +1095,28 @@ void prpsetprppos(ELEMENT *position) {
  * Return 0 if found, 1 if not found
  * Does not move memory
  */
-INT prpgetvol(CHAR *volname, CHAR *ptr, INT maxlen) {
+INT prpgetvol(TCHAR *volname, TCHAR *ptr, INT maxlen) {
 	ELEMENT *e1, *e2, *e3;
 	INT i1, i2;
 	if (prptree == NULL) return 1;
 	e1 = prptree->firstsubelement;
 	while (e1 != NULL) {
-		if (!strcmp(e1->tag, "file")) {
+		if (!_tcscmp(e1->tag, _T("file"))) {
 			e2 = e1->firstsubelement;
 			while (e2 != NULL) {
-				if (!strcmp(e2->tag, "volume")) {
+				if (!_tcscmp(e2->tag, _T("volume"))) {
 					e3 = e2->firstsubelement;
-					if (e3 != NULL && !strcmp(e3->tag, "name")) {
-						if (e3->firstsubelement != NULL && e3->firstsubelement->cdataflag && !strcmp(e3->firstsubelement->tag, volname))
+					if (e3 != NULL && !_tcscmp(e3->tag, _T("name"))) {
+						if (e3->firstsubelement != NULL && e3->firstsubelement->cdataflag && !_tcscmp(e3->firstsubelement->tag, volname))
 						{
 							/* match */
 						 	for (i1 = 0, i2 = maxlen - 1, e3 = e3->nextelement; e3 != NULL; e3 = e3->nextelement, i1++) {
 								if (!(e3->firstsubelement != NULL && e3->firstsubelement->cdataflag)) break;
-								i2 -= (INT)strlen(e3->firstsubelement->tag);
+								i2 -= (INT)_tcslen(e3->firstsubelement->tag);
 								if (i1) {
-									if (--i2 > 0) strcat(ptr, ";");
+									if (--i2 > 0) _tcscat(ptr, _T(";"));
 								}
-								if (i2 > 0) strcat(ptr, e3->firstsubelement->tag);
+								if (i2 > 0) _tcscat(ptr, e3->firstsubelement->tag);
 							}
 							if (ptr[0]) return 0;
 							return 1;
@@ -1139,7 +1142,7 @@ int prpget(TCHAR *key1, TCHAR *key2, TCHAR *key3, TCHAR *key4, TCHAR **value, in
 	if (prptree == NULL) return 1;
 	a1 = prptree->firstattribute;
 	while (a1 != NULL) {
-		if (!strcmp(a1->tag, "reduced")) {
+		if (!_tcscmp(a1->tag, _T("reduced"))) {
 			reduced = (a1->value[0] == 'y') ? TRUE : FALSE;
 			break;
 		}
@@ -1160,8 +1163,8 @@ int prpget(TCHAR *key1, TCHAR *key2, TCHAR *key3, TCHAR *key4, TCHAR **value, in
 		*value = prppos->firstsubelement->tag;
 		if (flags & (PRP_LOWER | PRP_UPPER)) {
 			for (ptr = *value; *ptr; ptr++) {
-				if (flags & PRP_LOWER) *ptr = (TCHAR) tolower(*ptr);
-				else *ptr = (TCHAR) toupper(*ptr);
+				if (flags & PRP_LOWER) *ptr = (TCHAR) _totlower(*ptr);
+				else *ptr = (TCHAR) _totupper(*ptr);
 			}
 		}
 		return 0;
@@ -1171,19 +1174,19 @@ int prpget(TCHAR *key1, TCHAR *key2, TCHAR *key3, TCHAR *key4, TCHAR **value, in
 		prppos = NULL;
 		e1 = prptree->firstsubelement;
 		while (e1 != NULL) {
-			if (!strcmp(e1->tag, key1)) {
+			if (!_tcscmp(e1->tag, key1)) {
 				if (key2) {
 					e2 = e1->firstsubelement;
 					while (e2 != NULL) {
-						if (!strcmp(e2->tag, key2)) {
+						if (!_tcscmp(e2->tag, key2)) {
 							if (key3) {
 								e3 = e2->firstsubelement;
 								while (e3 != NULL) {
-									if (!strcmp(e3->tag, key3)) {
+									if (!_tcscmp(e3->tag, key3)) {
 										if (key4) {
 											e4 = e3->firstsubelement;
 											while (e4 != NULL) {
-												if (!strcmp(e4->tag, key4)) {
+												if (!_tcscmp(e4->tag, key4)) {
 													if (flags & PRP_GETCHILD) {
 														if (e4->firstsubelement == NULL) return 1;
 														prppos = e4->firstsubelement;
@@ -1196,8 +1199,8 @@ int prpget(TCHAR *key1, TCHAR *key2, TCHAR *key3, TCHAR *key4, TCHAR **value, in
 													*value = prppos->firstsubelement->tag;
 													if (flags & (PRP_LOWER | PRP_UPPER)) {
 														for (ptr = *value; *ptr; ptr++) {
-															if (flags & PRP_LOWER) *ptr = (TCHAR) tolower(*ptr);
-															else *ptr = (TCHAR) toupper(*ptr);
+															if (flags & PRP_LOWER) *ptr = (TCHAR) _totlower(*ptr);
+															else *ptr = (TCHAR) _totupper(*ptr);
 														}
 													}
 													return 0;
@@ -1219,8 +1222,8 @@ int prpget(TCHAR *key1, TCHAR *key2, TCHAR *key3, TCHAR *key4, TCHAR **value, in
 											*value = prppos->firstsubelement->tag;
 											if (flags & (PRP_LOWER | PRP_UPPER)) {
 												for (ptr = *value; *ptr; ptr++) {
-													if (flags & PRP_LOWER) *ptr = (TCHAR) tolower(*ptr);
-													else *ptr = (TCHAR) toupper(*ptr);
+													if (flags & PRP_LOWER) *ptr = (TCHAR) _totlower(*ptr);
+													else *ptr = (TCHAR) _totupper(*ptr);
 												}
 											}
 											return 0;
@@ -1243,8 +1246,8 @@ int prpget(TCHAR *key1, TCHAR *key2, TCHAR *key3, TCHAR *key4, TCHAR **value, in
 								*value = prppos->firstsubelement->tag;
 								if (flags & (PRP_LOWER | PRP_UPPER)) {
 									for (ptr = *value; *ptr; ptr++) {
-										if (flags & PRP_LOWER) *ptr = (TCHAR) tolower(*ptr);
-										else *ptr = (TCHAR) toupper(*ptr);
+										if (flags & PRP_LOWER) *ptr = (TCHAR) _totlower(*ptr);
+										else *ptr = (TCHAR) _totupper(*ptr);
 									}
 								}
 								return 0;
@@ -1267,8 +1270,8 @@ int prpget(TCHAR *key1, TCHAR *key2, TCHAR *key3, TCHAR *key4, TCHAR **value, in
 					*value = prppos->firstsubelement->tag;
 					if (flags & (PRP_LOWER | PRP_UPPER)) {
 						for (ptr = *value; *ptr; ptr++) {
-							if (flags & PRP_LOWER) *ptr = (TCHAR) tolower(*ptr);
-							else *ptr = (TCHAR) toupper(*ptr);
+							if (flags & PRP_LOWER) *ptr = (TCHAR) _totlower(*ptr);
+							else *ptr = (TCHAR) _totupper(*ptr);
 						}
 					}
 					return 0;
@@ -1286,28 +1289,28 @@ int prptranslate(TCHAR *ptr, TCHAR *map)
 	int i1, i2, i3;
 
 	for ( ; ; ) {
-		while (isspace((int)*ptr)) ptr++;
+		while (_istspace((int)*ptr)) ptr++;
 		if (*ptr == (TCHAR) ';') {
 			ptr++;
 			continue;
 		}
 		if (!*ptr) return 0;
-		if (!isdigit((int)*ptr)) return RC_ERROR;
-		for (i1 = 0; isdigit((int)*ptr); ptr++) i1 = i1 * 10 + *ptr - '0';
-		while (isspace((int)*ptr)) ptr++;
+		if (!_istdigit((int)*ptr)) return RC_ERROR;
+		for (i1 = 0; _istdigit((int)*ptr); ptr++) i1 = i1 * 10 + *ptr - '0';
+		while (_istspace((int)*ptr)) ptr++;
 		if (*ptr == (TCHAR) '-') {
 			ptr++;
-			while (isspace((int)*ptr)) ptr++;
-			if (!isdigit((int)*ptr)) return RC_ERROR;
-			for (i2 = 0; isdigit((int)*ptr); ptr++) i2 = i2 * 10 + *ptr - '0';
-			while (isspace((int)*ptr)) ptr++;
+			while (_istspace((int)*ptr)) ptr++;
+			if (!_istdigit((int)*ptr)) return RC_ERROR;
+			for (i2 = 0; _istdigit((int)*ptr); ptr++) i2 = i2 * 10 + *ptr - '0';
+			while (_istspace((int)*ptr)) ptr++;
 		}
 		else i2 = i1;
 		if (*ptr != (TCHAR) ':') return RC_ERROR;
 		ptr++;
-		while (isspace((int)*ptr)) ptr++;
-		if (!isdigit((int)*ptr)) return RC_ERROR;
-		for (i3 = 0; isdigit((int)*ptr); ptr++) i3 = i3 * 10 + *ptr - (TCHAR) '0';
+		while (_istspace((int)*ptr)) ptr++;
+		if (!_istdigit((int)*ptr)) return RC_ERROR;
+		for (i3 = 0; _istdigit((int)*ptr); ptr++) i3 = i3 * 10 + *ptr - (TCHAR) '0';
 		if (i1 > UCHAR_MAX || i2 > UCHAR_MAX || i3 + (i2 - i1) > UCHAR_MAX) return RC_ERROR;
 		while (i1 <= i2) map[i1++] = (TCHAR) i3++;
 	}
@@ -1403,7 +1406,7 @@ void dspstring(TCHAR *str)
 {
 	static int firstflag = TRUE;
 	static int dspmapflag = FALSE;
-	static unsigned TCHAR dspmap[UCHAR_MAX + 1];
+	static TCHAR dspmap[UCHAR_MAX + 1];
 	int i1;
 	TCHAR *ptr, work[256];
 
@@ -1414,21 +1417,21 @@ void dspstring(TCHAR *str)
 		}
 		if (firstflag) {
 			firstflag = FALSE;
-			if (!prpget("display", "translate", NULL, NULL, &ptr, 0)) {
-				for (i1 = 0; i1 <= UCHAR_MAX; i1++) dspmap[i1] = (unsigned TCHAR) i1;
-				if (prptranslate(ptr, dspmap)) fputs("Invalid translate-spec for dbcdx.display.translate, translate not used\n", stdout);
+			if (!prpget(_T("display"), _T("translate"), NULL, NULL, &ptr, 0)) {
+				for (i1 = 0; i1 <= UCHAR_MAX; i1++) dspmap[i1] = (TCHAR) i1;
+				if (prptranslate(ptr, dspmap)) _fputts(_T("Invalid translate-spec for dbcdx.display.translate, translate not used\n"), stdout);
 				else dspmapflag = TRUE;
 			}
 		}
 		if (dspmapflag) {
 			while (*str) {
-				for (i1 = 0; i1 < (INT) (sizeof(work) - 1) && str[i1]; i1++) work[i1] = dspmap[(unsigned TCHAR)str[i1]];
-				work[i1] = '\0';
-				fputs(work, stdout);
+				for (i1 = 0; i1 < (INT) (ARRAYSIZE(work) - 1) && str[i1]; i1++) work[i1] = dspmap[str[i1]];
+				work[i1] = (TCHAR) '\0';
+				_fputts(work, stdout);
 				str += i1;
 			}
 		}
-		else fputs(str, stdout);
+		else _fputts(str, stdout);
 	}
 }
 
@@ -1437,7 +1440,7 @@ void dspchar(TCHAR chr)
 	TCHAR work[2];
 
 	work[0] = chr;
-	work[1] = '\0';
+	work[1] = (TCHAR) '\0';
 	dspstring(work);
 }
 
@@ -1462,22 +1465,22 @@ int n;
 #endif
 
 #ifndef basename
-static CHAR basename[64] = "debug";
+static TCHAR basename[64] = _T("debug");
 #endif
 
-void SetDebugLogFileName(CHAR* name)
+void SetDebugLogFileName(TCHAR* name)
 {
-	strcpy(basename, name);
+	_tcscpy(basename, name);
 }
 
-static CHAR* debugfname(void) {
-	static CHAR work[64];
+static TCHAR* debugfname(void) {
+	static TCHAR work[64];
 	memset(work, 0, sizeof(work));
-	memcpy(work, basename, strlen(basename));
+	memcpy(work, basename, _tcslen(basename)); //XXX s/b sizeof?
 #if OS_UNIX
-	mscitoa(getpid(), work + strlen(basename) - 1);
+	mscitoa(getpid(), work + _tcslen(basename) - 1);
 #endif
-	strcat(work, ".txt");
+	_tcscat(work, _T(".txt"));
 	return work;
 }
 
@@ -1485,7 +1488,7 @@ void debugflock(INT lockflag) {
 #if OS_UNIX
 	struct flock lock;
 	if (debugfile == NULL) {
-		debugfile = fopen(debugfname(), "w");
+		debugfile = _tfopen(debugfname(), "w");
 		if (debugfile == NULL) return;
 	}
 	memset(&lock, 0, sizeof(lock));
@@ -1502,9 +1505,9 @@ void debugflock(INT lockflag) {
 #endif
 }
 
-void debugmessage(CHAR *message, INT flags)
+void debugmessage(TCHAR *message, INT flags)
 {
-	CHAR work[32];
+	TCHAR work[32];
 #if OS_WIN32
 	SYSTEMTIME systime;
 #else
@@ -1517,7 +1520,7 @@ void debugmessage(CHAR *message, INT flags)
 	memset(work, '\0', sizeof(work));
 	pvistart();
 	if (debugfile == NULL) {
-		debugfile = fopen(debugfname(), "w");
+		debugfile = _tfopen(debugfname(), _T("w"));
 		if (debugfile == NULL) {
 			pviend();
 			return;
@@ -1555,14 +1558,14 @@ void debugmessage(CHAR *message, INT flags)
 		work[6] = ':';
 		work[7] = ' ';
 #endif
-		fputs(work, debugfile);
+		_fputts(work, debugfile);
 	}
 	if (message != NULL) {
-		if (message[0] == '\0') fputs("(zero len str)", debugfile);
-		else fputs(message, debugfile);
+		if (message[0] == '\0') _fputts(_T("(zero len str)"), debugfile);
+		else _fputts(message, debugfile);
 	}
-	else fputs("NULL", debugfile);
-	if (!(flags & DEBUG_NONEWLINE)) fputc('\n', debugfile);
+	else _fputts(_T("NULL"), debugfile);
+	if (!(flags & DEBUG_NONEWLINE)) _fputtc('\n', debugfile);
 	fflush(debugfile);
 	pviend();
 #if OS_UNIX
@@ -1583,7 +1586,7 @@ void debugmessageW(wchar_t *message, INT flags)
 	memset(work, '\0', sizeof(work));
 	pvistart();
 	if (debugfile == NULL) {
-		debugfile = fopen(debugfname(), "w");
+		debugfile = _tfopen(debugfname(), L"w");
 		if (debugfile == NULL) {
 			pviend();
 			return;
@@ -1708,9 +1711,9 @@ INT makeprintable(UCHAR *idata, INT ilen, _Out_ UCHAR *odata, _Out_ INT *olen)
 
 
 #ifdef NEED_FCVT
-CHAR *fcvt(double value, INT ndec, INT *decptr, INT *signptr)
+TCHAR *fcvt(double value, INT ndec, INT *decptr, INT *signptr)
 {
-	static CHAR str[50];
+	static TCHAR str[50];
 	INT lft;
 
 	if (*signptr = (value < 0)) value *= -1.00; /* remove sign */
@@ -1731,7 +1734,7 @@ CHAR *fcvt(double value, INT ndec, INT *decptr, INT *signptr)
 void logSetPcountPtr(INT *pcount) { logPcountPtr = pcount; }
 void logSetVcodePtr(UCHAR *vbcode) { logVcodePtr = vbcode; }
 void logSetVXcodePtr(UCHAR *vx) { logVXcodePtr = vx; }
-static void logAddVandPInfo(CHAR *work);
+static void logAddVandPInfo(TCHAR *work);
 
 void logGrabIEXData(INT pcount, UCHAR vbcode, UCHAR lsvbcode)
 {
@@ -1744,7 +1747,7 @@ void logGrabIEXData(INT pcount, UCHAR vbcode, UCHAR lsvbcode)
  * Format log time stamp as
  * yyyymmdd hh:mm:ss:hh   (Local time)
  */
-static void logTimeStampForDump(CHAR *buffer,
+static void logTimeStampForDump(TCHAR *buffer,
 #if OS_UNIX
 		struct timeval logentrytime)
 #elif OS_WIN32
@@ -1759,10 +1762,10 @@ static void logTimeStampForDump(CHAR *buffer,
 	strftime(time_string, sizeof(time_string), "%Y%m%d %H:%M:%S:", plocaltm);
 	hundredths = logentrytime.tv_usec / 10000;
 	sprintf(huns, "%.2d ", hundredths);
-	strcat(time_string, huns);
+	_tcscat(time_string, huns);
 #elif OS_WIN32
 #endif
-	strcat(buffer, time_string);
+	_tcscat(buffer, time_string);
 }
 
 static void logSetTime(LOGENTRY *le) {
@@ -1772,11 +1775,11 @@ static void logSetTime(LOGENTRY *le) {
 #endif
 }
 
-static void logTerminateLogOutputBuffer(CHAR* buffer) {
+static void logTerminateLogOutputBuffer(TCHAR* buffer) {
 #if OS_UNIX
-	strcat(buffer, "\x0a");	// LF
+	_tcscat(buffer, "\x0a");	// LF
 #elif OS_WIN32
-	strcat(buffer, "\x0d\x0a"); // CR LF
+	_tcscat(buffer, "\x0d\x0a"); // CR LF
 #endif
 }
 
@@ -1810,7 +1813,7 @@ static void logBuildEntry(enum LOGEVENTTYPE type, void* ldata, int doStackTrace)
 			memcpy(&le.DATA.cedata, (CHAINEVENTDATA*)ldata, sizeof(CHAINEVENTDATA));
 			break;
 		default:
-			strncpy(le.DATA.string, (CHAR*)ldata, LOGDATAMAXSIZE);
+			strncpy(le.DATA.string, (TCHAR*)ldata, LOGDATAMAXSIZE);
 			break;
 	}
 #if OS_UNIX && defined(Linux) && !defined(_AIX)
@@ -1824,20 +1827,20 @@ static void logBuildEntry(enum LOGEVENTTYPE type, void* ldata, int doStackTrace)
 	logWriteEntry(&le);
 }
 
-void logOverflowEvent(CHAR *info) {
+void logOverflowEvent(TCHAR *info) {
 	static TCHAR verbiage[] = "overflow";
-	CHAR work[LOGDATAMAXSIZE];
-	strcpy(work, verbiage);
-	if (info != NULL) strcat(work, info);
+	TCHAR work[LOGDATAMAXSIZE];
+	_tcscpy(work, verbiage);
+	if (info != NULL) _tcscat(work, info);
 	logAddVandPInfo(work);
 	logBuildEntry(LET_overflow, work, FALSE);
 }
 
-static void logMemcompactEvent(CHAR *optionalInfo) {
+static void logMemcompactEvent(TCHAR *optionalInfo) {
 	static TCHAR verbiage[] = "memcompact";
-	CHAR work[LOGDATAMAXSIZE];
-	strcpy(work, verbiage);
-	if (optionalInfo != NULL) strcat(work, optionalInfo);
+	TCHAR work[LOGDATAMAXSIZE];
+	_tcscpy(work, verbiage);
+	if (optionalInfo != NULL) _tcscat(work, optionalInfo);
 	//logAddVandPInfo(work);
 	logBuildEntry(LET_memcompact, work, FALSE);
 }
@@ -1846,11 +1849,11 @@ void logChainEvent(CHAINEVENTDATA *data) {
 	logBuildEntry(LET_chain, data, FALSE);
 }
 
-static void logAddPInfo(CHAR *work) {
-	CHAR work2[32];
+static void logAddPInfo(TCHAR *work) {
+	TCHAR work2[32];
 	if (logPcountPtr != NULL) {
 		sprintf(work2, ", pcount=%d", *logPcountPtr);
-		strcat(work, work2);
+		_tcscat(work, work2);
 	}
 }
 
@@ -1858,11 +1861,11 @@ void logLoadmodEvent(LOADMODEVENTDATA *data) {
 	logBuildEntry(LET_loadmod, data, FALSE);
 }
 
-void logUnloadEvent(CHAR *moduleName) {
-	CHAR work[256];
-	strcpy(work, "About to unload ");
-	if (moduleName != NULL) strcat(work, moduleName);
-	else strcat(work, "All");
+void logUnloadEvent(TCHAR *moduleName) {
+	TCHAR work[256];
+	_tcscpy(work, "About to unload ");
+	if (moduleName != NULL) _tcscat(work, moduleName);
+	else _tcscat(work, "All");
 	logAddPInfo(work);
 	logBuildEntry(LET_unload, work, FALSE);
 }
@@ -1871,45 +1874,45 @@ void logMainEvent() {
 	logBuildEntry(LET_main, "dbc starting", FALSE);
 }
 
-void logMakeEvent(CHAR *name, CHAR *work)
+void logMakeEvent(TCHAR *name, TCHAR *work)
 {
-	CHAR work2[LOGDATAMAXSIZE];
-	strcpy(work2, "'MAKE'");
+	TCHAR work2[LOGDATAMAXSIZE];
+	_tcscpy(work2, "'MAKE'");
 	if (name != NULL) {
-		strcat(work2, ", name=");
-		strcat(work2, name);
+		_tcscat(work2, ", name=");
+		_tcscat(work2, name);
 	}
 	if (work != NULL) {
-		strcat(work2, ", work=");
-		strcat(work2, work);
+		_tcscat(work2, ", work=");
+		_tcscat(work2, work);
 	}
 	logAddPInfo(work2);
 	logBuildEntry(LET_make, work2, FALSE);
 }
 
-static void logAddVandPInfo(CHAR *work) {
-	CHAR work2[32];
+static void logAddVandPInfo(TCHAR *work) {
+	TCHAR work2[32];
 	logAddPInfo(work);
 	if (logVcodePtr != NULL) {
 		sprintf(work2, ", vb=%#x", (UINT)*logVcodePtr);
-		strcat(work, work2);
+		_tcscat(work, work2);
 	}
 	if (logVXcodePtr != NULL && *logVcodePtr == 0x58) {
 		sprintf(work2, ", vx=%#x", (UINT)*logVXcodePtr);
-		strcat(work, work2);
+		_tcscat(work, work2);
 	}
 }
 
-void logWriteBufferToFile(CHAR*buffer, INT fileHandle, FHANDLE osHandle) {
+void logWriteBufferToFile(TCHAR*buffer, INT fileHandle, FHANDLE osHandle) {
 	OFFSET fpos = 0;
 	logTerminateLogOutputBuffer(buffer);
 	if (fioalseek(osHandle, 0L, 2, &fpos)) return;
-	fiowrite(fileHandle, fpos, (UCHAR*)buffer, strlen(buffer));
+	fiowrite(fileHandle, fpos, (UCHAR*)buffer, _tcslen(buffer));
 }
 
 #if OS_UNIX && defined(Linux) && !defined(_AIX)
 static void logDumpEventStackTrace(INT index, INT fileHandle, FHANDLE osHandle) {
-	CHAR buffer[1024];
+	TCHAR buffer[1024];
 	LOGENTRY *le;
 	void *sbuffer;
 	TCHAR **strings;
@@ -1933,110 +1936,110 @@ static void logDumpEventStackTrace(INT index, INT fileHandle, FHANDLE osHandle) 
 }
 #endif
 
-static void logDumpLoadmodChainFlags(CHAR* buffer, INT flags, INT error, INT fileHandle, FHANDLE osHandle) {
-	CHAR work2[64];
+static void logDumpLoadmodChainFlags(TCHAR* buffer, INT flags, INT error, INT fileHandle, FHANDLE osHandle) {
+	TCHAR work2[64];
 	if (flags & LOGEVENTDATA_OFLAG_dataxcnt) {
-		strcpy(buffer, "                     dataxcnt flowed over 0x7FFF");
+		_tcscpy(buffer, "                     dataxcnt flowed over 0x7FFF");
 		logWriteBufferToFile(buffer, fileHandle, osHandle);
 	}
 
 	if (flags & LOGEVENTDATA_OFLAG_pgmxcnt) {
-		strcpy(buffer, "                     pgmxcnt flowed over");
+		_tcscpy(buffer, "                     pgmxcnt flowed over");
 		logWriteBufferToFile(buffer, fileHandle, osHandle);
 	}
 
 	if (flags & LOGEVENTDATA_OFLAG_pgmwork_codeptr_NotSet) {
-		strcpy(buffer, "                     pgmwork_codeptr_NotSet");
+		_tcscpy(buffer, "                     pgmwork_codeptr_NotSet");
 		logWriteBufferToFile(buffer, fileHandle, osHandle);
 	}
 
 	if (flags & LOGEVENTDATA_OFLAG_error) {
 		sprintf(work2, "                     error=%d", error);
-		strcat(buffer, work2);
+		_tcscat(buffer, work2);
 		logWriteBufferToFile(buffer, fileHandle, osHandle);
 	}
 }
 
-static void logDumpChainEvent(CHAR* buffer, LOGENTRY *logentry, INT fileHandle, FHANDLE osHandle) {
+static void logDumpChainEvent(TCHAR* buffer, LOGENTRY *logentry, INT fileHandle, FHANDLE osHandle) {
 	CHAINEVENTDATA *cedata = &logentry->DATA.cedata;
-	CHAR work2[64];
-	strcat(buffer, "About to chain ");
-	if (cedata->moduleName[0] != '\0') strcat(buffer, cedata->moduleName);
-	else strcat(buffer, "NULL");
+	TCHAR work2[64];
+	_tcscat(buffer, "About to chain ");
+	if (cedata->moduleName[0] != '\0') _tcscat(buffer, cedata->moduleName);
+	else _tcscat(buffer, "NULL");
 	sprintf(work2, ", pcount=%d", logentry->pcount);
-	strcat(buffer, work2);
+	_tcscat(buffer, work2);
 	sprintf(work2, ", ModVer=%u", (UINT)cedata->moduleVersion);
-	strcat(buffer, work2);
+	_tcscat(buffer, work2);
 	logWriteBufferToFile(buffer, fileHandle, osHandle);
 
 	if (cedata->newDatatabNumberOfEntries != -1 || cedata->newPgmtabNumberOfEntries != -1) {
-		strcpy(buffer, "                     ");
+		_tcscpy(buffer, "                     ");
 		if (cedata->newDatatabNumberOfEntries != -1) {
 			sprintf(work2, "newDatatabEntryCount=%d  ", cedata->newDatatabNumberOfEntries);
-			strcat(buffer, work2);
+			_tcscat(buffer, work2);
 		}
 		if (cedata->newPgmtabNumberOfEntries != -1) {
 			sprintf(work2, "newPgmtabEntryCount=%d", cedata->newPgmtabNumberOfEntries);
-			strcat(buffer, work2);
+			_tcscat(buffer, work2);
 		}
 		logWriteBufferToFile(buffer, fileHandle, osHandle);
 	}
 	logDumpLoadmodChainFlags(buffer, cedata->oflags, cedata->error, fileHandle, osHandle);
 }
 
-static void logDumpLoadmodEvent(CHAR* buffer, LOGENTRY *logentry, INT fileHandle, FHANDLE osHandle) {
+static void logDumpLoadmodEvent(TCHAR* buffer, LOGENTRY *logentry, INT fileHandle, FHANDLE osHandle) {
 	static TCHAR lmverbiage1[] = "loadmod ";
 	static TCHAR lmverbiage2[] = "ploadmod ";
-	CHAR work2[64];
+	TCHAR work2[64];
 	LOADMODEVENTDATA *ledata = &logentry->DATA.lmedata;
 
-	strcat(buffer, "About to ");
-	strcat(buffer, ledata->permanent ? lmverbiage2 : lmverbiage1);
-	if (ledata->moduleName[0] != '\0') strcat(buffer, ledata->moduleName);
-	else strcat(buffer, "NULL");
-	if (ledata->instanceName[0] != '\0' && strlen(ledata->instanceName) > 0) {
+	_tcscat(buffer, "About to ");
+	_tcscat(buffer, ledata->permanent ? lmverbiage2 : lmverbiage1);
+	if (ledata->moduleName[0] != '\0') _tcscat(buffer, ledata->moduleName);
+	else _tcscat(buffer, "NULL");
+	if (ledata->instanceName[0] != '\0' && _tcslen(ledata->instanceName) > 0) {
 		sprintf(work2, "<%s>", ledata->instanceName);
-		strcat(buffer, work2);
+		_tcscat(buffer, work2);
 	}
 	sprintf(work2, " pgmmod=%d", ledata->pgmmod);
-	strcat(buffer, work2);
+	_tcscat(buffer, work2);
 
-	strcat(buffer, " fm ");
-	if (ledata->loaderName[0] != '\0' && strlen(ledata->loaderName) > 0)
-		strcat(buffer, ledata->loaderName);
-	else strcat(buffer, "unknown");
+	_tcscat(buffer, " fm ");
+	if (ledata->loaderName[0] != '\0' && _tcslen(ledata->loaderName) > 0)
+		_tcscat(buffer, ledata->loaderName);
+	else _tcscat(buffer, "unknown");
 
 	sprintf(work2, ", pcount=%d", logentry->pcount);
-	strcat(buffer, work2);
+	_tcscat(buffer, work2);
 	logWriteBufferToFile(buffer, fileHandle, osHandle);
 
-	strcpy(buffer, "                     ");
+	_tcscpy(buffer, "                     ");
 	sprintf(work2, "dupcode=%d", ledata->dupcode);
-	strcat(buffer, work2);
+	_tcscat(buffer, work2);
 	sprintf(work2, ", existingInstanceFound=%d", ledata->existingInstanceFound);
-	strcat(buffer, work2);
+	_tcscat(buffer, work2);
 	sprintf(work2, ", ModVer=%u", (UINT)ledata->moduleVersion);
-	strcat(buffer, work2);
+	_tcscat(buffer, work2);
 	logWriteBufferToFile(buffer, fileHandle, osHandle);
 
-	strcpy(buffer, "                     ");
+	_tcscpy(buffer, "                     ");
 	sprintf(work2, "previousCurrentInstance=%d", ledata->previousCurrentInstance);
-	strcat(buffer, work2);
+	_tcscat(buffer, work2);
 	if (ledata->newDatatabNumberOfEntries != -1) {
 		sprintf(work2, ", newDatatabEntryCount=%d", ledata->newDatatabNumberOfEntries);
-		strcat(buffer, work2);
+		_tcscat(buffer, work2);
 	}
 	if (ledata->newPgmtabNumberOfEntries != -1) {
 		sprintf(work2, ", newPgmtabEntryCount=%d", ledata->newPgmtabNumberOfEntries);
-		strcat(buffer, work2);
+		_tcscat(buffer, work2);
 	}
 	logWriteBufferToFile(buffer, fileHandle, osHandle);
 	logDumpLoadmodChainFlags(buffer, ledata->oflags, ledata->error, fileHandle, osHandle);
 }
 
 static void logDumpBuildBufferAndOutput(USHORT index, INT fileHandle, FHANDLE osHandle) {
-	CHAR buffer[1024];
-	CHAR work2[32];
+	TCHAR buffer[1024];
+	TCHAR work2[32];
 	LOGENTRY *logentry = &internalLog[index];
 
 	buffer[0] = '\0';
@@ -2049,43 +2052,43 @@ static void logDumpBuildBufferAndOutput(USHORT index, INT fileHandle, FHANDLE os
 			logDumpLoadmodEvent(buffer, logentry, fileHandle, osHandle);
 			break;
 		case LET_memcompact:
-			strcat(buffer, logentry->DATA.string);
+			_tcscat(buffer, logentry->DATA.string);
 			sprintf(work2, ", pcount=%d", logentry->pcount);
-			strcat(buffer, work2);
+			_tcscat(buffer, work2);
 			sprintf(work2, ", vb=%#x", (UINT) logentry->vbcode);
-			strcat(buffer, work2);
+			_tcscat(buffer, work2);
 			if (logentry->vbcode == 0x58) {
 				sprintf(work2, ", vx=%#x", (UINT) logentry->vx);
-				strcat(buffer, work2);
+				_tcscat(buffer, work2);
 			}
 			logWriteBufferToFile(buffer, fileHandle, osHandle);
 			break;
 		default:
-			strcat(buffer, logentry->DATA.string);
+			_tcscat(buffer, logentry->DATA.string);
 			logWriteBufferToFile(buffer, fileHandle, osHandle);
 			break;
 	}
 }
 
 void logDumpLog(INT fileHandle, FHANDLE osHandle) {
-	CHAR buffer[1024];
+	TCHAR buffer[1024];
 	USHORT entryCount = circularEventLogRecycling ? circularEventLogSize : circularEventLogNumberOfEntries;
 	USHORT index = circularEventLogRecycling ? circularEventLogLastIndexUsed : 0;
 #if OS_UNIX && defined(Linux)
 	struct utsname ubuf;
 #endif
-	strcpy((CHAR*)buffer, "Log dump");
+	_tcscpy((TCHAR*)buffer, "Log dump");
 #if OS_UNIX && defined(Linux)
 	if (!uname(&ubuf)) {
-		strcat((CHAR*)buffer, " uname.sysname=");
-		strcat((CHAR*)buffer, ubuf.sysname);
-		strcat((CHAR*)buffer, " uname.machine=");
-		strcat((CHAR*)buffer, ubuf.machine);
+		_tcscat((TCHAR*)buffer, " uname.sysname=");
+		_tcscat((TCHAR*)buffer, ubuf.sysname);
+		_tcscat((TCHAR*)buffer, " uname.machine=");
+		_tcscat((TCHAR*)buffer, ubuf.machine);
 	}
 #endif
 	logWriteBufferToFile(buffer, fileHandle, osHandle);
 	if (entryCount == 0) {
-		strcpy(buffer, "\tNo Entries");
+		_tcscpy(buffer, "\tNo Entries");
 		logWriteBufferToFile(buffer, fileHandle, osHandle);
 		return;
 	}

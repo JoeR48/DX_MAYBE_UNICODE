@@ -28,11 +28,16 @@
 #include "xml.h"
 #include "fio.h"
 
-static ELEMENT *getxmldata(CHAR *, INT);
-static ELEMENT *getnonxmldata(CHAR *);
-static INT processcfgentry(ELEMENT *, CHAR *);
-static INT buildxmlentry(CHAR *, ELEMENT *, INT);
-static void cfgseterror(CHAR *);
+#if OS_WIN32
+#include <tchar.h>
+#include <wchar.h>
+#endif
+
+static ELEMENT *getxmldata(TCHAR *, INT);
+static ELEMENT *getnonxmldata(TCHAR *);
+static INT processcfgentry(ELEMENT *, TCHAR *);
+static INT buildxmlentry(TCHAR *, ELEMENT *, INT);
+static void cfgseterror(TCHAR *);
 
 static INT FLAG_NONE  = 0x000;
 static INT FLAG_DIR   = 0x001;
@@ -40,27 +45,27 @@ static INT FLAG_PROG  = 0x002;
 
 static ELEMENT *xmlbuffer;
 static INT initflag = FALSE;
-static CHAR cfgerrorstring[CFG_MAX_ERRMSGSIZE];
-static CHAR key[CFG_MAX_KEYDEPTH][CFG_MAX_KEYLENGTH];
+static TCHAR cfgerrorstring[CFG_MAX_ERRMSGSIZE];
+static TCHAR key[CFG_MAX_KEYDEPTH][CFG_MAX_KEYLENGTH];
 	
 #define REQUIRES_DIR(a, b, c, d) ( \
-	(!strcmp(a, "file") && !strcmp(b, "dbc")) || \
-	(!strcmp(a, "file") && !strcmp(b, "editcfg")) || \
-	(!strcmp(a, "file") && !strcmp(b, "image")) || \
-	(!strcmp(a, "file") && !strcmp(b, "open")) || \
-	(!strcmp(a, "file") && !strcmp(b, "prep")) || \
-	(!strcmp(a, "file") && !strcmp(b, "prt")) || \
-	(!strcmp(a, "file") && !strcmp(b, "source")) || \
-	(!strcmp(a, "file") && !strcmp(b, "fonts")) || \
-	(!strcmp(a, "file") && !strcmp(b, "tdf")) || \
-	(!strcmp(a, "file") && !strcmp(b, "tdb")) || \
-	(!strcmp(a, "file") && !strcmp(b, "volume")) \
+	(!_tcscmp(a, _T("file")) && !_tcscmp(b, _T("dbc"))) || \
+	(!_tcscmp(a, _T("file")) && !_tcscmp(b, _T("editcfg"))) || \
+	(!_tcscmp(a, _T("file")) && !_tcscmp(b, _T("image"))) || \
+	(!_tcscmp(a, _T("file")) && !_tcscmp(b, _T("open"))) || \
+	(!_tcscmp(a, _T("file")) && !_tcscmp(b, _T("prep"))) || \
+	(!_tcscmp(a, _T("file")) && !_tcscmp(b, _T("prt"))) || \
+	(!_tcscmp(a, _T("file")) && !_tcscmp(b, _T("source"))) || \
+	(!_tcscmp(a, _T("file")) && !_tcscmp(b, _T("fonts"))) || \
+	(!_tcscmp(a, _T("file")) && !_tcscmp(b, _T("tdf"))) || \
+	(!_tcscmp(a, _T("file")) && !_tcscmp(b, _T("tdb"))) || \
+	(!_tcscmp(a, _T("file")) && !_tcscmp(b, _T("volume"))) \
 )
 
 #define REQUIRES_PROG(a, b, c, d) ( \
-	(!strcmp(a, "stop")) || \
-	(!strcmp(a, "start")) || \
-	(!strcmp(a, "preload")) \
+	(!_tcscmp(a, _T("stop"))) || \
+	(!_tcscmp(a, _T("start"))) || \
+	(!_tcscmp(a, _T("preload"))) \
 )
 
 #if OS_WIN32
@@ -79,10 +84,10 @@ static CHAR key[CFG_MAX_KEYDEPTH][CFG_MAX_KEYLENGTH];
  * message. 
  *
  */
-INT cfginit(CHAR *cfgfile, INT required)
+INT cfginit(TCHAR *cfgfile, INT required)
 {
 	INT i1, i2, filesize;
-	CHAR *filebuffer, *ptr, work[256];
+	TCHAR *filebuffer, *ptr, work[256];
 	FILE *file; // @suppress("Statement has no effect")
 	ELEMENT *element;
 	ATTRIBUTE *attribute;
@@ -95,39 +100,39 @@ INT cfginit(CHAR *cfgfile, INT required)
 	if (cfgfile == NULL) {
 		/* NOTE: This isn't being used for anything as far as I know */
 		filesize = 11;
-		filebuffer = (CHAR *) malloc((filesize + 1) * sizeof(CHAR));
+		filebuffer = (TCHAR *) malloc((filesize + 1) * sizeof(TCHAR));
 		if (filebuffer == NULL) {
-			cfgseterror("configuration file error: insufficient memory");
+			cfgseterror(_T("configuration file error: insufficient memory"));
 			return RC_ERROR;
 		}
-		sprintf(filebuffer, "<%scfg/>", CFG_PREFIX);
+		_stprintf(filebuffer, _T("<%scfg/>"), CFG_PREFIX);
 	}
 	else {
 		i2 = FALSE;
 		if (cfgfile[0]) ptr = cfgfile;
-		else if (miogetenv("DBC_CFG", &ptr) || !*ptr) {
+		else if (miogetenv(_T("DBC_CFG"), &ptr) || !*ptr) {
 #if OS_WIN32
-			sprintf(cfgfile, ".\\%s.cfg", CFG_PREFIX);
+			_stprintf(cfgfile, _T(".\\%s.cfg"), CFG_PREFIX);
 #else
-			sprintf(cfgfile, "./%s.cfg", CFG_PREFIX);
+			_stprintf(cfgfile, _T("./%s.cfg"), CFG_PREFIX);
 #endif
 			ptr = cfgfile;
 			i2 = TRUE;
 		}
-		file = fopen(ptr, "rb");
+		file = _tfopen(ptr, _T("rb"));
 		if (file == NULL) {
 			if (i2 && !required) {
 				/* this code allows utilities to work when config was not specified */
 				filesize = 11;
-				filebuffer = (CHAR *) malloc((filesize + 1) * sizeof(CHAR));
+				filebuffer = (TCHAR *) malloc((filesize + 1) * sizeof(TCHAR));
 				if (filebuffer == NULL) {
-					cfgseterror("configuration file error: insufficient memory");
+					cfgseterror(_T("configuration file error: insufficient memory"));
 					return -1;
 				}
-				sprintf(filebuffer, "<%scfg/>", CFG_PREFIX);			
+				_stprintf(filebuffer, _T("<%scfg/>") CFG_PREFIX);			
 			}
 			else {
-				sprintf(work, "configuration file error: file open failed, err=%d", (INT)ERRORVALUE());
+				_stprintf(work, _T("configuration file error: file open failed, err=%d"), (INT)ERRORVALUE());
 				cfgseterror(work);
 				return RC_ERROR;
 			}
@@ -136,24 +141,24 @@ INT cfginit(CHAR *cfgfile, INT required)
 			fseek(file, 0, 2);
 			filesize = (INT) ftell(file);
 			fseek(file, 0, 0);
-			filebuffer = (CHAR *) malloc((filesize + 1) * sizeof(CHAR));
+			filebuffer = (TCHAR *) malloc((filesize + 1) * sizeof(TCHAR));
 			if (filebuffer == NULL) {
 				fclose(file);
-				cfgseterror("configuration file error: insufficient memory");
+				cfgseterror(_T("configuration file error: insufficient memory"));
 				return -1;
 			}
 			i1 = (INT)fread(filebuffer, 1, filesize, file);
 			fclose(file);
 			if (i1 != filesize) {
 				free(filebuffer);
-				cfgseterror("configuration file error: reading configuration file failed");
+				cfgseterror(_T("configuration file error: reading configuration file failed"));
 				return RC_ERROR;
 			}
 			filebuffer[i1] = '\0';
 		}
 	}
 	for (i1 = 0;
-			i1 < filesize && (isspace((int)filebuffer[i1]) || filebuffer[i1] == '\n' || filebuffer[i1] == '\r');
+			i1 < filesize && (_istspace((int)filebuffer[i1]) || filebuffer[i1] == '\n' || filebuffer[i1] == '\r');
 			i1++);
 	if (i1 < filesize && filebuffer[i1] == '<') {
 		xmlbuffer = getxmldata(filebuffer + i1, filesize - i1);
@@ -161,11 +166,11 @@ INT cfginit(CHAR *cfgfile, INT required)
 		if (xmlbuffer == NULL) {
 			return RC_ERROR;
 		}
-		sprintf(work, "%scfg", CFG_PREFIX);
-		for (element = xmlbuffer; element != NULL && (element->cdataflag || strcmp(element->tag, work)); element = element->nextelement);
+		_stprintf(work, _T("%scfg"), CFG_PREFIX);
+		for (element = xmlbuffer; element != NULL && (element->cdataflag || _tcscmp(element->tag, work)); element = element->nextelement);
 		if (element == NULL) {
 			free(xmlbuffer);
-			sprintf(work, "configuration file error: '%scfg' element missing", CFG_PREFIX);
+			_stprintf(work,  _T("configuration file error: '%scfg' element missing"), CFG_PREFIX);
 			cfgseterror(work);
 			return RC_ERROR;
 		}
@@ -173,15 +178,15 @@ INT cfginit(CHAR *cfgfile, INT required)
 	 	/* create non-existent <file> element and insert it */	
 	 	child = (ELEMENT *) malloc(sizeof(ELEMENT));
 		if (child == NULL) {
-			cfgseterror("configuration file error: insufficient memory");
+			cfgseterror(_T("configuration file error: insufficient memory"));
 			return RC_ERROR;
 		}
-		child->tag = (CHAR *) malloc(sizeof(CHAR) * 5);
+		child->tag = (TCHAR *) malloc(sizeof(TCHAR) * 5);
 		if (child->tag == NULL) {
-			cfgseterror("configuration file error: insufficient memory");
+			cfgseterror(_T("configuration file error: insufficient memory"));
 			return RC_ERROR;
 		}
-		strcpy(child->tag, "file");
+		_tcscpy(child->tag, _T("file"));
 		child->cdataflag = 0;
 		child->firstattribute = NULL;	
 		child->nextelement = NULL;		
@@ -189,25 +194,25 @@ INT cfginit(CHAR *cfgfile, INT required)
 		element->firstsubelement = child;		
 		/* do conversions from fs tags to dx tags */
 		for (element = child->firstsubelement; element != NULL; element = element->nextelement) {
-			if (!strcmp(element->tag, "filepath")) strcpy(element->tag, "open");
-			else if (!strcmp(element->tag, "preppath")) strcpy(element->tag, "prep");
-			else if (!strcmp(element->tag, "nodigitcompression") || !strcmp(element->tag, "noexclusivesupport")) {
-				if (!strcmp(element->tag, "nodigitcompression")) strcpy(element->tag, "ichrs");
-				else strcpy(element->tag, "exclusive");
+			if (!_tcscmp(element->tag, _T("filepath"))) _tcscpy(element->tag, _T("open"));
+			else if (!_tcscmp(element->tag, _T("preppath"))) _tcscpy(element->tag, _T("prep"));
+			else if (!_tcscmp(element->tag, _T("nodigitcompression") || !_tcscmp(element->tag, _T("noexclusivesupport"))) {
+				if (!_tcscmp(element->tag, _T("nodigitcompression"))) _tcscpy(element->tag, _T("ichrs"));
+				else _tcscpy(element->tag, _T("exclusive"));
 				child = (ELEMENT *) malloc(sizeof(ELEMENT));
 				if (child == NULL) {
-					cfgseterror("configuration file error: insufficient memory");
+					cfgseterror(_T("configuration file error: insufficient memory"));
 					return RC_ERROR;
 				}
-				if (!strcmp(element->tag, "ichrs")) child->cdataflag = 2;
+				if (!_tcscmp(element->tag, _T("ichrs")) child->cdataflag = 2;
 				else child->cdataflag = 3;
-				child->tag = (CHAR *) malloc(sizeof(CHAR) * 4);
+				child->tag = (TCHAR *) malloc(sizeof(TCHAR) * 4);
 				if (child->tag == NULL) {
-					cfgseterror("configuration file error: insufficient memory");
+					cfgseterror(_T("configuration file error: insufficient memory"));
 					return RC_ERROR;
 				}
-				if (!strcmp(element->tag, "ichrs")) strcpy(child->tag, "on");
-				else strcpy(child->tag, "off");
+				if (!_tcscmp(element->tag, "ichrs")) _tcscpy(child->tag, "on");
+				else _tcscpy(child->tag, "off");
 				child->firstsubelement = NULL;
 				child->firstattribute = NULL;	
 				child->nextelement = NULL;
@@ -225,25 +230,25 @@ INT cfginit(CHAR *cfgfile, INT required)
 		/* indicate that tree is minimal - that there are no duplicate entries at each level */
 		attribute = (ATTRIBUTE *) malloc(sizeof(ATTRIBUTE));
 		if (attribute == NULL) {
-			cfgseterror("configuration file error: insufficient memory");
+			cfgseterror(_T("configuration file error: insufficient memory"));
 			return RC_ERROR;
 		}
 		attribute->nextattribute = NULL;
-		attribute->tag = (CHAR *) malloc(sizeof(CHAR) * 8);
+		attribute->tag = (TCHAR *) malloc(sizeof(TCHAR) * 8);
 		if (attribute->tag == NULL) {
 			free(attribute);
-			cfgseterror("configuration file error: insufficient memory");
+			cfgseterror(_T("configuration file error: insufficient memory"));
 			return RC_ERROR;
 		}
-		attribute->cbTag = sizeof(CHAR) * 8;
-		strcpy(attribute->tag, "reduced");
-		attribute->value = (CHAR *) malloc(sizeof(CHAR) * 2);
+		attribute->cbTag = sizeof(TCHAR) * 8;
+		_tcscpy(attribute->tag,  _T("reduced"));
+		attribute->value = (TCHAR *) malloc(sizeof(TCHAR) * 2);
 		if (attribute->value == NULL) {
 			free(attribute);
-			cfgseterror("configuration file error: insufficient memory");
+			cfgseterror(_T("configuration file error: insufficient memory"));
 			return RC_ERROR;
 		}
-		strcpy(attribute->value, "y");
+		_tcscpy(attribute->value, _T("y"));
 		xmlbuffer->firstattribute = attribute;
 	}
 	initflag = TRUE;
@@ -258,24 +263,24 @@ INT cfginit(CHAR *cfgfile, INT required)
  * returned.  Call cfggeterror() to return the error message. 
  *
  */
-static ELEMENT *getnonxmldata(CHAR *filebuffer) 
+static ELEMENT *getnonxmldata(TCHAR *filebuffer) 
 {
 	INT i1, i2, state, kvsize;
-	CHAR kvpair[CFG_MAX_ENTRYSIZE], buffer[CFG_MAX_ENTRYSIZE], *ptr;
+	TCHAR kvpair[CFG_MAX_ENTRYSIZE], buffer[CFG_MAX_ENTRYSIZE], *ptr;
 	ELEMENT *root;
 
 	root = (ELEMENT *) malloc(sizeof(ELEMENT));
 	if (root == NULL) {
-		cfgseterror("configuration file error: insufficient memory");
+		cfgseterror(_T("configuration file error: insufficient memory"));
 		return NULL;
 	}
 	memset(root, 0, sizeof(ELEMENT));
-	root->tag = (CHAR *) malloc(sizeof(CHAR) * 9); /* extra 3 bytes are for 'c' 'f' 'g' later */
+	root->tag = (TCHAR *) malloc(sizeof(TCHAR) * 9); /* extra 3 bytes are for 'c' 'f' 'g' later */
 	if (root->tag == NULL) {
-		cfgseterror("configuration file error: insufficient memory");
+		cfgseterror(_T("configuration file error: insufficient memory"));
 		return NULL;
 	}
-	strcpy(root->tag, CFG_PREFIX);
+	_tcscpy(root->tag, CFG_PREFIX);
 	for (state = 1, kvsize = 0, ptr = filebuffer;;) {
 		if (!*ptr) break;
 		i1 = 0;
@@ -287,9 +292,9 @@ static ELEMENT *getnonxmldata(CHAR *filebuffer)
 			buffer[i1++] = *ptr++;
 		}
 		buffer[i1] = '\0';
-		i1 = (INT)strlen(buffer);
+		i1 = (INT)_tcslen(buffer);
 		if (i1 && buffer[i1 - 1] == '\r') i1--;
-		while (i1 >= 1 && isspace((int)buffer[i1 - 1])) {
+		while (i1 >= 1 && _istspace((int)buffer[i1 - 1])) {
 			if (i1 >= 2 && buffer[i1 - 2] == '\\') {
 				for (i2 = 1; i1 >= i2 + 2 && buffer[i1 - (i2 + 2)] == '\\'; i2++);
 				if (i2 & 0x01) break;
@@ -297,7 +302,7 @@ static ELEMENT *getnonxmldata(CHAR *filebuffer)
 			i1--;
 		}
 		buffer[i1] = '\0';
-		for (i1 = 0; buffer[i1] && isspace((int)buffer[i1]); i1++);
+		for (i1 = 0; buffer[i1] && _istspace((int)buffer[i1]); i1++);
 		if (state != 4) {
 			if (!isalpha((int)buffer[i1])) continue;
 #if defined(DX_MAJOR_VERSION)	
@@ -307,7 +312,7 @@ static ELEMENT *getnonxmldata(CHAR *filebuffer)
 		}
 		do {
 			/* remove spaces before '=' */
-			if (isspace((int)buffer[i1])) {
+			if (_istspace((int)buffer[i1])) {
 				if (state < 3) continue; 
 			}
 			else if (state == 1 && buffer[i1] == '=') {
@@ -335,7 +340,7 @@ static ELEMENT *getnonxmldata(CHAR *filebuffer)
 		}		
 		
 	}
-	strcat(root->tag, "cfg");
+	_tcscat(root->tag, _T("cfg"));
 	return root;
 }
 
@@ -343,13 +348,13 @@ static ELEMENT *getnonxmldata(CHAR *filebuffer)
  * processcfgentry
  *
  */
-static INT processcfgentry(ELEMENT *root, CHAR *kvpair) {
+static INT processcfgentry(ELEMENT *root, TCHAR *kvpair) {
 	INT i1, i2, keynum;
 	key[0][0] = key[1][0] = key[2][0] = key[3][0] = '\0';
 #if defined(FS_MAJOR_VERSION) /** FS CONVERSIONS **/
-	if (!strcmp(kvpair, "noexclusivesupport")) strcpy(kvpair, "exclusive=off"); /* fs conversion */
-	if (!strcmp(kvpair, "nodigitcompression")) strcpy(kvpair, "ichrs=off"); /* fs conversion */
-	memmove(kvpair + 11, kvpair, strlen(kvpair) + 1); 
+	if (!_tcscmp(kvpair, "noexclusivesupport")) _tcscpy(kvpair, "exclusive=off"); /* fs conversion */
+	if (!_tcscmp(kvpair, "nodigitcompression")) _tcscpy(kvpair, "ichrs=off"); /* fs conversion */
+	memmove(kvpair + 11, kvpair, _tcslen(kvpair) + 1); 
 	memcpy(kvpair, "dbcfs.file.", 11);
 #endif	
 
@@ -373,14 +378,14 @@ static INT processcfgentry(ELEMENT *root, CHAR *kvpair) {
 	 * and is therefor always true.
 	 */
 #if defined(DX_MAJOR_VERSION) /** DX CONVERSIONS **/
-	if (keynum == 4 && !strcmp(key[3], "server")) {
+	if (keynum == 4 && !_tcscmp(key[3], _T("server"))) {
 		/* make adjustment for dbcdx.file.server.fsname.server to keep XML correct */
-		strcpy(key[3], "serverhost");
+		_tcscpy(key[3], _T("serverhost"));
 	}
-	if (keynum == 3 && !strcmp(key[1], "vol")) {
+	if (keynum == 3 && !_tcscmp(key[1], _T("vol"))) {
 		/* convert to FS style volume */
-		strcpy(key[1], "volume");
-		i2 = (INT)strlen(key[2]);
+		_tcscpy(key[1], _T("volume"));
+		i2 = (INT)_tcslen(key[2]);
 		kvpair[(i1 - i2) - 2] = '=';
 		kvpair[i1 - 1] = ' ';
 		key[2][0] = '\0';
@@ -388,9 +393,9 @@ static INT processcfgentry(ELEMENT *root, CHAR *kvpair) {
 	}
 #endif
 #if defined(FS_MAJOR_VERSION) /** FS CONVERSIONS **/
-	if (!strcmp(key[1], "collatemap")) strcpy(key[1], "collate");
-	else if (!strcmp(key[1], "filepath")) strcpy(key[1], "open");
-	else if (!strcmp(key[1], "preppath")) strcpy(key[1], "prep");
+	if (!_tcscmp(key[1], "collatemap")) _tcscpy(key[1], "collate");
+	else if (!_tcscmp(key[1], "filepath")) _tcscpy(key[1], "open");
+	else if (!_tcscmp(key[1], "preppath")) _tcscpy(key[1], "prep");
 #endif	
 	if (buildxmlentry(kvpair + i1, root, 0) < 0) {
 		return RC_ERROR;
@@ -402,17 +407,17 @@ static INT processcfgentry(ELEMENT *root, CHAR *kvpair) {
  * buildxmlentry
  *
  */
-static INT buildxmlentry(CHAR *value, ELEMENT *ptr, INT level) {
+static INT buildxmlentry(TCHAR *value, ELEMENT *ptr, INT level) {
 	INT i1, i2, flag;
-	CHAR *p1;
+	TCHAR *p1;
 	ELEMENT *e1, *child, *parent;
 	
 /** CODE: SORT ENTRIES IN TREE THEN ADD SORTED="Y" ATTRIBUTE TO ROOT **/	
 	parent = ptr;
 	ptr = ptr->firstsubelement;
 	while (ptr != NULL) {
-		if (!strcmp(ptr->tag, key[level]) && !(level == 1 && !strcmp(key[0], "file") && !strcmp(key[1], "volume"))
-				 && !(level == 2 && !strcmp(key[0], "file") && !strcmp(key[1], "prefix")))
+		if (!_tcscmp(ptr->tag, key[level]) && !(level == 1 && !_tcscmp(key[0], _T("file")) && !_tcscmp(key[1], _T("volume")))
+				 && !(level == 2 && !_tcscmp(key[0], _T("file")) && !_tcscmp(key[1], _T("prefix"))))
 		{
 			/* found match */	
 			return buildxmlentry(value, ptr, level + 1);
@@ -424,15 +429,15 @@ static INT buildxmlentry(CHAR *value, ELEMENT *ptr, INT level) {
 			/* no match, normal insert */
 			child = (ELEMENT *) malloc(sizeof(ELEMENT));
 			if (child == NULL) {
-				cfgseterror("configuration file error: insufficient memory");
+				cfgseterror(_T("configuration file error: insufficient memory"));
 				return RC_ERROR;
 			}
-			child->tag = (CHAR *) malloc(sizeof(CHAR) * (strlen(key[level]) + 1));
+			child->tag = (TCHAR *) malloc(sizeof(TCHAR) * (_tcslen(key[level]) + 1));
 			if (child->tag == NULL) {
-				cfgseterror("configuration file error: insufficient memory");
+				cfgseterror(_T("configuration file error: insufficient memory"));
 				return RC_ERROR;
 			}
-			strcpy(child->tag, key[level]);
+			_tcscpy(child->tag, key[level]);
 			child->cdataflag = 0;
 			child->firstsubelement = NULL;
 			child->firstattribute = NULL;	
@@ -445,34 +450,34 @@ static INT buildxmlentry(CHAR *value, ELEMENT *ptr, INT level) {
 		else if (REQUIRES_PROG(key[0], key[1], key[2], key[3])) flag = FLAG_PROG;
 		else flag = FLAG_NONE;
 		if (flag != FLAG_NONE) {
-			if (!strcmp(key[0], "file") && !strcmp(key[1], "volume")) {
+			if (!_tcscmp(key[0], _T("file")) && !_tcscmp(key[1], _T("volume"))) {
 				/* split of volume name and directory, create xml elements */
 				p1 = value;
 				while (*p1 == ' ' || *p1 == '\t') p1++;
 				
-				for (i1 = 0, i2 = (INT)strlen(p1); i1 < i2; i1++) {
+				for (i1 = 0, i2 = (INT)_tcslen(p1); i1 < i2; i1++) {
 					if (p1[i1] == ' ') {
 						p1[i1] = '\0';
 						break;
 					}
 				}
 				if (i1 == i2) {
-					cfgseterror("configuration file error: invalid volume specification");
+					cfgseterror(_T("configuration file error: invalid volume specification"));
 					return RC_ERROR;
 				}
 
 				child = (ELEMENT *) malloc(sizeof(ELEMENT));
 				if (child == NULL) {
-					cfgseterror("configuration file error: insufficient memory");
+					cfgseterror(_T("configuration file error: insufficient memory"));
 					return RC_ERROR;
 				}
-				child->tag = (CHAR *) malloc(sizeof(CHAR) * 5);
+				child->tag = (TCHAR *) malloc(sizeof(TCHAR) * 5);
 				if (child->tag == NULL) {
 					free(child);
-					cfgseterror("configuration file error: insufficient memory");
+					cfgseterror(_T("configuration file error: insufficient memory"));
 					return RC_ERROR;
 				}
-				strcpy(child->tag, "name");
+				_tcscpy(child->tag, _T("name"));
 				child->cdataflag = 0;
 				child->firstsubelement = NULL;
 				child->firstattribute = NULL;	
@@ -481,17 +486,17 @@ static INT buildxmlentry(CHAR *value, ELEMENT *ptr, INT level) {
 				
 				e1 = (ELEMENT *) malloc(sizeof(ELEMENT));
 				if (e1 == NULL) {
-					cfgseterror("configuration file error: insufficient memory");
+					cfgseterror(_T("configuration file error: insufficient memory"));
 					return RC_ERROR;
 				}
-				e1->cdataflag = (INT)strlen(p1);
-				e1->tag = (CHAR *) malloc(sizeof(CHAR) * (strlen(p1) + 1));
+				e1->cdataflag = (INT)_tcslen(p1);
+				e1->tag = (TCHAR *) malloc(sizeof(TCHAR) * (_tcslen(p1) + 1));
 				if (e1->tag == NULL) {
 					free(e1);
-					cfgseterror("configuration file error: insufficient memory");
+					cfgseterror(_T("configuration file error: insufficient memory"));
 					return RC_ERROR;
 				}
-				strcpy(e1->tag, p1);
+				_tcscpy(e1->tag, p1);
 				e1->firstsubelement = NULL;
 				e1->firstattribute = NULL;	
 				e1->nextelement = NULL;
@@ -500,31 +505,31 @@ static INT buildxmlentry(CHAR *value, ELEMENT *ptr, INT level) {
 				value += ++i1; /* value now points at directory list */
 			}
 			/* break down semicolon delimited list of values into children */
-			for (i1 = 0, p1 = value, i2 = (INT)strlen(p1); i1 < i2; i1++) {
+			for (i1 = 0, p1 = value, i2 = (INT)_tcslen(p1); i1 < i2; i1++) {
 				if (value[i1] == ';' || (i1 + 1) == i2) {	
 					if (value[i1] == ';') value[i1] = '\0';		
 					child = (ELEMENT *) malloc(sizeof(ELEMENT));
 					if (child == NULL) {
-						cfgseterror("configuration file error: insufficient memory");
+						cfgseterror(_T("configuration file error: insufficient memory"));
 						return RC_ERROR;
 					}
 					if (flag == FLAG_DIR) {
-						child->tag = (CHAR *) malloc(sizeof(CHAR) * 4);
+						child->tag = (TCHAR *) malloc(sizeof(TCHAR) * 4);
 						if (child->tag == NULL) {
 							free(child);
-							cfgseterror("configuration file error: insufficient memory");
+							cfgseterror(_T("configuration file error: insufficient memory"));
 							return RC_ERROR;
 						}
-						strcpy(child->tag, "dir");
+						_tcscpy(child->tag, _T("dir"));
 					}
 					else if (flag == FLAG_PROG) {
-						child->tag = (CHAR *) malloc(sizeof(CHAR) * 5);
+						child->tag = (TCHAR *) malloc(sizeof(TCHAR) * 5);
 						if (child->tag == NULL) {
 							free(child);
-							cfgseterror("configuration file error: insufficient memory");
+							cfgseterror(_T("configuration file error: insufficient memory"));
 							return RC_ERROR;
 						}
-						strcpy(child->tag, "prog");
+						_tcscpy(child->tag, _T("prog"));
 					}
 
 					child->cdataflag = 0;
@@ -542,17 +547,17 @@ static INT buildxmlentry(CHAR *value, ELEMENT *ptr, INT level) {
 					}
 					e1 = (ELEMENT *) malloc(sizeof(ELEMENT));
 					if (e1 == NULL) {
-						cfgseterror("configuration file error: insufficient memory");
+						cfgseterror(_T("configuration file error: insufficient memory"));
 						return RC_ERROR;
 					}
-					e1->cdataflag = (INT)strlen(p1);
-					e1->tag = (CHAR *) malloc(sizeof(CHAR) * (strlen(p1) + 1));
+					e1->cdataflag = (INT)_tcslen(p1);
+					e1->tag = (TCHAR *) malloc(sizeof(TCHAR) * (_tcslen(p1) + 1));
 					if (e1->tag == NULL) {
 						free(e1);
-						cfgseterror("configuration file error: insufficient memory");
+						cfgseterror(_T("configuration file error: insufficient memory"));
 						return RC_ERROR;
 					}
-					strcpy(e1->tag, p1);
+					_tcscpy(e1->tag, p1);
 					e1->firstsubelement = NULL;
 					e1->firstattribute = NULL;	
 					e1->nextelement = NULL;
@@ -562,22 +567,22 @@ static INT buildxmlentry(CHAR *value, ELEMENT *ptr, INT level) {
 			}
 		}
 		else {
-			if (strlen(value) == 0) {
+			if (_tcslen(value) == 0) {
 				child = NULL;
 			}
 			else {
 				child = (ELEMENT *) malloc(sizeof(ELEMENT));
 				if (child == NULL) {
-					cfgseterror("configuration file error: insufficient memory");
+					cfgseterror(_T("configuration file error: insufficient memory"));
 					return RC_ERROR;
 				}
-				child->cdataflag = (INT)strlen(value);
-				child->tag = (CHAR *) malloc(sizeof(CHAR) * (child->cdataflag + 1));
+				child->cdataflag = (INT)_tcslen(value);
+				child->tag = (TCHAR *) malloc(sizeof(TCHAR) * (child->cdataflag + 1));
 				if (child->tag == NULL) {
-					cfgseterror("configuration file error: insufficient memory");
+					cfgseterror(_T("configuration file error: insufficient memory"));
 					return RC_ERROR;
 				}
-				strcpy(child->tag, value);
+				_tcscpy(child->tag, value);
 				child->firstsubelement = NULL;
 				child->firstattribute = NULL;	
 				child->nextelement = NULL;
@@ -596,10 +601,10 @@ static INT buildxmlentry(CHAR *value, ELEMENT *ptr, INT level) {
  * is returned.  Call cfggeterror() to return the error message. 
  *
  */
-static ELEMENT *getxmldata(CHAR *filebuffer, INT filesize)
+static ELEMENT *getxmldata(TCHAR *filebuffer, INT filesize)
 {
 	INT i1, i2, i3;
-	CHAR error[CFG_MAX_ERRMSGSIZE], *ptr;
+	TCHAR error[CFG_MAX_ERRMSGSIZE], *ptr;
 	ELEMENT *xmlbuffer_p;
 
 	for (i1 = i2 = i3 = 0; i1 < filesize; ) {
@@ -609,38 +614,38 @@ static ELEMENT *getxmldata(CHAR *filebuffer, INT filesize)
 				if (filebuffer[++i1] == '!') {  /* <!-- anything --> */
 					for (i1++; i1 + 2 < filesize && (filebuffer[i1] != '-' || filebuffer[i1 + 1] != '-' || filebuffer[i1 + 2] != '>'); i1++);
 					if ((i1 += 2) >= filesize) { /* invalid comment */
-						cfgseterror("CFG contains invalid XML comment");
+						cfgseterror(_T("CFG contains invalid XML comment"));
 						return NULL;
 					}
 				}
 				else {  /* <?tagname [attribute="value" ...] ?> */
 					for (i1++; i1 + 1 < filesize && (filebuffer[i1] != '?' || filebuffer[i1 + 1] != '>'); i1++);
 					if (++i1 >= filesize) { /* invalid meta data */
-						cfgseterror("CFG contains invalid XML meta data");
+						cfgseterror(_T("CFG contains invalid XML meta data"));
 						return NULL;
 					}
 				}
 				continue;
 			}
 			filebuffer[i2++] = filebuffer[i1];
-			if (!isspace((int)filebuffer[i1])) i3 = i2;
+			if (!_istspace((int)filebuffer[i1])) i3 = i2;
 		}
 		for (i2 = i3;
 				i1 < filesize
-				&& (isspace((int)filebuffer[i1]) || filebuffer[i1] == '\n' || filebuffer[i1] == '\r'
+				&& (_istspace((int)filebuffer[i1]) || filebuffer[i1] == '\n' || filebuffer[i1] == '\r'
 						|| (UCHAR) filebuffer[i1] == DBCEOR || (UCHAR) filebuffer[i1] == DBCEOF); i1++);
 	}
 	for (i3 = 512; i3 < i2; i3 <<= 1);
 	xmlbuffer_p = (ELEMENT *) malloc(i3);
 	if (xmlbuffer_p == NULL) {
-		cfgseterror("configuration file error: insufficient memory");
+		cfgseterror(_T("configuration file error: insufficient memory"));
 		return NULL;
 	}
 	while ((i1 = xmlparse(filebuffer, i2, xmlbuffer_p, i3)) == -1) {
-		ptr = (CHAR *) realloc(xmlbuffer_p, i3 << 1);
+		ptr = (TCHAR *) realloc(xmlbuffer_p, i3 << 1);
 		if (ptr == NULL) {
 			free(xmlbuffer_p);
-			cfgseterror("configuration file error: insufficient memory");
+			cfgseterror(_T("configuration file error: insufficient memory"));
 			return NULL;
 		}
 		xmlbuffer_p = (ELEMENT *) ptr;
@@ -648,8 +653,8 @@ static ELEMENT *getxmldata(CHAR *filebuffer, INT filesize)
 	}
 	if (i1 < 0) {
 		free(xmlbuffer_p);
-		strcpy(error, "configuration file error: file contains invalid XML format: ");
-		strcat(error, xmlgeterror());
+		_tcscpy(error, _T("configuration file error: file contains invalid XML format: "));
+		_tcscat(error, xmlgeterror());
 		cfgseterror(error);
 		return NULL;
 	}
@@ -662,8 +667,8 @@ static ELEMENT *getxmldata(CHAR *filebuffer, INT filesize)
  * Set error message.
  *
  */
-static void cfgseterror(CHAR *error) {
-	strcpy(cfgerrorstring, error);
+static void cfgseterror(TCHAR *error) {
+	_tcscpy(cfgerrorstring, error);
 }
 
 /**
@@ -672,7 +677,7 @@ static void cfgseterror(CHAR *error) {
  * Return last error message.
  *
  */
-CHAR * cfggeterror()
+TCHAR * cfggeterror()
 {
 	return cfgerrorstring;
 }

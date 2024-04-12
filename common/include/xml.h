@@ -39,6 +39,6 @@ typedef struct ELEMENT_STRUCT {
 
 extern INT xmlparse(TCHAR *input, INT inputsize, void *outputbuffer, size_t outputsize);
 extern INT xmlflatten(ELEMENT *input, INT streamflag, TCHAR *outputbuffer, size_t outputsize);
-extern CHAR *xmlgeterror(void);
+extern TCHAR *xmlgeterror(void);
 
 #endif  /* _XML_INCLUDED */

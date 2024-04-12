@@ -41,12 +41,12 @@ static INT fioaflags;
 static OFFSET fileoffset = 0x7FFFFFF0;  //‭2,147,483,632‬
 static OFFSET recoffset = 0x40000000;
 static DWORD lockretrytime;
-static CHAR findfile[MAX_NAMESIZE + 1];
+static TCHAR findfile[MAX_NAMESIZE + 1];
 static FHANDLE findhandle = INVALID_HANDLE_VALUE;
 static WIN32_FIND_DATA finddta;
 static INT findpathlength;
-static CHAR foundfile[MAX_NAMESIZE + 1];
-static INT matchname(CHAR *name, CHAR *pattern);
+static TCHAR foundfile[MAX_NAMESIZE + 1];
+static INT matchname(TCHAR *name, TCHAR *pattern);
 
 INT fioainit(INT *fioflags, FIOAINITSTRUCT *parms)
 {
@@ -60,7 +60,7 @@ INT fioainit(INT *fioflags, FIOAINITSTRUCT *parms)
 /**
  * Returns zero if successful. If not, returns one of the ERR_xxxxx codes from fio.h
  */
-INT fioaopen(CHAR *filename, INT mode, INT type, FHANDLE *handle)
+INT fioaopen(TCHAR *filename, INT mode, INT type, FHANDLE *handle)
 {
 	/* following tables correspond to with each row representing the 9 open modes */
 	/* in order and the columns representing fioxop:create = 0, fioxop:create = 1 */
@@ -104,7 +104,7 @@ INT fioaopen(CHAR *filename, INT mode, INT type, FHANDLE *handle)
 	INT i1;
 	DWORD err;
 	FHANDLE hndl;
-	CHAR workname[MAX_NAMESIZE + 1];
+	TCHAR workname[MAX_NAMESIZE + 1];
 
 	if (fioaflags & FIO_FLAG_SINGLEUSER) {
 		if (mode == FIO_M_SHR) mode = FIO_M_EXC;
@@ -114,12 +114,12 @@ INT fioaopen(CHAR *filename, INT mode, INT type, FHANDLE *handle)
 		else if (mode <= FIO_M_SRA) mode = FIO_M_ERO;
 	}
 	for (i1 = 0; filename[i1]; i1++) {
-		if (filename[i1] == '/') workname[i1] = '\\';
+		if (filename[i1] == (TCHAR) '/') workname[i1] = (TCHAR) '\\';
 		else workname[i1] = filename[i1];
 	}
-	workname[i1] = '\0';
+	workname[i1] = (TCHAR) '\0';
 
-	hndl = CreateFile((LPCSTR) workname, openarg1[mode - 1][type], openarg2[mode - 1][type],
+	hndl = CreateFile((LPTSTR) workname, openarg1[mode - 1][type], openarg2[mode - 1][type],
 			NULL, openarg3[mode - 1][type], FILE_ATTRIBUTE_NORMAL, 0);
 	if (hndl != INVALID_HANDLE_VALUE) {
 		if (!type) {
@@ -312,16 +312,16 @@ INT fioatrunc(FHANDLE handle, OFFSET size)
 	return(0);
 }
 
-INT fioadelete(CHAR *filename)
+INT fioadelete(TCHAR *filename)
 {
 	INT i1;
-	CHAR workname[MAX_NAMESIZE + 1];
+	TCHAR workname[MAX_NAMESIZE + 1];
 
 	for (i1 = 0; filename[i1]; i1++) {
-		if (filename[i1] == '/') workname[i1] = '\\';
+		if (filename[i1] == (TCHAR) '/') workname[i1] = (TCHAR) '\\';
 		else workname[i1] = filename[i1];
 	}
-	workname[i1] = 0;
+	workname[i1] = (TCHAR) '\0';
 
 	if (!DeleteFile((LPCTSTR) workname)) {
 		fioadlerr = GetLastError();
@@ -330,23 +330,23 @@ INT fioadelete(CHAR *filename)
 	return(0);
 }
 
-INT fioarename(CHAR *oldname, CHAR *newname)
+INT fioarename(TCHAR *oldname, TCHAR *newname)
 {
 	INT i1;
-	CHAR workname1[MAX_NAMESIZE + 1], workname2[MAX_NAMESIZE + 1];
+	TCHAR workname1[MAX_NAMESIZE + 1], workname2[MAX_NAMESIZE + 1];
 
 	for (i1 = 0; oldname[i1]; i1++) {
-		if (oldname[i1] == '/') workname1[i1] = '\\';
+		if (oldname[i1] == (TCHAR) '/') workname1[i1] = (TCHAR) '\\';
 		else workname1[i1] = oldname[i1];
 	}
 	workname1[i1] = 0;
 	for (i1 = 0; newname[i1]; i1++) {
-		if (newname[i1] == '/') workname2[i1] = '\\';
+		if (newname[i1] == (TCHAR) '/') workname2[i1] = (TCHAR) '\\';
 		else workname2[i1] = newname[i1];
 	}
-	workname2[i1] = 0;
+	workname2[i1] = (TCHAR) '\0';
 
-	if (rename(workname1, workname2)) {
+	if (_trename(workname1, workname2)) {
 		if (errno == ENOENT) return ERR_FNOTF;
 		if (errno == EACCES) return ERR_NOACC;
 		return ERR_RENAM;
@@ -354,44 +354,44 @@ INT fioarename(CHAR *oldname, CHAR *newname)
 	return 0;
 }
 
-INT fioafindfirst(CHAR *path, CHAR *file, CHAR **found)
+INT fioafindfirst(TCHAR *path, TCHAR *file, TCHAR **found)
 {
 	INT i1;
-	CHAR workname[MAX_NAMESIZE + 1];
+	TCHAR workname[MAX_NAMESIZE + 1];
 
 	for (i1 = 0; path[i1]; i1++) {
-		if (path[i1] == '/') workname[i1] = '\\';
+		if (path[i1] == (TCHAR) '/') workname[i1] = (TCHAR) '\\';
 		else workname[i1] = path[i1];
 	}
-	if (i1 && workname[i1 - 1] != '\\') workname[i1++] = '\\';
+	if (i1 && workname[i1 - 1] != (TCHAR) '\\') workname[i1++] = (TCHAR) '\\';
 	findpathlength = i1;
-	strncpy(foundfile, workname, i1);
+	_tcsncpy(foundfile, workname, i1);
 	if (*file) {
-		strcpy(&workname[i1], file);
-		strcpy(findfile, file);
+		_tcscpy(&workname[i1], file);
+		_tcscpy(findfile, file);
 	}
 	else {
-		strcpy(&workname[i1], "*.*");
-		strcpy(findfile, "*");
+		_tcscpy(&workname[i1], _T("*.*"));
+		_tcscpy(findfile, _T("*"));
 	}
 	if (findhandle != INVALID_HANDLE_VALUE) FindClose(findhandle);
 	findhandle = FindFirstFile(workname, &finddta);
 	if (findhandle == INVALID_HANDLE_VALUE) return ERR_FNOTF;
 	for ( ; ; ) {
 		if (!(finddta.dwFileAttributes & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_OFFLINE))
-			&& finddta.cFileName[0] != '.' && matchname(finddta.cFileName, findfile)) break;
+			&& finddta.cFileName[0] != (TCHAR) '.' && matchname(finddta.cFileName, findfile)) break;
 		if (!FindNextFile(findhandle, &finddta)) {
 			FindClose(findhandle);
 			findhandle = INVALID_HANDLE_VALUE;
 			return ERR_FNOTF;
 		}
 	}
-	strcpy(foundfile + findpathlength, finddta.cFileName);
+	_tcscpy(foundfile + findpathlength, finddta.cFileName);
 	*found = foundfile;
 	return 0;
 }
 
-INT fioafindnext(CHAR **found)
+INT fioafindnext(TCHAR **found)
 {
 	if (findhandle == INVALID_HANDLE_VALUE) return ERR_NOTOP;
 
@@ -402,9 +402,9 @@ INT fioafindnext(CHAR **found)
 			return ERR_FNOTF;
 		}
 		if (!(finddta.dwFileAttributes & (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM | FILE_ATTRIBUTE_OFFLINE))
-			&& finddta.cFileName[0] != '.' && matchname(finddta.cFileName, findfile)) break;
+			&& finddta.cFileName[0] != (TCHAR) '.' && matchname(finddta.cFileName, findfile)) break;
 	}
-	strcpy(foundfile + findpathlength, finddta.cFileName);
+	_tcscpy(foundfile + findpathlength, finddta.cFileName);
 	*found = foundfile;
 	return 0;
 }
@@ -418,45 +418,46 @@ INT fioafindclose()
 	return 0;
 }
 
-INT fioaslash(CHAR *filename)
+INT fioaslash(TCHAR *filename)
 {
 	INT i1;
 
-	for (i1 = (INT)strlen(filename) - 1; i1 >= 0 && filename[i1] != '\\' && filename[i1] != '/' && filename[i1] != ':'; i1--);
+	for (i1 = (INT)_tcslen(filename) - 1; i1 >= 0 && filename[i1] != (TCHAR) '\\' && filename[i1] != (TCHAR) '/'
+			&& filename[i1] != (TCHAR) ':'; i1--);
 	return(i1);
 }
 
-void fioaslashx(CHAR *filename)
+void fioaslashx(TCHAR *filename)
 {
 	size_t i1;
 
-	i1 = strlen(filename);
-	if (i1 && filename[i1 - 1] != '\\' && filename[i1 - 1] != '/' && filename[i1 - 1] != ':') {
-		filename[i1] = '\\';
-		filename[i1 + 1] = '\0';
+	i1 = _tcslen(filename);
+	if (i1 && filename[i1 - 1] != (TCHAR) '\\' && filename[i1 - 1] != (TCHAR) '/' && filename[i1 - 1] != (TCHAR) ':') {
+		filename[i1] = (TCHAR) '\\';
+		filename[i1 + 1] = (TCHAR) '\0';
 	}
 }
 
-static INT matchname(CHAR *name, CHAR *pattern)
+static INT matchname(TCHAR *name, TCHAR *pattern)
 {
 	INT i1, i2;
 
 	for (i1 = i2 = 0; pattern[i1]; i2++, i1++) {
-		if (pattern[i1] == '*') {
+		if (pattern[i1] == (TCHAR) '*') {
 			do if (!pattern[++i1]) return TRUE;
-			while (pattern[i1] == '*');
+			while (pattern[i1] == (TCHAR) '*');
 			while (name[i2]) {
-				if ((pattern[i1] == '?' || pattern[i1] == name[i2]) && matchname(name + i2, pattern + i1)) return TRUE;
+				if ((pattern[i1] == (TCHAR) '?' || pattern[i1] == name[i2]) && matchname(name + i2, pattern + i1)) return TRUE;
 				i2++;
 			}
 			return FALSE;
 		}
-		if (pattern[i1] == '?') {
+		if (pattern[i1] == (TCHAR) '?') {
 			if (!name[i2]) return FALSE;
 		}
 		else {
-			if (pattern[i1] == '\\' && (pattern[i1 + 1] == '\\' || pattern[i1 + 1] == '*' || pattern[i1 + 1] == '?')) i1++;
-			if (tolower(pattern[i1]) != tolower(name[i2])) return FALSE;
+			if (pattern[i1] == (TCHAR) '\\' && (pattern[i1 + 1] == (TCHAR) '\\' || pattern[i1 + 1] == (TCHAR) '*' || pattern[i1 + 1] == (TCHAR) '?')) i1++;
+			if (_totlower(pattern[i1]) != _totlower(name[i2])) return FALSE;
 		}
 	}
 	return !name[i2];

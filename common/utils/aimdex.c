@@ -165,15 +165,15 @@ INT _tmain(INT argc, TCHAR **argv)
 	OFFSET eofpos, pos, prirec, secrec;
 	TCHAR cfgname[MAX_NAMESIZE], inname[MAX_NAMESIZE], outname[MAX_NAMESIZE];
 	TCHAR work[300], *ptr;
-	UCHAR c1, c2, umatch;
+	TCHAR c1, c2, umatch;
 	/*
 	 * TRUE if the -F option is used
 	 */
 	UCHAR fixflg;
 	UCHAR addpriflg, argflg, delflg, eofflg, orflg, renflg;
 	UCHAR txtflg, xselflg;
-	UCHAR *arglit, *selchr;
-	UCHAR **arglitptr, **keyptrptr, **selchrptr, **selptrptr, **rptr, **pptr;
+	TCHAR *arglit, *selchr;
+	TCHAR **arglitptr, **keyptrptr, **selchrptr, **selptrptr, **rptr, **pptr;
 	struct seldef *selptr;
 	struct rtab *r;
 	FIOPARMS parms;
@@ -188,8 +188,8 @@ INT _tmain(INT argc, TCHAR **argv)
 	while (!argget(ARG_NEXT | ARG_IGNOREOPT, work, sizeof(work))) {
 		if (work[0] == (TCHAR) '-') {
 			if (work[1] == (TCHAR) '?') usage();
-			if (toupper(work[1]) == (TCHAR) 'C' && toupper(work[2]) == (TCHAR) 'F' &&
-			    toupper(work[3]) == (TCHAR) 'G' && work[4] == (TCHAR) '=') _tcscpy(cfgname, &work[5]);
+			if (_totupper(work[1]) == (TCHAR) 'C' && _totupper(work[2]) == (TCHAR) 'F' &&
+			    _totupper(work[3]) == (TCHAR) 'G' && work[4] == (TCHAR) '=') _tcscpy(cfgname, &work[5]);
 		}
 	}
 	if (cfginit(cfgname, FALSE)) death(DEATH_INIT, 0, cfggeterror());
@@ -197,9 +197,9 @@ INT _tmain(INT argc, TCHAR **argv)
 	else ptr = fioinit(&parms, FALSE);
 	if (ptr != NULL) death(DEATH_INIT, 0, ptr);
 
-	arglitptr = memalloc(ARGSIZE * sizeof(UCHAR), 0);
+	arglitptr = memalloc(ARGSIZE * sizeof(TCHAR), 0);
 	keyptrptr = memalloc(KEYMAX * sizeof(struct keydef), 0);
-	selchrptr = memalloc(SELSIZE * sizeof(UCHAR), 0);
+	selchrptr = memalloc(SELSIZE * sizeof(TCHAR), 0);
 	selptrptr = memalloc(SELMAX * sizeof(struct seldef), 0);
 	if (arglitptr == NULL || keyptrptr == NULL || selchrptr == NULL || selptrptr == NULL)
 		death(DEATH_INIT, ERR_NOMEM, NULL);
@@ -214,19 +214,19 @@ INT _tmain(INT argc, TCHAR **argv)
 	prirec = secrec = 0L;
 	addpriflg = argflg = arglistflg = dstnctflg = FALSE;
 	eofflg = fixflg = orflg = renflg = txtflg = xselflg = FALSE;
-	umatch = '?';
+	umatch = (TCHAR) '?';
 	zvalue = 199;
 	openflg = RIO_M_ERO | RIO_P_TXT | RIO_T_ANY;
 
 	/* scan input and output file names */
-	i1 = argget(ARG_FIRST, inname, sizeof(inname));
-	if (!i1) i1 = argget(ARG_NEXT, outname, sizeof(outname));
+	i1 = argget(ARG_FIRST, inname, ARRAYSIZE(inname));
+	if (!i1) i1 = argget(ARG_NEXT, outname, ARRAYSIZE(outname));
 	if (i1 < 0) death(DEATH_INIT, i1, NULL);
 	if (i1 == 1) usage();
 	namelen = (INT)wcslen(inname);
-	for (i1 = 0; isdigit(outname[i1]); i1++);
-	if (i1 && outname[i1] == '-') for (i1++; isdigit(outname[i1]); i1++);
-	if (outname[0] == '-' || !outname[i1]) {
+	for (i1 = 0; _istdigit(outname[i1]); i1++);
+	if (i1 && outname[i1] == (TCHAR) '-') for (i1++; _istdigit(outname[i1]); i1++);
+	if (outname[0] == (TCHAR) '-' || !outname[i1]) {
 		_tcscpy(ptr, outname);
 		_tcscpy(outname, inname);
 		miofixname(outname, _T(".aim"), FIXNAME_EXT_ADD | FIXNAME_EXT_REPLACE);
@@ -237,43 +237,43 @@ INT _tmain(INT argc, TCHAR **argv)
 	/* get next parameter */
 	while (!axnextparm(ptr, sizeof(work))) {
 scanparm:
-		if (ptr[0] == '-') {
-			switch(toupper(ptr[1])) {
-				case '!':
+		if (ptr[0] == (TCHAR) '-') {
+			switch(_totupper(ptr[1])) {
+				case (TCHAR) '!':
 					dspflags |= DSPFLAGS_VERBOSE | DSPFLAGS_DSPXTRA;
 					break;
-				case 'A':
-					if (ptr[2] != '=' || !ptr[3]) death(DEATH_INVPARM, 0, ptr);
+				case (TCHAR) 'A':
+					if (ptr[2] != (TCHAR) '=' || !ptr[3]) death(DEATH_INVPARM, 0, ptr);
 					memsize = _tcstol(&ptr[3], NULL, 10) << 10;
 					if (memsize < 1) death(DEATH_INVPARMVAL, 0, ptr);
 					break;
-				case 'C':
-					if (toupper(ptr[2]) != 'F' || toupper(ptr[3]) != 'G' || ptr[4] != '=' || !ptr[5]) death(DEATH_INVPARM, 0, ptr);
+				case (TCHAR) 'C':
+					if (_totupper(ptr[2]) != (TCHAR) 'F' || _totupper(ptr[3]) != (TCHAR) 'G' || ptr[4] != (TCHAR) '=' || !ptr[5]) death(DEATH_INVPARM, 0, ptr);
 					break;
-				case 'D':
+				case (TCHAR) 'D':
 					dstnctflg = TRUE;
 					break;
-				case 'E':
+				case (TCHAR) 'E':
 					argflg = TRUE;
 					break;
-				case 'F':
-					if (ptr[2] == '=') {
+				case (TCHAR) 'F':
+					if (ptr[2] == (TCHAR) '=') {
 						reclen = _tstoi(&ptr[3]);
 						if (reclen < 1 || reclen > RIO_MAX_RECSIZE) death(DEATH_INVPARMVAL, 0, ptr);
 					}
 					fixflg = TRUE;
 					break;
-				case 'J':
-					if (toupper(ptr[2]) == 'R') openflg = RIO_M_SRO | RIO_P_TXT | RIO_T_ANY;
+				case (TCHAR) 'J':
+					if (_totupper(ptr[2]) == (TCHAR) 'R') openflg = RIO_M_SRO | RIO_P_TXT | RIO_T_ANY;
 					else openflg = RIO_M_SHR | RIO_P_TXT | RIO_T_ANY;
 					break;
-				case 'M':
-					if (ptr[2] != '=' || !ptr[3]) death(DEATH_INVPARM, 0, ptr);
+				case (TCHAR) 'M':
+					if (ptr[2] != (TCHAR) '=' || !ptr[3]) death(DEATH_INVPARM, 0, ptr);
 					umatch = ptr[3];
 					break;
-				case 'N':
-					if (ptr[2] != '=') death(DEATH_INVPARM, 0, ptr);
-					if (ptr[3] == '+') {
+				case (TCHAR) 'N':
+					if (ptr[2] != (TCHAR) '=') death(DEATH_INVPARM, 0, ptr);
+					if (ptr[3] == (TCHAR) '+') {
 						addpriflg = TRUE;
 						i1 = 4;
 					}
@@ -281,25 +281,25 @@ scanparm:
 					prirec = _tcstol(&ptr[i1], NULL, 10);
 					if (prirec < 1L) death(DEATH_INVPARMVAL, 0, ptr);
 					break;
-				case 'P':
+				case (TCHAR) 'P':
 					if (selcnt == SELMAX) death(DEATH_TOOMANYSEL, 0, NULL);
-					for (i1 = 2, i2 = 0; i1 < 7 && isdigit(ptr[i1]); )
-						i2 = i2 * 10 + ptr[i1++] - '0';
+					for (i1 = 2, i2 = 0; i1 < 7 && _istdigit(ptr[i1]); )
+						i2 = i2 * 10 + ptr[i1++] - (TCHAR) '0';
 					i4 = i2;
-					if (ptr[i1] == '-') {
-						for (i2 = 0, i3 = ++i1 + 5; i1 < i3 && isdigit(ptr[i1]); )
-							i2 = i2 * 10 + ptr[i1++] - '0';
+					if (ptr[i1] == (TCHAR) '-') {
+						for (i2 = 0, i3 = ++i1 + 5; i1 < i3 && _istdigit(ptr[i1]); )
+							i2 = i2 * 10 + ptr[i1++] - (TCHAR) '0';
 					}
 					if (!i4 || i2 < i4 || i2 > RIO_MAX_RECSIZE) death(DEATH_INVPARMVAL, 0, ptr);
 					selptr[selcnt].pos = i4 - 1;
 					i2 -= i4 - 1;
 					i3 = 0;
-					c1 = (UCHAR) toupper(ptr[i1]);
+					c1 = (UCHAR) _totupper(ptr[i1]);
 					if (c1 == '=') i3 = EQUAL;
 					else if (c1 == '#') i3 = NOTEQUAL;
 					else if (c1) {
 						i1++;
-						c2 = (UCHAR) toupper(ptr[i1]);
+						c2 = (UCHAR) _totupper(ptr[i1]);
 						if (c1 == 'E' && c2 == 'Q') i3 = EQUAL;
 						else if (c1 == 'N' && c2 == 'E') i3 = NOTEQUAL;
 						else if (c1 == 'G') {
@@ -329,19 +329,19 @@ scanparm:
 					selchr[selhi++] = 0;
 					orflg = FALSE;
 					break;
-				case 'R':
+				case (TCHAR) 'R':
 					renflg = TRUE;
 					break;
-				case 'S':
+				case (TCHAR) 'S':
 					spcflg = 1;
 					break;
-				case 'T':
+				case (TCHAR) 'T':
 					txtflg = TRUE;
 					break;
-				case 'V':
+				case (TCHAR) 'V':
 					dspflags |= DSPFLAGS_VERBOSE;
 					break;
-				case 'X':
+				case (TCHAR) 'X':
 					if (ptr[2]) {
 						if (ptr[2] != '=') death(DEATH_INVPARM, 0, ptr);
 						secrec = _tcstol(&ptr[3], NULL, 10);
@@ -349,10 +349,10 @@ scanparm:
 					}
 					else xselflg = TRUE;
 					break;
-				case 'Y':
+				case (TCHAR) 'Y':
 					eofflg = TRUE;
 					break;
-				case 'Z':
+				case (TCHAR) 'Z':
 					if (ptr[2] != '=') death(DEATH_INVPARM, 0, ptr);
 					zvalue = _tstoi(&ptr[3]);
 					if (zvalue < 40 || zvalue > 2000) death(DEATH_INVPARMVAL, 0, ptr);
@@ -361,20 +361,20 @@ scanparm:
 					death(DEATH_INVPARM, 0, ptr);
 			}
 		}
-		else if (isdigit(ptr[0])) {
+		else if (_istdigit(ptr[0])) {
 			if (keycnt == KEYMAX) death(DEATH_TOOMANYKEY, 0, NULL);
 			keyptr[keycnt].xclflg = FALSE;
-			for (i1 = 0, i2 = 0; i1 < 5 && isdigit(ptr[i1]); )
-				i2 = i2 * 10 + ptr[i1++] - '0';
+			for (i1 = 0, i2 = 0; i1 < 5 && _istdigit(ptr[i1]); )
+				i2 = i2 * 10 + ptr[i1++] - (TCHAR) '0';
 			keyptr[keycnt].from = i2;
-			if (ptr[i1] == '-') {
-				for (i1++, i2 = 0, i3 = 0; i3 < 5 && isdigit(ptr[i1]); i3++)
-					i2 = i2 * 10 + ptr[i1++] - '0';
+			if (ptr[i1] == (TCHAR) '-') {
+				for (i1++, i2 = 0, i3 = 0; i3 < 5 && _istdigit(ptr[i1]); i3++)
+					i2 = i2 * 10 + ptr[i1++] - (TCHAR) '0';
 			}
-			c1 = (UCHAR) toupper(ptr[i1]);
-			if (c1 == 'X') {
+			c1 = _totupper(ptr[i1]);
+			if (c1 == (TCHAR) 'X') {
 				keyptr[keycnt].xclflg = TRUE;
-				ptr[i1++] = 'X';  /* force to be upper case */
+				ptr[i1++] = (TCHAR) 'X';  /* force to be upper case */
 				c1 = ptr[i1];
 			}
 			if (c1 || !keyptr[keycnt].from || i2 < keyptr[keycnt].from || i2 > RIO_MAX_RECSIZE) death(DEATH_INVPARMVAL, 0, ptr);
@@ -382,7 +382,7 @@ scanparm:
 			keyptr[keycnt].len = i2 -= keyptr[keycnt].from--;  /* len is length - 1 */
 			keycnt++;
 		}
-		else if (toupper(ptr[0]) == 'O' && toupper(ptr[1]) == 'R' && !ptr[2]) {
+		else if (_totupper(ptr[0]) == (TCHAR) 'O' && _totupper(ptr[1]) == (TCHAR) 'R' && !ptr[2]) {
 			if (selcnt) orflg = TRUE;
 		}
 		else death(DEATH_INVPARM, 0, ptr);
@@ -403,21 +403,21 @@ scanparm:
 
 		/* check for what seems to be a valid aim file */
 		if (i1 != 1024) death(DEATH_BADAIMHDR, 0, NULL);
-		if (record[99] != ' ') {
-			version = record[99] - '0';
-			if (record[98] != ' ') version += (record[98] - '0') * 10;
+		if (record[99] != (TCHAR) ' ') {
+			version = record[99] - (TCHAR) '0';
+			if (record[98] != (TCHAR) ' ') version += (record[98] - (TCHAR) '0') * 10;
 		}
 		else version = 0;
 		c1 = record[59];
 		if (version > 10) c1 = DBCDEL;
 		else if (version >= 7) {
-			if (c1 != 'V' && c1 != 'F' && c1 != 'S') c1 = DBCDEL;
+			if (c1 != (TCHAR) 'V' && c1 != (TCHAR) 'F' && c1 != (TCHAR) 'S') c1 = DBCDEL;
 		}
 		else {
-			if (c1 != 'V' && c1 != 'F') c1 = DBCDEL;
+			if (c1 != (TCHAR) 'V' && c1 != (TCHAR) 'F') c1 = DBCDEL;
 			if (!version) i1 = 512;
 		}
-		if (record[0] != 'A' || record[100] != DBCEOR || c1 == DBCDEL) death(DEATH_BADAIMHDR, 0, NULL);
+		if (record[0] != (TCHAR) 'A' || record[100] != (TCHAR) DBCEOR || c1 == (TCHAR) DBCDEL) death(DEATH_BADAIMHDR, 0, NULL);
 
 		if (argflg) {
 			record[i1] = DBCDEL;
@@ -471,7 +471,7 @@ scanparm:
 	if (!dstnctflg) {
 		pptr = fiogetopt(FIO_OPT_CASEMAP);
 		if (pptr != NULL) memcpy(casemap, *pptr, (UCHAR_MAX + 1) * sizeof(UCHAR));
-		else for (i1 = 0; i1 <= UCHAR_MAX; i1++) casemap[i1] = (UCHAR) toupper(i1);
+		else for (i1 = 0; i1 <= UCHAR_MAX; i1++) casemap[i1] = (UCHAR) _totupper(i1);
 	}
 
 	/* open the input file */
@@ -866,12 +866,12 @@ static int axnextparm(TCHAR *parm, int size)
 
 	/* using previous arguments */
 	if (record[parmptr] == DBCDEL) {
-		*parm = 0;
+		*parm = (TCHAR) '\0';
 		return(1);
 	}
 	while (record[parmptr] != DBCEOR && record[parmptr] != DBCDEL) *parm++ = record[parmptr++];
 	if (record[parmptr] == DBCDEL) death(DEATH_BADAIMHDR, 0, NULL);
-	*parm = 0;
+	*parm = (TCHAR) '\0';
 	parmptr++;
 	return(0);
 }

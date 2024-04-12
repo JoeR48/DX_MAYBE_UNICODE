@@ -5,8 +5,17 @@ all:
 	clang -c common/support/svc.c $(CFLAGS) $(INC)
 	clang -c common/support/cert.c $(CFLAGS) $(INC)
 
-aimdex.exe: arg.o
-	clang common/utils/aimdex.c -o aimdex.exe $(CFLAGS) $(INC)
+aimdex.exe: arg.o base.o dbccfg.o
+	clang common/utils/aimdex.c -o $@ $^ $(CFLAGS) $(INC)
 
 arg.o: common/support/arg.c
-	clang -c common/support/arg.c $(CFLAGS) $(INC)
+	clang -c $< $(CFLAGS) $(INC)
+
+base.o: common/support/base.c
+	clang -c $< $(CFLAGS) $(INC)
+
+dbccfg.o: common/support/dbccfg.c
+	clang -c $< $(CFLAGS) $(INC)
+
+fioawin.o: common/support/fioawin.c
+	clang -c $< $(CFLAGS) $(INC)
