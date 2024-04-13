@@ -119,7 +119,7 @@ INT fioaopen(TCHAR *filename, INT mode, INT type, FHANDLE *handle)
 	}
 	workname[i1] = (TCHAR) '\0';
 
-	hndl = CreateFile((LPTSTR) workname, openarg1[mode - 1][type], openarg2[mode - 1][type],
+	hndl = CreateFile((LPCTSTR) workname, openarg1[mode - 1][type], openarg2[mode - 1][type],
 			NULL, openarg3[mode - 1][type], FILE_ATTRIBUTE_NORMAL, 0);
 	if (hndl != INVALID_HANDLE_VALUE) {
 		if (!type) {
@@ -185,14 +185,14 @@ INT fioaclose(FHANDLE handle)
  * Can return ERR_RDERR, ERR_SKERR, or 0
  * Does not move memory
  */
-INT fioaread(FHANDLE handle, UCHAR *buffer, INT nbyte, OFFSET offset, INT *bytes)
+INT fioaread(FHANDLE handle, LPVOID buffer, INT nbyte, OFFSET offset, INT *bytes)
 {
 	INT i1;
 	DWORD cnt;
 
 	if (offset != -1 && (i1 = fioalseek(handle, offset, 0, NULL))) return(i1);
 
-	if (!ReadFile(handle, (LPVOID) buffer, (DWORD) nbyte, &cnt, NULL)) {
+	if (!ReadFile(handle, buffer, (DWORD) nbyte, &cnt, NULL)) {
 		fioarderr = GetLastError();
 		return(ERR_RDERR);
 	}
@@ -204,7 +204,7 @@ INT fioaread(FHANDLE handle, UCHAR *buffer, INT nbyte, OFFSET offset, INT *bytes
  * Does not move memory
  * May return 0 or ERR_WRERR, ERR_SKERR
  */
-INT fioawrite(FHANDLE handle, UCHAR *buffer, size_t nbyte, OFFSET offset, size_t *bytes)
+INT fioawrite(FHANDLE handle, LPVOID buffer, size_t nbyte, OFFSET offset, size_t *bytes)
 {
 	INT i1;
 	DWORD cnt;
@@ -214,7 +214,7 @@ INT fioawrite(FHANDLE handle, UCHAR *buffer, size_t nbyte, OFFSET offset, size_t
 	if (bytes != NULL) *bytes = 0;
 	if (offset != -1 && (i1 = fioalseek(handle, offset, 0, NULL))) return(i1);
 
-	if (!WriteFile(handle, (LPVOID) buffer, (DWORD) nbyte, (LPDWORD) &cnt, NULL)) {
+	if (!WriteFile(handle, buffer, (DWORD) nbyte, (LPDWORD) &cnt, NULL)) {
 		fioawrerr = GetLastError();
 		return(ERR_WRERR);
 	}
@@ -227,8 +227,10 @@ INT fioawrite(FHANDLE handle, UCHAR *buffer, size_t nbyte, OFFSET offset, size_t
 }
 
 /**
- * Can return 0 or ERR_SKERR (-50)
- * Does not move memory
+ * @param offset 64 bit number of bytes to move file pointer
+ * @param filepos If not NULL will have 64 file pointer if success.
+ * @remarks Can return 0 or ERR_SKERR (-50)
+ *          Does not move memory
  */
 INT fioalseek(FHANDLE handle, OFFSET offset, INT method, OFFSET *filepos)
 {

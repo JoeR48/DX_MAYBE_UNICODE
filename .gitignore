@@ -12,6 +12,7 @@
 *.exp
 *.class
 *.jar
+test.c
 mycert*.txt
 !libssl.a
 !libcrypto.a

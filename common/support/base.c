@@ -1008,26 +1008,26 @@ void mscoffto6x(OFFSET src, UCHAR *dest)
 	} while (i1);
 }
 
-void msctimestamp(UCHAR *dest)
+void msctimestamp(TCHAR *dest)
 {
 #if OS_WIN32
 	INT i1;
 	SYSTEMTIME systime;
 
 	GetLocalTime(&systime);
-	for (i1 = 4; --i1 >= 0; systime.wYear /= 10) dest[i1] = (UCHAR)(systime.wYear % 10 + '0');
-	dest[4] = (UCHAR)(systime.wMonth / 10 + '0');
-	dest[5] = (UCHAR)(systime.wMonth % 10 + '0');
-	dest[6] = (UCHAR)(systime.wDay / 10 + '0');
-	dest[7] = (UCHAR)(systime.wDay % 10 + '0');
-	dest[8] = (UCHAR)(systime.wHour / 10 + '0');
-	dest[9] = (UCHAR)(systime.wHour % 10 + '0');
-	dest[10] = (UCHAR)(systime.wMinute / 10 + '0');
-	dest[11] = (UCHAR)(systime.wMinute % 10 + '0');
-	dest[12] = (UCHAR)(systime.wSecond / 10 + '0');
-	dest[13] = (UCHAR)(systime.wSecond % 10 + '0');
-	dest[14] = (UCHAR)(systime.wMilliseconds / 100 + '0');
-	dest[15] = (UCHAR)((systime.wMilliseconds / 10) % 10 + '0');
+	for (i1 = 4; --i1 >= 0; systime.wYear /= 10) dest[i1] = (TCHAR)(systime.wYear % 10 + '0');
+	dest[4] = (TCHAR)(systime.wMonth / 10 + '0');
+	dest[5] = (TCHAR)(systime.wMonth % 10 + '0');
+	dest[6] = (TCHAR)(systime.wDay / 10 + '0');
+	dest[7] = (TCHAR)(systime.wDay % 10 + '0');
+	dest[8] = (TCHAR)(systime.wHour / 10 + '0');
+	dest[9] = (TCHAR)(systime.wHour % 10 + '0');
+	dest[10] = (TCHAR)(systime.wMinute / 10 + '0');
+	dest[11] = (TCHAR)(systime.wMinute % 10 + '0');
+	dest[12] = (TCHAR)(systime.wSecond / 10 + '0');
+	dest[13] = (TCHAR)(systime.wSecond % 10 + '0');
+	dest[14] = (TCHAR)(systime.wMilliseconds / 100 + '0');
+	dest[15] = (TCHAR)((systime.wMilliseconds / 10) % 10 + '0');
 #endif
 
 #if OS_UNIX

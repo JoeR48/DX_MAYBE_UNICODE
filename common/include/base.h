@@ -99,7 +99,7 @@ extern void msciton(INT, UCHAR *, INT);
 extern void mscoffton(OFFSET, UCHAR *, INT);
 extern void mscoffto9(OFFSET, UCHAR *);
 extern void mscoffto6x(OFFSET, UCHAR *);
-extern void msctimestamp(UCHAR *);
+extern void msctimestamp(TCHAR *);
 extern void mscgetparms(TCHAR ***, INT *, TCHAR *);
 extern void debugmessage(TCHAR* msg, INT flags);
 extern void debugmessageW(wchar_t* msg, INT flags);

@@ -89,9 +89,9 @@ TCHAR *fioinit(FIOPARMS *parms, INT initialized)
 	TCHAR *errmsg;
 
 /* initialize ftab structures */
-	if (ftabmax) return("attempt to call fioinit twice");
+	if (ftabmax) return(_T("attempt to call fioinit twice"));
 	ftable = memalloc(32 * sizeof(struct ftab), 0);
-	if (ftable == NULL) return("fioinit: no memory(a)");
+	if (ftable == NULL) return(_T("fioinit: no memory(a)"));
 	ftabmax = 32;
 	ftabhi = 0;
 
@@ -142,59 +142,59 @@ TCHAR *fioinit(FIOPARMS *parms, INT initialized)
 		if (parmflags & FIO_PARM_EXCLOFFSET) fioaparms.excloffset = parms->excloffset;
 #endif
 		if (parms->openpath[0]) {
-			i2 = (INT)strlen(parms->openpath);
+			i2 = (INT)_tcslen(parms->openpath);
 			openpath = (TCHAR **) memalloc(i2 + 1, 0);
-			strcpy(*openpath, parms->openpath);
+			_tcscpy(*openpath, parms->openpath);
 		}
 		if (parms->preppath[0]) {
-			i2 = (INT)strlen(parms->preppath);
+			i2 = (INT)_tcslen(parms->preppath);
 			preppath = (TCHAR **) memalloc(i2 + 1, 0);
-			strcpy(*preppath, parms->preppath);
+			_tcscpy(*preppath, parms->preppath);
 		}
 		if (parms->srcpath[0]) {
-			i2 = (INT)strlen(parms->srcpath);
+			i2 = (INT)_tcslen(parms->srcpath);
 			srcpath = (TCHAR **) memalloc(i2 + 1, 0);
-			strcpy(*srcpath, parms->srcpath);
+			_tcscpy(*srcpath, parms->srcpath);
 		}
 		if (parms->dbcpath[0]) {
-			i2 = (INT)strlen(parms->dbcpath);
+			i2 = (INT)_tcslen(parms->dbcpath);
 			dbcpath = (TCHAR **) memalloc(i2 + 1, 0);
-			strcpy(*dbcpath, parms->dbcpath);
+			_tcscpy(*dbcpath, parms->dbcpath);
 		}
 		if (parms->editcfgpath[0]) {
-			i2 = (INT)strlen(parms->editcfgpath);
+			i2 = (INT)_tcslen(parms->editcfgpath);
 			editcfgpath = (TCHAR **) memalloc(i2 + 1, 0);
-			strcpy(*editcfgpath, parms->editcfgpath);
+			_tcscpy(*editcfgpath, parms->editcfgpath);
 		}
 		if (parms->dbdpath[0]) {
-			i2 = (INT)strlen(parms->dbdpath);
+			i2 = (INT)_tcslen(parms->dbdpath);
 			dbdpath = (TCHAR **) memalloc(i2 + 1, 0);
-			strcpy(*dbdpath, parms->dbdpath);
+			_tcscpy(*dbdpath, parms->dbdpath);
 		}
 		if (parms->prtpath[0]) {
-			i2 = (INT)strlen(parms->prtpath);
+			i2 = (INT)_tcslen(parms->prtpath);
 			prtpath = (TCHAR **) memalloc(i2 + 1, 0);
-			strcpy(*prtpath, parms->prtpath);
+			_tcscpy(*prtpath, parms->prtpath);
 		}
 		if (parms->tdfpath[0]) {
-			i2 = (INT)strlen(parms->tdfpath);
+			i2 = (INT)_tcslen(parms->tdfpath);
 			tdfpath = (TCHAR **) memalloc(i2 + 1, 0);
-			strcpy(*tdfpath, parms->tdfpath);
+			_tcscpy(*tdfpath, parms->tdfpath);
 		}
 		if (parms->tdbpath[0]) {
-			i2 = (INT)strlen(parms->tdbpath);
+			i2 = (INT)_tcslen(parms->tdbpath);
 			tdbpath = (TCHAR **) memalloc(i2 + 1, 0);
-			strcpy(*tdbpath, parms->tdbpath);
+			_tcscpy(*tdbpath, parms->tdbpath);
 		}
 		if (parms->imgpath[0]) {
-			i2 = (INT)strlen(parms->imgpath);
+			i2 = (INT)_tcslen(parms->imgpath);
 			imgpath = (TCHAR **) memalloc(i2 + 1, 0);
-			strcpy(*imgpath, parms->imgpath);
+			_tcscpy(*imgpath, parms->imgpath);
 		}
 		if (parms->cftpath[0]) {
-			i2 = (INT)strlen(parms->cftpath);
+			i2 = (INT)_tcslen(parms->cftpath);
 			cftpath = (TCHAR **) memalloc(i2 + 1, 0);
-			strcpy(*cftpath, parms->cftpath);
+			_tcscpy(*cftpath, parms->cftpath);
 		}
 		for (i1 = 0; i1 <= UCHAR_MAX && !parms->casemap[i1]; i1++);
 		if (i1 <= UCHAR_MAX) {
@@ -313,9 +313,9 @@ INT fiosetopt(INT opt, UCHAR *value)
 		}
 		memfree((UCHAR **) *ppptr);
 		if (value != NULL) {
-			*ppptr = (TCHAR **) memalloc((INT)strlen((TCHAR *) value) + 1, 0);
+			*ppptr = (TCHAR **) memalloc((INT)_tcslen((TCHAR *) value) + 1, 0);
 			if (*ppptr == NULL) return(ERR_NOMEM);
-			strcpy(**ppptr, (TCHAR *) value);
+			_tcscpy(**ppptr, (TCHAR *) value);
 		}
 		else *ppptr = NULL;
 		return(0);
@@ -431,14 +431,14 @@ INT fioopen(TCHAR *name, INT opts)  /* open a file */
 		ftabmax <<= 1;
 	}
 
-	strncpy(filename, name, sizeof(filename) - 1);
-	filename[sizeof(filename) - 1] = '\0';
+	_tcsncpy(filename, name, ARRAYSIZE(filename) - 1);
+	filename[ARRAYSIZE(filename) - 1] = '\0';
 
 	/* miofixname always returns zero */
 	miofixname(filename, NULL, FIXNAME_PAR_DBCVOL | FIXNAME_PAR_MEMBER);
 	miogetname(&ptr1, &ptr2);
-	strcpy(dbcvol, ptr1);
-	strcpy(memname, ptr2);
+	_tcscpy(dbcvol, ptr1);
+	_tcscpy(memname, ptr2);
 
 	/* mode and search options */
 	mode = opts & FIO_M_MASK;
@@ -447,10 +447,10 @@ INT fioopen(TCHAR *name, INT opts)  /* open a file */
 
 	/* parse member name and library name */
 	if (memname[0]) {
-		i1 = (INT)strlen(memname);
+		i1 = (INT)_tcslen(memname);
 		if (MEMBERSIZ - i1 > 0) memset(&memname[i1], ' ', MEMBERSIZ - i1);
 		while (i1--) memname[i1] = (TCHAR) toupper(memname[i1]);
-		miofixname(filename, ".lib", FIXNAME_EXT_ADD);
+		miofixname(filename, _T(".lib"), FIXNAME_EXT_ADD);
 		savemode = mode;
 		if (mode >= FIO_M_PRP) {
 			if (mode == FIO_M_MTC) mode = FIO_M_MXC;
@@ -458,7 +458,7 @@ INT fioopen(TCHAR *name, INT opts)  /* open a file */
 		}
 	}
 
-	i1 = (INT)strlen(filename);
+	i1 = (INT)_tcslen(filename);
 	/* remove trailing period from name */
 	if (i1 && filename[i1 - 1] == '.') filename[--i1] = '\0';
 	/* test for zero length name */
@@ -488,9 +488,9 @@ INT fioopen(TCHAR *name, INT opts)  /* open a file */
 
 	if (pptr1 == NULL) {
 		pptr1 = &ptr;
-		ptr = "";
+		ptr = _T("");
 	}
-	i1 = (INT)strlen(*pptr1) + 1;
+	i1 = (INT)_tcslen(*pptr1) + 1;
 	pptr = (TCHAR **) memalloc(i1, 0);
 	if (pptr == NULL) return(ERR_NOMEM);
 	memcpy(*pptr, *pptr1, i1);
@@ -502,9 +502,9 @@ INT fioopen(TCHAR *name, INT opts)  /* open a file */
 	if (i1 == ERR_FNOTF && mode > FIO_M_MXC) {
 		if (pptr2 == NULL) {
 			pptr2 = &ptr;
-			ptr = "";
+			ptr = _T("");
 		}
-		i1 = (INT)strlen(*pptr2) + 1;
+		i1 = (INT)_tcslen(*pptr2) + 1;
 		pptr = (TCHAR **) memalloc(i1, 0);
 		if (pptr == NULL) return(ERR_NOMEM);
 		memcpy(*pptr, *pptr2, i1);
@@ -526,7 +526,7 @@ INT fioopen(TCHAR *name, INT opts)  /* open a file */
 		h->opct++;
 	}
 	else {  /* new filename, alloc htab */
-		i1 = (INT)strlen(filename);
+		i1 = (INT)_tcslen(filename);
 		hptr = memalloc(sizeof(struct htab) - (MAX_NAMESIZE - i1) * sizeof(TCHAR), 0);
 		if (hptr == NULL) {
 			fioaclose(handle);
@@ -617,16 +617,16 @@ static INT fioxop(INT create, TCHAR *name, TCHAR *path, INT mode, FHANDLE *phand
 	miostrscan(path, work);
 	do {
 		fioaslashx(work);
-		strcat(work, name);
+		_tcscat(work, name);
 
 		/* check for already open through another handle */
 		for (i1 = 0; i1 < ftabhi; i1++) {
 			if (f[i1].hptr == NULL) continue;
 			h = (struct htab *) *f[i1].hptr;
 #if OS_UNIX
-			if (!strcmp(work, h->fnam)) break;
+			if (!_tcscmp(work, h->fnam)) break;
 #else
-			if (!_stricmp(work, h->fnam)) break;
+			if (!_tcsicmp(work, h->fnam)) break;
 #endif
 		}
 		if (i1 < ftabhi) {  /* found this filename already open */
@@ -645,7 +645,7 @@ static INT fioxop(INT create, TCHAR *name, TCHAR *path, INT mode, FHANDLE *phand
 	if (i1) {
 		return(i1);
 	}
-	strcpy(name, work);
+	_tcscpy(name, work);
 	opencnt++;
 	*phandle = handle;
 	*opnflg = -1;
@@ -1225,9 +1225,9 @@ INT fiolock(INT *flist)  /* lock files */
 				continue;
 			}
 #if OS_UNIX
-			if (fnum == -1 || strcmp(h->fnam, h1->fnam) < 0) {
+			if (fnum == -1 || _tcscmp(h->fnam, h1->fnam) < 0) {
 #else
-			if (fnum == -1 || _stricmp(h->fnam, h1->fnam) < 0) {
+			if (fnum == -1 || _tcsicmp(h->fnam, h1->fnam) < 0) {
 #endif
 				fnum = flist[i1] - 1;
 				h1 = h;
@@ -1485,10 +1485,10 @@ INT fiorename(INT fnum, TCHAR *newname)
 		fioclose(fnum);
 		return ERR_NOACC;
 	}
-	strcpy(oldname, h->fnam);
+	_tcscpy(oldname, h->fnam);
 
 	/* parse the old and new names */
-	miofixname(newname, "", FIXNAME_PAR_DBCVOL | FIXNAME_PAR_MEMBER);
+	miofixname(newname, _T(""), FIXNAME_PAR_DBCVOL | FIXNAME_PAR_MEMBER);
 	miogetname(&ptr1, &ptr2);
 	if (*ptr2) {
 		fioclose(fnum);
@@ -1499,22 +1499,22 @@ INT fiorename(INT fnum, TCHAR *newname)
 			for (ptr1 = *pptr, i1 = 0; ptr1[i1] && ptr1[i1] != ';'; i1++) work[i1] = ptr1[i1];
 			work[i1] = '\0';
 			fioaslashx(work);
-			strcat(work, newname);
+			_tcscat(work, newname);
 		}
-		else ptr1 = "";
+		else ptr1 = _T("");
 	}
 	if (!*ptr1) {
-		strcpy(work, newname);
+		_tcscpy(work, newname);
 		if (fioaslash(newname) < 0) {  /* new file name has no directory specified */
 			i1 = fioaslash(oldname);
 			if (i1++ >= 0) {
 				memcpy(work, oldname, i1);
-				strcpy(&work[i1], newname);
+				_tcscpy(&work[i1], newname);
 			}
 		}
 	}
-	i1 = (INT)strlen(work);
-	if (work[i1 - 1] == '.') work[i1 - 1] = 0;
+	i1 = (INT)_tcslen(work);
+	if (work[i1 - 1] == '.') work[i1 - 1] = (TCHAR) '\0';
 
 	/* rename it */
 	fioclose(fnum);
@@ -1534,20 +1534,20 @@ INT fiofindfirst(TCHAR *name, INT search, TCHAR **found)
 		memfree((UCHAR **) findfile);
 	}
 	search &= FIO_P_MASK;
-	strncpy(filename, name, sizeof(filename) - 1);
-	filename[sizeof(filename) - 1] = 0;
+	_tcsncpy(filename, name, ARRAYSIZE(filename) - 1);
+	filename[ARRAYSIZE(filename) - 1] = 0;
 	i1 = miofixname(filename, NULL, FIXNAME_PAR_DBCVOL | FIXNAME_PAR_MEMBER);
 	if (i1) return(i1);
 	miogetname(&ptr1, &ptr2);
-	strcpy(dbcvol, ptr1);
-	strcpy(memname, ptr2);
+	_tcscpy(dbcvol, ptr1);
+	_tcscpy(memname, ptr2);
 
 	/* parse member name and library name */
 	if (memname[0]) {
 		return ERR_BADNM;
 #if 0
 /*** CODE: CURRENTLY NOT SUPPORTED ***/
-		i1 = (INT)strlen(memname);
+		i1 = (INT)_tcslen(memname);
 		if (MEMBERSIZ - i1 > 0) memset(&memname[i1], ' ', MEMBERSIZ - i1);
 		while (i1--) memname[i1] = (TCHAR) toupper(memname[i1]);
 		miofixname(filename, ".lib", FIXNAME_EXT_ADD);
@@ -1559,11 +1559,11 @@ INT fiofindfirst(TCHAR *name, INT search, TCHAR **found)
 #endif
 	}
 
-	i1 = (INT)strlen(filename);
+	i1 = (INT)_tcslen(filename);
 	/* remove trailing period from name */
 	if (i1 && filename[i1 - 1] == '.') filename[--i1] = 0;
 	file = filename;
-	ptr = "";
+	ptr = _T("");
 	if (dbcvol[0]) {
 		if (fiocvtvol(dbcvol, &pptr)) pptr = &ptr;
 	}
@@ -1573,12 +1573,12 @@ INT fiofindfirst(TCHAR *name, INT search, TCHAR **found)
 		if (i1 >= 0) {
 			if (i1) {
 				ptr = filename;
-				filename[i1] = '\0';
+				filename[i1] = (TCHAR) '\0';
 			}
 #if OS_WIN32
-			else ptr = "\\";
+			else ptr = _T("\\");
 #else
-			else ptr = "/";
+			else ptr = _T("/");
 #endif
 			file = &filename[i1 + 1];
 			search = FIO_P_WRK;
@@ -1596,9 +1596,9 @@ INT fiofindfirst(TCHAR *name, INT search, TCHAR **found)
 	}
 	if (pptr == NULL) {
 		pptr = &ptr;
-		ptr = "";
+		ptr = _T("");
 	}
-	i1 = (INT)strlen(*pptr) + 1;
+	i1 = (INT)_tcslen(*pptr) + 1;
 	findpath = (TCHAR **) memalloc(i1, 0);
 	if (findpath == NULL) return ERR_NOMEM;
 	memcpy(*findpath, *pptr, i1);
@@ -1610,7 +1610,7 @@ INT fiofindfirst(TCHAR *name, INT search, TCHAR **found)
 		if (i1 == ERR_EXCMF && !fioclru(0)) continue;
 	} while (i1 == ERR_FNOTF && !miostrscan(*findpath, work));
 	if (!i1) {
-		i2 = (INT)strlen(file) + 1;
+		i2 = (INT)_tcslen(file) + 1;
 		findfile = (TCHAR **) memalloc(i2, 0);
 		if (findfile != NULL) memcpy(*findfile, file, i2);
 		else i1 = ERR_NOMEM;
@@ -1661,82 +1661,82 @@ TCHAR *fioerrstr(INT err)
 	TCHAR *ptr;
 
 	switch (err) {
-		case ERR_NOTOP: return("file not open");
-		case ERR_FNOTF: return("file not found");
-		case ERR_NOACC: return("access denied");
-		case ERR_EXIST: return("file already exists");
-		case ERR_EXCMF: return("exceed maximum files open");
-		case ERR_BADNM: return("invalid name");
-		case ERR_BADTP: return("invalid file type");
-		case ERR_NOEOR: return("no end of record mark or record too long");
-		case ERR_SHORT: return("record too short");
-		case ERR_BADCH: return("invalid character encountered");
-		case ERR_RANGE: return("beyond end of file");
-		case ERR_ISDEL: return("record has already been deleted");
-		case ERR_BADIX: return("index file is invalid");
-		case ERR_BADKL: return("wrong key length");
-		case ERR_BADRL: return("wrong record length");
-		case ERR_BADKY: return("invalid key");
-		case ERR_NOMEM: return("unable to allocate memory");
+		case ERR_NOTOP: return(_T("file not open"));
+		case ERR_FNOTF: return(_T("file not found"));
+		case ERR_NOACC: return(_T("access denied"));
+		case ERR_EXIST: return(_T("file already exists"));
+		case ERR_EXCMF: return(_T("exceed maximum files open"));
+		case ERR_BADNM: return(_T("invalid name"));
+		case ERR_BADTP: return(_T("invalid file type"));
+		case ERR_NOEOR: return(_T("no end of record mark or record too long"));
+		case ERR_SHORT: return(_T("record too short"));
+		case ERR_BADCH: return(_T("invalid character encountered"));
+		case ERR_RANGE: return(_T("beyond end of file"));
+		case ERR_ISDEL: return(_T("record has already been deleted"));
+		case ERR_BADIX: return(_T("index file is invalid"));
+		case ERR_BADKL: return(_T("wrong key length"));
+		case ERR_BADRL: return(_T("wrong record length"));
+		case ERR_BADKY: return(_T("invalid key"));
+		case ERR_NOMEM: return(_T("unable to allocate memory"));
 		case ERR_RDERR:
-			ptr = "unable to read";
+			ptr = _T("unable to read");
 			err = fioarderr;
 			break;
 		case ERR_WRERR:
-			ptr = "unable to write";
+			ptr = _T("unable to write");
 			err = fioawrerr;
 			break;
 		case ERR_DLERR:
-			ptr = "unable to delete";
+			ptr = _T("unable to delete");
 			err = fioadlerr;
 			break;
 		case ERR_LKERR:
-			ptr = "unable to lock file or record";
+			ptr = _T("unable to lock file or record");
 			err = fioalkerr;
 			break;
-		case ERR_BADLN: return("invalid character buffer length");
-		case ERR_NOENV: return("unable to open environment file");
-		case ERR_RDENV: return("unable to read environment file");
-		case ERR_NOOPT: return("unable to open options file");
-		case ERR_RDOPT: return("unable to read options file");
-		case ERR_NOPRM: return("command line parameters not initialized");
-		case ERR_RENAM: return("rename failed");
+		case ERR_BADLN: return(_T("invalid character buffer length"));
+		case ERR_NOENV: return(_T("unable to open environment file"));
+		case ERR_RDENV: return(_T("unable to read environment file"));
+		case ERR_NOOPT: return(_T("unable to open options file"));
+		case ERR_RDOPT: return(_T("unable to read options file"));
+		case ERR_NOPRM: return(_T("command line parameters not initialized"));
+		case ERR_RENAM: return(_T("rename failed"));
 		case ERR_CLERR:
-			ptr = "unable to close";
+			ptr = _T("unable to close");
 			err = fioaclerr;
 			break;
 		case ERR_SKERR:
-			ptr = "unable to seek";
+			ptr = _T("unable to seek");
 			err = fioaskerr;
 			break;
-		case ERR_BADLB: return("bad library");
-		case ERR_FHNDL: return("invalid value for file handle");
-		case ERR_RONLY: return("attempted write on read-only file");
+		case ERR_BADLB: return(_T("bad library"));
+		case ERR_FHNDL: return(_T("invalid value for file handle"));
+		case ERR_RONLY: return(_T("attempted write on read-only file"));
 		case ERR_OPERR:
-			ptr = "unspecified open error";
+			ptr = _T("unspecified open error");
 			err = fioaoperr;
 			break;
-		case ERR_INVAR: return("invalid argument");
+		case ERR_INVAR: return(_T("invalid argument"));
 		case ERR_NOSEM:
 #if OS_UNIX
 			ptr = "no semaphores";
 			err = fiosemerr;
 			break;
 #else
-			return ("no semaphores");
+			return (_T("no semaphores"));
 #endif
-		case ERR_NOEOF: return("no EOF");
-		case ERR_COLAT: return("error opening or reading collate file");
-		case ERR_CASMP: return("error opening or reading casemap file");
-		case ERR_PROGX: return("programming error");
-		case ERR_OTHER: return("unspecified error");
-		default: return("* UNKNOWN ERROR *");
+		case ERR_NOEOF: return(_T("no EOF"));
+		case ERR_COLAT: return(_T("error opening or reading collate file"));
+		case ERR_CASMP: return(_T("error opening or reading casemap file"));
+		case ERR_PROGX: return(_T("programming error"));
+		case ERR_OTHER: return(_T("unspecified error"));
+		default: return(_T("* UNKNOWN ERROR *"));
 	}
 	/* vague i/o error, try to include more information */
-	strcpy(work, ptr);
+	_tcscpy(work, ptr);
 	if (err) {
-		strcat(work, ", error = ");
-		mscitoa(err, work + strlen(work));
+		_tcscat(work, _T(", error = "));
+		mscitoa(err, work + _tcslen(work));
 	}
 	return(work);
 }
@@ -1750,68 +1750,68 @@ static TCHAR *fioinitprops(FIOPARMS *parms)
 	assert (parms != NULL);
 	memset(parms, 0, sizeof(*parms));
 
-	if (!prpget("file", "sharing", NULL, NULL, &ptr, PRP_LOWER) && !strcmp(ptr, "off")) parms->flags |= FIO_FLAG_SINGLEUSER;
-	if (!prpget("file", "ichrs", NULL, NULL, &ptr, PRP_LOWER) && !strcmp(ptr, "on")) parms->flags |= FIO_FLAG_NOCOMPRESS;
-	if (!prpget("file", "keytrunc", NULL, NULL, &ptr, PRP_LOWER) && !strcmp(ptr, "on")) parms->flags |= FIO_FLAG_KEYTRUNCATE;
+	if (!prpget(_T("file"), _T("sharing"), NULL, NULL, &ptr, PRP_LOWER) && !_tcscmp(ptr, _T("off"))) parms->flags |= FIO_FLAG_SINGLEUSER;
+	if (!prpget(_T("file"), _T("ichrs"), NULL, NULL, &ptr, PRP_LOWER) && !_tcscmp(ptr, _T("on"))) parms->flags |= FIO_FLAG_NOCOMPRESS;
+	if (!prpget(_T("file"), _T("keytrunc"), NULL, NULL, &ptr, PRP_LOWER) && !_tcscmp(ptr, _T("on"))) parms->flags |= FIO_FLAG_KEYTRUNCATE;
 #if OS_UNIX
-	if (prpget("file", "exclusive", NULL, NULL, &ptr, PRP_LOWER) || strcmp(ptr, "off")) parms->flags |= FIO_FLAG_EXCLOPENLOCK;
-	if (!prpget("file", "lock", NULL, NULL, &ptr, PRP_LOWER) && !strcmp(ptr, "sem")) parms->flags |= FIO_FLAG_SEMLOCK;
+	if (prpget(_T("file"), "exclusive", NULL, NULL, &ptr, PRP_LOWER) || _tcscmp(ptr, "off")) parms->flags |= FIO_FLAG_EXCLOPENLOCK;
+	if (!prpget(_T("file"), "lock", NULL, NULL, &ptr, PRP_LOWER) && !_tcscmp(ptr, "sem")) parms->flags |= FIO_FLAG_SEMLOCK;
 #endif
-	if (!prpget("file", "compat", NULL, NULL, &ptr, PRP_LOWER)) {
-		if (!strncmp(ptr, "dos", 3)) parms->flags |= FIO_FLAG_COMPATDOS;
-		else if (!strcmp(ptr, "rms")) parms->flags |= FIO_FLAG_COMPATRMS;
-		else if (!strcmp(ptr, "rmsx")) parms->flags |= FIO_FLAG_COMPATRMSX;
-		else if (!strcmp(ptr, "rmsy")) parms->flags |= FIO_FLAG_COMPATRMSY;
+	if (!prpget(_T("file"), _T("compat"), NULL, NULL, &ptr, PRP_LOWER)) {
+		if (!_tcsnccmp(ptr, _T("dos"), 3)) parms->flags |= FIO_FLAG_COMPATDOS;
+		else if (!_tcscmp(ptr, _T("rms"))) parms->flags |= FIO_FLAG_COMPATRMS;
+		else if (!_tcscmp(ptr, _T("rmsx"))) parms->flags |= FIO_FLAG_COMPATRMSX;
+		else if (!_tcscmp(ptr, _T("rmsy"))) parms->flags |= FIO_FLAG_COMPATRMSY;
 	}
-	if (!prpget("file", "extcase", NULL, NULL, &ptr, PRP_LOWER) && !strcmp(ptr, "upper")) parms->flags |= FIO_FLAG_EXTCASEUPPER;
-	if (!prpget("file", "namecase", NULL, NULL, &ptr, PRP_LOWER)) {
-		if (!strcmp(ptr, "upper")) parms->flags |= FIO_FLAG_NAMECASEUPPER;
-		else if (!strcmp(ptr, "lower")) parms->flags |= FIO_FLAG_NAMECASELOWER;
+	if (!prpget(_T("file"), _T("extcase"), NULL, NULL, &ptr, PRP_LOWER) && !_tcscmp(ptr, _T("upper"))) parms->flags |= FIO_FLAG_EXTCASEUPPER;
+	if (!prpget(_T("file"), _T("namecase"), NULL, NULL, &ptr, PRP_LOWER)) {
+		if (!_tcscmp(ptr, _T("upper"))) parms->flags |= FIO_FLAG_NAMECASEUPPER;
+		else if (!_tcscmp(ptr, _T("lower"))) parms->flags |= FIO_FLAG_NAMECASELOWER;
 	}
-	if (!prpget("file", "nameblanks", NULL, NULL, &ptr, PRP_LOWER)) {
-		if (!strcmp(ptr, "squeeze")) parms->flags |= FIO_FLAG_NAMEBLANKSSQUEEZE;
-		else if (!strcmp(ptr, "nochop")) parms->flags |= FIO_FLAG_NAMEBLANKSNOCHOP;
+	if (!prpget(_T("file"), _T("nameblanks"), NULL, NULL, &ptr, PRP_LOWER)) {
+		if (!_tcscmp(ptr, _T("squeeze"))) parms->flags |= FIO_FLAG_NAMEBLANKSSQUEEZE;
+		else if (!_tcscmp(ptr, _T("nochop"))) parms->flags |= FIO_FLAG_NAMEBLANKSNOCHOP;
 	}
-	if (!prpget("file", "utilprep", NULL, NULL, &ptr, PRP_LOWER) && !strcmp(ptr, "dos")) parms->flags |= FIO_FLAG_UTILPREPDOS;
+	if (!prpget(_T("file"), _T("utilprep"), NULL, NULL, &ptr, PRP_LOWER) && !_tcscmp(ptr, _T("dos"))) parms->flags |= FIO_FLAG_UTILPREPDOS;
 
-	if (!prpget("file", "randomwritelock", NULL, NULL, &ptr, PRP_LOWER) && !strcmp(ptr, "off"));
+	if (!prpget(_T("file"), _T("randomwritelock"), NULL, NULL, &ptr, PRP_LOWER) && !_tcscmp(ptr, _T("off")));
 	else parms->flags |= FIO_FLAG_RANDWRTLCK;
 
-	if (!prpget("file", "openlimit", NULL, NULL, &ptr, 0)) {
-		i1 = atoi(ptr);
+	if (!prpget(_T("file"), _T("openlimit"), NULL, NULL, &ptr, 0)) {
+		i1 = _tstoi(ptr);
 		if (i1 > 0) parms->openlimit = i1;
 	}
-	if (!prpget("file", "filetime", NULL, NULL, &ptr, 0)) {
-		i1 = atoi(ptr);
+	if (!prpget(_T("file"), _T("filetime"), NULL, NULL, &ptr, 0)) {
+		i1 = _tstoi(ptr);
 		if (i1 >= -1) {
 			parms->filetimeout = i1;
 			parms->parmflags |= FIO_PARM_FILETIMEOUT;
 		}
 	}
-	if (!prpget("file", "rectime", NULL, NULL, &ptr, 0)) {
-		i1 = atoi(ptr);
+	if (!prpget(_T("file"), _T("rectime"), NULL, NULL, &ptr, 0)) {
+		i1 = _tstoi(ptr);
 		if (i1 >= -1) {
 			parms->rectimeout = i1;
 			parms->parmflags |= FIO_PARM_RECTIMEOUT;
 		}
 	}
 #if OS_WIN32
-	if (!prpget("file", "lockretrytime", NULL, NULL, &ptr, 0)) {
-		i1 = atoi(ptr);
+	if (!prpget(_T("file"), _T("lockretrytime"), NULL, NULL, &ptr, 0)) {
+		i1 = _tstoi(ptr);
 		if (i1 >= 0) {
 			parms->lockretrytime = i1;
 			parms->parmflags |= FIO_PARM_LOCKRETRYTIME;
 		}
 	}
 #endif
-	if (!prpget("file", "fileoffset", NULL, NULL, &ptr, 0)) {
+	if (!prpget(_T("file"), _T("fileoffset"), NULL, NULL, &ptr, 0)) {
 		mscatooff(ptr, &off);
 		if (off >= 0) {
 			parms->fileoffset = off;
 			parms->parmflags |= FIO_PARM_FILEOFFSET;
 		}
 	}
-	if (!prpget("file", "recoffset", NULL, NULL, &ptr, 0)) {
+	if (!prpget(_T("file"), _T("recoffset"), NULL, NULL, &ptr, 0)) {
 		mscatooff(ptr, &off);
 		if (off >= 0) {
 			parms->recoffset = off;
@@ -1819,7 +1819,7 @@ static TCHAR *fioinitprops(FIOPARMS *parms)
 		}
 	}
 #if OS_UNIX
-	if (!prpget("file", "excloffset", NULL, NULL, &ptr, 0)) {
+	if (!prpget(_T("file"), _T("excloffset"), NULL, NULL, &ptr, 0)) {
 		mscatooff(ptr, &off);
 		if (off >= 0) {
 			parms->excloffset = off;
@@ -1827,100 +1827,100 @@ static TCHAR *fioinitprops(FIOPARMS *parms)
 		}
 	}
 #endif
-	for (i1 = 0, i2 = sizeof(parms->openpath) - 1; ; i1 = PRP_NEXT) {
-		if (prpget("file", "open", "dir", NULL, &ptr, i1)) break;
-		i2 -= (INT)strlen(ptr);
+	for (i1 = 0, i2 = ARRAYSIZE(parms->openpath) - 1; ; i1 = PRP_NEXT) {
+		if (prpget(_T("file"), _T("open"), _T("dir"), NULL, &ptr, i1)) break;
+		i2 -= (INT)_tcslen(ptr);
 		if (i1) {
-			if (--i2 > 0) strcat(parms->openpath, ";");
+			if (--i2 > 0) _tcscat(parms->openpath, _T(";"));
 		}
-		if (i2 > 0) strcat(parms->openpath, ptr);
+		if (i2 > 0) _tcscat(parms->openpath, ptr);
 	}
-	for (i1 = 0, i2 = sizeof(parms->preppath) - 1; ; i1 = PRP_NEXT) {
-		if (prpget("file", "prep", "dir", NULL, &ptr, i1)) break;
-		i2 -= (INT)strlen(ptr);
+	for (i1 = 0, i2 = ARRAYSIZE(parms->preppath) - 1; ; i1 = PRP_NEXT) {
+		if (prpget(_T("file"), _T("prep"), _T("dir"), NULL, &ptr, i1)) break;
+		i2 -= (INT)_tcslen(ptr);
 		if (i1) {
-			if (--i2 > 0) strcat(parms->preppath, ";");
+			if (--i2 > 0) _tcscat(parms->preppath, _T(";"));
 		}
-		if (i2 > 0) strcat(parms->preppath, ptr);
+		if (i2 > 0) _tcscat(parms->preppath, ptr);
 	}
-	for (i1 = 0, i2 = sizeof(parms->srcpath) - 1; ; i1 = PRP_NEXT) {
-		if (prpget("file", "source", "dir", NULL, &ptr, i1)) {
-			if (!i1 && i2 > (INT) strlen(parms->openpath)) strcpy(parms->srcpath, parms->openpath);
+	for (i1 = 0, i2 = ARRAYSIZE(parms->srcpath) - 1; ; i1 = PRP_NEXT) {
+		if (prpget(_T("file"), _T("source"), _T("dir"), NULL, &ptr, i1)) {
+			if (!i1 && i2 > (INT) _tcslen(parms->openpath)) _tcscpy(parms->srcpath, parms->openpath);
 			break;
 		}
-		i2 -= (INT)strlen(ptr);
+		i2 -= (INT)_tcslen(ptr);
 		if (i1) {
-			if (i2-- > 0) strcat(parms->srcpath, ";");
+			if (i2-- > 0) _tcscat(parms->srcpath, _T(";"));
 		}
-		if (i2 > 0) strcat(parms->srcpath, ptr);
+		if (i2 > 0) _tcscat(parms->srcpath, ptr);
 	}
-	for (i1 = 0, i2 = sizeof(parms->dbcpath) - 1; ; i1 = PRP_NEXT) {
-		if (prpget("file", "dbc", "dir", NULL, &ptr, i1)) break;
-		i2 -= (INT)strlen(ptr);
+	for (i1 = 0, i2 = ARRAYSIZE(parms->dbcpath) - 1; ; i1 = PRP_NEXT) {
+		if (prpget(_T("file"), _T("dbc"), _T("dir"), NULL, &ptr, i1)) break;
+		i2 -= (INT)_tcslen(ptr);
 		if (i1) {
-			if (--i2 > 0) strcat(parms->dbcpath, ";");
+			if (--i2 > 0) _tcscat(parms->dbcpath, _T(";"));
 		}
-		if (i2 > 0) strcat(parms->dbcpath, ptr);
+		if (i2 > 0) _tcscat(parms->dbcpath, ptr);
 	}
-	for (i1 = 0, i2 = sizeof(parms->editcfgpath) - 1; ; i1 = PRP_NEXT) {
-		if (prpget("file", "editcfg", "dir", NULL, &ptr, i1)) break;
-		i2 -= (INT)strlen(ptr);
+	for (i1 = 0, i2 = ARRAYSIZE(parms->editcfgpath) - 1; ; i1 = PRP_NEXT) {
+		if (prpget(_T("file"), _T("editcfg"), _T("dir"), NULL, &ptr, i1)) break;
+		i2 -= (INT)_tcslen(ptr);
 		if (i1) {
-			if (--i2 > 0) strcat(parms->editcfgpath, ";");
+			if (--i2 > 0) _tcscat(parms->editcfgpath, _T(";"));
 		}
-		if (i2 > 0) strcat(parms->editcfgpath, ptr);
+		if (i2 > 0) _tcscat(parms->editcfgpath, ptr);
 	}
-	for (i1 = 0, i2 = sizeof(parms->prtpath); ; i1 = PRP_NEXT) {
-		if (prpget("file", "prt", "dir", NULL, &ptr, i1)) {
-			if (!i1 && i2 > (INT) strlen(parms->preppath)) strcpy(parms->prtpath, parms->preppath);
+	for (i1 = 0, i2 = ARRAYSIZE(parms->prtpath); ; i1 = PRP_NEXT) {
+		if (prpget(_T("file"), _T("prt"), _T("dir"), NULL, &ptr, i1)) {
+			if (!i1 && i2 > (INT) _tcslen(parms->preppath)) _tcscpy(parms->prtpath, parms->preppath);
 			break;
 		}
-		i2 -= (INT)strlen(ptr);
+		i2 -= (INT)_tcslen(ptr);
 		if (i1) {
-			if (--i2 > 0) strcat(parms->prtpath, ";");
+			if (--i2 > 0) _tcscat(parms->prtpath, _T(";"));
 		}
-		if (i2 > 0) strcat(parms->prtpath, ptr);
+		if (i2 > 0) _tcscat(parms->prtpath, ptr);
 	}
-	for (i1 = 0, i2 = sizeof(parms->tdfpath) - 1; ; i1 = PRP_NEXT) {
-		if (prpget("file", "tdf", "dir", NULL, &ptr, i1)) {
-			if (!i1 && i2 > (INT) strlen(parms->srcpath)) strcpy(parms->tdfpath, parms->srcpath);
+	for (i1 = 0, i2 = ARRAYSIZE(parms->tdfpath) - 1; ; i1 = PRP_NEXT) {
+		if (prpget(_T("file"), _T("tdf"), _T("dir"), NULL, &ptr, i1)) {
+			if (!i1 && i2 > (INT) _tcslen(parms->srcpath)) _tcscpy(parms->tdfpath, parms->srcpath);
 			break;
 		}
-		i2 -= (INT)strlen(ptr);
+		i2 -= (INT)_tcslen(ptr);
 		if (i1) {
-			if (--i2 > 0) strcat(parms->tdfpath, ";");
+			if (--i2 > 0) _tcscat(parms->tdfpath, _T(";"));
 		}
-		if (i2 > 0) strcat(parms->tdfpath, ptr);
+		if (i2 > 0) _tcscat(parms->tdfpath, ptr);
 	}
-	for (i1 = 0, i2 = sizeof(parms->tdbpath) - 1; ; i1 = PRP_NEXT) {
-		if (prpget("file", "tdb", "dir", NULL, &ptr, i1)) break;
-		i2 -= (INT)strlen(ptr);
+	for (i1 = 0, i2 = ARRAYSIZE(parms->tdbpath) - 1; ; i1 = PRP_NEXT) {
+		if (prpget(_T("file"), _T("tdb"), _T("dir"), NULL, &ptr, i1)) break;
+		i2 -= (INT)_tcslen(ptr);
 		if (i1) {
-			if (--i2 > 0) strcat(parms->tdbpath, ";");
+			if (--i2 > 0) _tcscat(parms->tdbpath, _T(";"));
 		}
-		if (i2 > 0) strcat(parms->tdbpath, ptr);
+		if (i2 > 0) _tcscat(parms->tdbpath, ptr);
 	}
-	for (i1 = 0, i2 = sizeof(parms->imgpath) - 1; ; i1 = PRP_NEXT) {
-		if (prpget("file", "image", "dir", NULL, &ptr, i1)) {
-			if (!i1 && i2 > (INT) strlen(parms->openpath)) strcpy(parms->imgpath, parms->openpath);
+	for (i1 = 0, i2 = ARRAYSIZE(parms->imgpath) - 1; ; i1 = PRP_NEXT) {
+		if (prpget(_T("file"), _T("image"), _T("dir"), NULL, &ptr, i1)) {
+			if (!i1 && i2 > (INT) _tcslen(parms->openpath)) _tcscpy(parms->imgpath, parms->openpath);
 			break;
 		}
-		i2 -= (INT)strlen(ptr);
+		i2 -= (INT)_tcslen(ptr);
 		if (i1) {
-			if (--i2 > 0) strcat(parms->imgpath, ";");
+			if (--i2 > 0) _tcscat(parms->imgpath, _T(";"));
 		}
-		if (i2 > 0) strcat(parms->imgpath, ptr);
+		if (i2 > 0) _tcscat(parms->imgpath, ptr);
 	}
-	if (!prpget("file", "casemap", NULL, NULL, &ptr, 0)) {
+	if (!prpget(_T("file"), _T("casemap"), NULL, NULL, &ptr, 0)) {
 		for (i1 = 0; i1 <= UCHAR_MAX; i1++) parms->casemap[i1] = (unsigned char) toupper(i1);
-		if (prptranslate(ptr, parms->casemap)) return "Invalid translate-spec for file casemap";
+		if (prptranslate(ptr, parms->casemap)) return _T("Invalid translate-spec for file casemap");
 	}
-	if (!prpget("file", "collate", NULL, NULL, &ptr, 0)) {
+	if (!prpget(_T("file"), _T("collate"), NULL, NULL, &ptr, 0)) {
 		for (i1 = 0; i1 <= UCHAR_MAX; i1++) parms->collatemap[i1] = (unsigned char) i1;
-		if (prptranslate(ptr, parms->collatemap)) return "Invalid translate-spec for file collate";
+		if (prptranslate(ptr, parms->collatemap)) return _T("Invalid translate-spec for file collate");
 	}
-	if (!prpget("client", "filetransfer", "serverdir", NULL, &ptr, 0)) {
-		strcpy(parms->cftpath, ptr);
+	if (!prpget(_T("client"), _T("filetransfer"), _T("serverdir"), NULL, &ptr, 0)) {
+		_tcscpy(parms->cftpath, ptr);
 	}
 	parms->cvtvolfnc = fioinitcvtvol;
 
@@ -1938,7 +1938,7 @@ static INT fioinitcvtvol(TCHAR *volume, TCHAR ***directory)
 		staticptr = (TCHAR *) malloc(4096 * sizeof(TCHAR));
 		if (staticptr == NULL) return RC_NO_MEM;
 	}
-	staticptr[0] = '\0';
+	staticptr[0] = (TCHAR) '\0';
 	if (prpgetvol(volume, staticptr, 4096) || !*staticptr) return 1;
 	if (directory != NULL) *directory = &staticptr;
 	return 0;

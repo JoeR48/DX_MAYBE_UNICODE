@@ -1,12 +1,21 @@
 INC:=-Icommon/include -Iopenssl/include
 CFLAGS:=-D_UNICODE -DUNICODE -D_CRT_SECURE_NO_WARNINGS
 
+test.exe: test.o base.o mio.o
+	clang -o $@ $^ $(CFLAGS) $(INC)
+
+test.o: test.c
+	clang -c test.c $(CFLAGS) $(INC)
+
 all:
 	clang -c common/support/svc.c $(CFLAGS) $(INC)
 	clang -c common/support/cert.c $(CFLAGS) $(INC)
 
-aimdex.exe: arg.o base.o dbccfg.o
-	clang common/utils/aimdex.c -o $@ $^ $(CFLAGS) $(INC)
+aimdex.exe: aimdex.o arg.o base.o dbccfg.o fio.o mio.o rio.o xml.o
+	clang -o $@ $^ $(CFLAGS) $(INC)
+
+aimdex.o: common/utils/aimdex.c
+	clang -c $< $(CFLAGS) $(INC)
 
 arg.o: common/support/arg.c
 	clang -c $< $(CFLAGS) $(INC)
@@ -17,5 +26,18 @@ base.o: common/support/base.c
 dbccfg.o: common/support/dbccfg.c
 	clang -c $< $(CFLAGS) $(INC)
 
+fio.o: common/support/fio.c
+	clang -c $< $(CFLAGS) $(INC)
+
 fioawin.o: common/support/fioawin.c
 	clang -c $< $(CFLAGS) $(INC)
+
+mio.o: common/support/mio.c
+	clang -c $< $(CFLAGS) $(INC)
+
+rio.o: common/support/rio.c
+	clang -c $< $(CFLAGS) $(INC)
+
+xml.o: common/support/xml.c
+	clang -c $< $(CFLAGS) $(INC)
+

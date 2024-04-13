@@ -32,17 +32,17 @@
 /* maximum depth of XML tree */
 #define MAXDEPTH 16
 /* single character tags */
-static CHAR *onechartag[] = {
-	"a","b","c","d","e","f","g","h","i","j","k","l","m",
-	"n","o","p","q","r","s","t","u","v","w","x","y","z"
+static TCHAR *onechartag[] = {
+	_T("a"), _T("b"), _T("c"), _T("d"), _T("e"), _T("f"), _T("g"), _T("h"), _T("i"), _T("j"), _T("k"), _T("l"), _T("m"),
+	_T("n"), _T("o"), _T("p"), _T("q"), _T("r"), _T("s"), _T("t"), _T("u"), _T("v"), _T("w"), _T("x"), _T("y"), _T("z")
 };
 
 /* hash table of pointers to dynamically encountered tags other than single character tags */
-static CHAR *othertags[MAXTAGS];
+static TCHAR *othertags[MAXTAGS];
 static INT othertagscount = 0;
 
 /* storage area for actual null terminated strings that are other tags */
-static CHAR othertagstext[MAXTAGCHARS];
+static TCHAR othertagstext[MAXTAGCHARS];
 static INT othertagstextlen = 0;
 
 /* hash code calculation, assume 2 char or longer tags */
@@ -99,9 +99,9 @@ static TCHAR xmlerrorstring[256];
 #define FLATTEN_STREAM	0x01
 #define FLATTEN_QUOTE	0x02
 
-static INT flattenstring(CHAR *, INT, INT, CHAR *output, size_t cbOutput);
-static INT invalidxml(CHAR *msg1, CHAR *msg2, INT len);
-static TCHAR *gettag(CHAR *ptr1, INT len);
+static INT flattenstring(TCHAR *, INT, INT, TCHAR *output, size_t cbOutput);
+static INT invalidxml(TCHAR *msg1, TCHAR *msg2, INT len);
+static TCHAR *gettag(TCHAR *ptr1, INT len);
 
 /*
  * Returns zero for success, -1 if needs more memory, -2 for xml syntax error
@@ -124,32 +124,32 @@ INT xmlparse(TCHAR *input, INT inputsize, void *outputbuffer, size_t cbOutputbuf
 		if (input[i1] == '<') {  /* parse element tag */
 			input += i1;
 			inputsize -= i1;
-			if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+			if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 			while (chartype[*((UCHAR *) ++input)] & (TT_DELIM | TT_SPACE))
-				if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+				if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 			if (*input == '/') {
-				if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+				if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 				while (chartype[*((UCHAR *) ++input)] & (TT_DELIM | TT_SPACE)) if (!--inputsize)
-					return invalidxml("unexpected end of data", NULL, 0);
+					return invalidxml(_T("unexpected end of data"), NULL, 0);
 				endflag = TRUE;
 			}
 			else endflag = FALSE;
 			if (chartype[*((UCHAR *) input)] != TT_LOWER || !--inputsize)
-				return invalidxml("invalid element tag", input, inputsize);
+				return invalidxml(_T("invalid element tag"), input, inputsize);
 			for (ptr1 = input; chartype[*((UCHAR *) ++input)] >= TT_NUM; )
-				if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+				if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 			for (ptr2 = input; chartype[*((UCHAR *) input)] & (TT_DELIM | TT_SPACE); input++)
-				if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+				if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 			len = (INT)(ptr2 - ptr1);  /* ptr1 points to tag and len is its length */
 			if (endflag) {  /* end of subelements (not a new element) */
-				if (*input != '>') return invalidxml("element tag missing '>'", ptr1, len);
+				if (*input != '>') return invalidxml(_T("element tag missing '>'"), ptr1, len);
 				input++;
 				inputsize--;
-				if (!level) return invalidxml("element underflow", ptr1, len);
+				if (!level) return invalidxml(_T("element underflow"), ptr1, len);
 				output = outputpath[--level];
 				i2 = taglen[level];
-				if (len != i2 || memcmp(ptr1, output->tag, i2)) {
-					return invalidxml("element does not match pushed stack element", ptr1, len);
+				if (len != i2 || _tcsicmp(ptr1, output->tag)) {
+					return invalidxml(_T("element does not match pushed stack element"), ptr1, len);
 				}
 				*elementptr = NULL;
 				elementptr = &output->nextelement;
@@ -164,7 +164,7 @@ INT xmlparse(TCHAR *input, INT inputsize, void *outputbuffer, size_t cbOutputbuf
 			}
 			else {
 				if (lowmark > (himark -= sizeof(ELEMENT))) return -1;
-				output = (ELEMENT *)((CHAR *) outputbuffer + himark);
+				output = (ELEMENT *)((TCHAR *) outputbuffer + himark);
 				*elementptr = output;
 			}
 			output->tag = ptr2;
@@ -173,86 +173,86 @@ INT xmlparse(TCHAR *input, INT inputsize, void *outputbuffer, size_t cbOutputbuf
 			/* process any attributes */
 			attribptr = &output->firstattribute;
 			while (chartype[*((UCHAR *) input)] == TT_LOWER) {  /* next attribute */
-				if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+				if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 				for (ptr1 = input; chartype[*((UCHAR *) ++input)] >= TT_NUM; )
-					if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+					if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 				i1 = (INT)(input - ptr1);
 				ptr2 = gettag(ptr1, i1);
 				if (ptr2 == NULL) return -2;
 				if (lowmark > (himark -= sizeof(ATTRIBUTE))) return -1;
-				ptr1 = (CHAR *) outputbuffer + lowmark;
-				attrib = (ATTRIBUTE *)((CHAR *) outputbuffer + himark);
+				ptr1 = (TCHAR *) outputbuffer + lowmark;
+				attrib = (ATTRIBUTE *)((TCHAR *) outputbuffer + himark);
 				*attribptr = attrib;
 				attribptr = &attrib->nextattribute;
 				attrib->tag = ptr2;
-				attrib->cbTag = strlen(ptr2) + sizeof(CHAR);
+				attrib->cbTag = _tcslen(ptr2) + sizeof(TCHAR);
 				attrib->value = ptr1;
-				for ( ; chartype[*((UCHAR *) input)] & (TT_DELIM | TT_SPACE); input++) if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
-				if (*input != '=' || !--inputsize) return invalidxml("missing '=' character", ptr2, -1);
-				while (chartype[*((UCHAR *) ++input)] & (TT_DELIM | TT_SPACE)) if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+				for ( ; chartype[*((UCHAR *) input)] & (TT_DELIM | TT_SPACE); input++) if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
+				if (*input != '=' || !--inputsize) return invalidxml(_T("missing '=' character"), ptr2, -1);
+				while (chartype[*((UCHAR *) ++input)] & (TT_DELIM | TT_SPACE)) if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 				if (*input == '"' || *input == '\'') {
 					quote = *input++;
-					if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+					if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 				}
 				else quote = 0;
 				for ( ; ; ) {
 					if (quote) {
 						if (*input == quote) {
 							input++;
-							if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+							if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 							break;
 						}
 					}
 					else if (chartype[*((UCHAR *) input)] & (TT_DELIM | TT_SPACE | TT_LTGT | TT_SLASH)) break;
 					chr = *input++;
-					if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+					if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 					if (chr == '&') {
 						chr = *input++;
 						if (chr == 'q') {
-							if ((inputsize -= 5) <= 0 || memcmp(input, "uot;", 4)) return invalidxml("expected &quot;", input - 2, inputsize + 6);
+							if ((inputsize -= 5) <= 0 || _tcsicmp(input, _T("uot;"))) return invalidxml(_T("expected &quot;"), input - 2, inputsize + 6);
 							input += 4;
 							chr = '"';
 						}
 						else if (chr == 'a') {
-							if ((inputsize -= 4) <= 0) return invalidxml("expected &amp;/&apos;", input - 2, inputsize + 5);
-							if (!memcmp(input, "mp;", 3)) {
+							if ((inputsize -= 4) <= 0) return invalidxml(_T("expected &amp;/&apos;"), input - 2, inputsize + 5);
+							if (!_tcsicmp(input, _T("mp;"))) {
 								input += 3;
 								chr = '&';
 							}
-							else if (--inputsize && !memcmp(input, "pos;", 4)) {
+							else if (--inputsize && !_tcsicmp(input, _T("pos;"))) {
 								input += 4;
 								chr = '\'';
 							}
-							else return invalidxml("expected &amp;/&apos;", input - 2, inputsize + 6);
+							else return invalidxml(_T("expected &amp;/&apos;"), input - 2, inputsize + 6);
 						}
 						else if (chr != '#') {
 							if (chr == 'l') chr = '<';
 							else if (chr == 'g') chr = '>';
-							else return invalidxml("expected &lt;/&gt;", input - 2, inputsize + 1);
-							if ((inputsize -= 3) <= 0 || memcmp(input, "t;", 2)) return invalidxml("expected &lt;/&gt;", input - 2, inputsize + 4);
+							else return invalidxml(_T("expected &lt;/&gt;"), input - 2, inputsize + 1);
+							if ((inputsize -= 3) <= 0 || _tcsicmp(input, _T("t;"))) return invalidxml(_T("expected &lt;/&gt;"), input - 2, inputsize + 4);
 							input += 2;
 						}
 						else {  /* numeric escape */
-							if (!--inputsize) return invalidxml("expected &#n;", input - 2, inputsize + 1);
+							if (!--inputsize) return invalidxml(_T("expected &#n;"), input - 2, inputsize + 1);
 							if (toupper(*input) == 'x') {
-								if (!--inputsize) return invalidxml("expected &#xn;", input - 2, inputsize + 1);
+								if (!--inputsize) return invalidxml(_T("expected &#xn;"), input - 2, inputsize + 1);
 								base = 16;
 							}
 							else if (*input == '0') base = 8;
 							else base = 10;
 							for (value = 0; ; ) {
 								chr = *input++;
-								if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+								if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 								if (isdigit(chr)) value = value * base + chr - '0';
 								else if (chr == ';') break;
 								else {
-									if (base != 16) return invalidxml("invalid numeric escape", NULL, 0);
-									chr = (CHAR) toupper(chr);
-									if (chr < 'A' || chr > 'F') return invalidxml("invalid numeric escape", NULL, 0);
+									if (base != 16) return invalidxml(_T("invalid numeric escape"), NULL, 0);
+									chr = (TCHAR) toupper(chr);
+									if (chr < 'A' || chr > 'F') return invalidxml(_T("invalid numeric escape"), NULL, 0);
 									value = value * 16 + chr - 'A' + 10;
 								}
 							}
-							chr = (CHAR)((UCHAR) value);
+							chr = (TCHAR)((UCHAR) value);
 						}
 					}
 					if (++lowmark > himark) return -1;
@@ -263,7 +263,7 @@ INT xmlparse(TCHAR *input, INT inputsize, void *outputbuffer, size_t cbOutputbuf
 				if (++lowmark > himark) return -1;
 				*ptr1 = '\0';
 				while (chartype[*((UCHAR *) input)] & (TT_DELIM | TT_SPACE)) {
-					if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+					if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 					input++;
 				}
 			}
@@ -271,12 +271,12 @@ INT xmlparse(TCHAR *input, INT inputsize, void *outputbuffer, size_t cbOutputbuf
 
 			/* check for end of element or start of subelements */
 			if (*input == '/') {
-				if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
-				while (chartype[*((UCHAR *) ++input)] & (TT_DELIM | TT_SPACE)) if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+				if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
+				while (chartype[*((UCHAR *) ++input)] & (TT_DELIM | TT_SPACE)) if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 				endflag = TRUE;
 			}
 			else endflag = FALSE;
-			if (*input != '>') return invalidxml("element tag missing '>'", output->tag, -1);
+			if (*input != '>') return invalidxml(_T("element tag missing '>'"), output->tag, -1);
 			input++;
 			inputsize--;
 			if (endflag) {
@@ -284,7 +284,7 @@ INT xmlparse(TCHAR *input, INT inputsize, void *outputbuffer, size_t cbOutputbuf
 				output->firstsubelement = NULL;
 			}
 			else {
-				if (level == MAXDEPTH) return invalidxml("element stack overflow", NULL, 0);
+				if (level == MAXDEPTH) return invalidxml(_T("element stack overflow"), NULL, 0);
 				outputpath[level] = output;
 				taglen[level++] = len;
 				elementptr = &output->firstsubelement;
@@ -298,10 +298,10 @@ INT xmlparse(TCHAR *input, INT inputsize, void *outputbuffer, size_t cbOutputbuf
 			}
 			else {
 				if (lowmark > (himark -= sizeof(ELEMENT))) return -1;
-				output = (ELEMENT *)((CHAR *) outputbuffer + himark);
+				output = (ELEMENT *)((TCHAR *) outputbuffer + himark);
 				*elementptr = output;
 			}
-			ptr1 = (CHAR *) outputbuffer + lowmark;
+			ptr1 = (TCHAR *) outputbuffer + lowmark;
 			output->tag = ptr1;
 			output->firstattribute = NULL;
 			output->firstsubelement = NULL;
@@ -316,77 +316,77 @@ INT xmlparse(TCHAR *input, INT inputsize, void *outputbuffer, size_t cbOutputbuf
 			}
 			while (!(chartype[*((UCHAR *) input)] & TT_LTGT)) {
 				chr = *input++;
-				if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+				if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 				if (chr == '&') {
 					chr = *input++;
 					if (chr == 'q') {
-						if ((inputsize -= 5) <= 0 || memcmp(input, "uot;", 4)) return invalidxml("expected &quot;", input - 2, inputsize + 6);
+						if ((inputsize -= 5) <= 0 || _tcsicmp(input, _T("uot;"))) return invalidxml(_T("expected &quot;"), input - 2, inputsize + 6);
 						input += 4;
 						chr = '"';
 					}
 					else if (chr == 'a') {
-						if ((inputsize -= 4) <= 0) return invalidxml("expected &amp;/&apos;", input - 2, inputsize + 5);
-						if (!memcmp(input, "mp;", 3)) {
+						if ((inputsize -= 4) <= 0) return invalidxml(_T("expected &amp;/&apos;"), input - 2, inputsize + 5);
+						if (!_tcsicmp(input, _T("mp;"))) {
 							input += 3;
 							chr = '&';
 						}
-						else if (--inputsize && !memcmp(input, "pos;", 4)) {
+						else if (--inputsize && !_tcsicmp(input, _T("pos;"))) {
 							input += 4;
 							chr = '\'';
 						}
-						else return invalidxml("expected &amp;/&apos;", input - 2, inputsize + 6);
+						else return invalidxml(_T("expected &amp;/&apos;"), input - 2, inputsize + 6);
 					}
 					else if (chr != '#') {
 						if (chr == 'l') chr = '<';
 						else if (chr == 'g') chr = '>';
-						else return invalidxml("expected &lt;/&gt;", input - 2, inputsize + 1);
-						if ((inputsize -= 3) <= 0 || memcmp(input, "t;", 2)) {
-							return invalidxml("expected &lt;/&gt;", input - 2, inputsize + 4);
+						else return invalidxml(_T("expected &lt;/&gt;"), input - 2, inputsize + 1);
+						if ((inputsize -= 3) <= 0 || _tcsicmp(input, _T("t;"))) {
+							return invalidxml(_T("expected &lt;/&gt;"), input - 2, inputsize + 4);
 						}
 						input += 2;
 					}
 					else {  /* numeric escape */
-						if (!--inputsize) return invalidxml("expected &#n;", input - 2, inputsize + 1);
+						if (!--inputsize) return invalidxml(_T("expected &#n;"), input - 2, inputsize + 1);
 						if (toupper(*input) == 'x') {
-							if (!--inputsize) return invalidxml("expected &#xn;", input - 2, inputsize + 1);
+							if (!--inputsize) return invalidxml(_T("expected &#xn;"), input - 2, inputsize + 1);
 							base = 16;
 						}
 						else if (*input == '0') base = 8;
 						else base = 10;
 						for (value = 0; ; ) {
 							chr = *input++;
-							if (!--inputsize) return invalidxml("unexpected end of data", NULL, 0);
+							if (!--inputsize) return invalidxml(_T("unexpected end of data"), NULL, 0);
 							if (isdigit(chr)) value = value * base + chr - '0';
 							else if (chr == ';') break;
 							else {
-								if (base != 16) return invalidxml("invalid numeric escape", NULL, 0);
-								chr = (CHAR) toupper(chr);
-								if (chr < 'A' || chr > 'F') return invalidxml("invalid numeric escape", NULL, 0);
+								if (base != 16) return invalidxml(_T("invalid numeric escape"), NULL, 0);
+								chr = (TCHAR) toupper(chr);
+								if (chr < 'A' || chr > 'F') return invalidxml(_T("invalid numeric escape"), NULL, 0);
 								value = value * 16 + chr - 'A' + 10;
 							}
 						}
-						chr = (CHAR)((UCHAR) value);
+						chr = (TCHAR)((UCHAR) value);
 					}
 				}
 				if (++lowmark > himark) return -1;
 				*ptr1++ = chr;
 			}
-			if (*input != '<') return invalidxml("expected '<' after data", input, inputsize);
+			if (*input != '<') return invalidxml(_T("expected '<' after data"), input, inputsize);
 			if (++lowmark > himark) return -1;
 			*ptr1 = '\0';
 			output->cdataflag = (INT)(ptr1 - output->tag);
 		}
 	}
-	if (!lowmark) return invalidxml("no element tags", NULL, 0);
-	if (level) return invalidxml("missing element tag terminator", (outputpath[level - 1])->tag, -1);
+	if (!lowmark) return invalidxml(_T("no element tags"), NULL, 0);
+	if (level) return invalidxml(_T("missing element tag terminator"), (outputpath[level - 1])->tag, -1);
 	*elementptr = NULL;
 	return 0;
 }
 
-INT xmlflatten(ELEMENT *input, INT streamflag, CHAR *outputbuffer, size_t cbOutputbuf) // @suppress("No return") // @suppress("Type cannot be resolved")
+INT xmlflatten(ELEMENT *input, INT streamflag, TCHAR *outputbuffer, size_t cbOutputbuf) // @suppress("No return") // @suppress("Type cannot be resolved")
 {
 	INT i1, len, level, taglen[MAXDEPTH];
-	CHAR *ptr1, *ptr2, *ptr3;
+	TCHAR *ptr1, *ptr2, *ptr3;
 	ELEMENT *inputpath[MAXDEPTH];
 	ATTRIBUTE *attrib;
 	LONG outputBytes = (LONG)cbOutputbuf;
@@ -407,7 +407,7 @@ INT xmlflatten(ELEMENT *input, INT streamflag, CHAR *outputbuffer, size_t cbOutp
 				ptr2 = attrib->tag;
 				ptr3 = attrib->value;
 				attrib = attrib->nextattribute;
-				i1 = (INT)strlen(ptr2);
+				i1 = (INT)_tcslen(ptr2);
 				if ((outputBytes -= i1 + 2) < 0) return RC_ERROR;
 				*ptr1++ = ' ';
 				if (i1 == 1) *ptr1++ = *ptr2;
@@ -473,10 +473,10 @@ TCHAR *xmlgeterror()
  * If flag is FLATTEN_QUOTE always put double quotes around 'value'.
  * If flag is FLATTEN_STREAM, use them only if necessary
  */
-static INT flattenstring(CHAR *value, INT len, INT flag, CHAR *output, size_t cbOutput)
+static INT flattenstring(TCHAR *value, INT len, INT flag, TCHAR *output, size_t cbOutput)
 {
 	INT i1;
-	CHAR chr, work[16], *ptr1;
+	TCHAR chr, work[16], *ptr1;
 	LONG outputBytes = (LONG) cbOutput;
 
 	if (flag & FLATTEN_STREAM) {
@@ -525,15 +525,15 @@ static INT flattenstring(CHAR *value, INT len, INT flag, CHAR *output, size_t cb
 				}
 			}
 			else if ((UCHAR) chr < 0x20 || (UCHAR) chr >= 0x7F) {
-				work[sizeof(work) - 1] = ';';
-				i1 = sizeof(work) - 1;
-				do work[--i1] = (CHAR)((UCHAR) chr % 10 + '0');
+				work[ARRAYSIZE(work) - 1] = ';';
+				i1 = ARRAYSIZE(work) - 1;
+				do work[--i1] = (TCHAR)((UCHAR) chr % 10 + '0');
 				while ( (chr = (UCHAR) ((UCHAR) chr) / 10) );
 				work[--i1] = '#';
 				work[--i1] = '&';
-				if ((outputBytes -= sizeof(work) - i1) < 0) return -1;
-				memcpy(ptr1, &work[i1], sizeof(work) - i1);
-				ptr1 += sizeof(work) - i1;
+				if ((outputBytes -= ARRAYSIZE(work) - i1) < 0) return -1;
+				memcpy(ptr1, &work[i1], ARRAYSIZE(work) - i1);
+				ptr1 += ARRAYSIZE(work) - i1;
 			}
 			else {
 				if (--outputBytes < 0) return -1;
@@ -548,22 +548,22 @@ static INT flattenstring(CHAR *value, INT len, INT flag, CHAR *output, size_t cb
 /*
  * routine sets the xmlerrorstring variable and returns a negative value (-2)
  */
-static INT invalidxml(CHAR *msg1, CHAR *msg2, INT len)
+static INT invalidxml(TCHAR *msg1, TCHAR *msg2, INT len)
 {
 	INT i1;
 
-	strcpy(xmlerrorstring, msg1);
+	_tcscpy(xmlerrorstring, msg1);
 	if (msg2 != NULL && len) {
-		if (len == -1) len = (INT)strlen(msg2);
+		if (len == -1) len = (INT)_tcslen(msg2);
 		if (len > 100) len = 100;
-		i1 = (INT)strlen(xmlerrorstring);
+		i1 = (INT)_tcslen(xmlerrorstring);
 		xmlerrorstring[i1++] = ':';
 		xmlerrorstring[i1++] = ' ';
 		memcpy(xmlerrorstring + i1, msg2, len);
 		i1 += len;
 		if (len == 100) {
-			memcpy(xmlerrorstring + i1, " ...", 4);
-			i1 += 4;
+			memcpy(xmlerrorstring + i1, _T(" ..."), 4 * sizeof(TCHAR));
+			i1 += 4 * sizeof(TCHAR);
 		}
 		xmlerrorstring[i1] = '\0';
 	}
@@ -571,21 +571,21 @@ static INT invalidxml(CHAR *msg1, CHAR *msg2, INT len)
 }
 
 /* routine returns a pointer to the permanently allocated zero delimited tag */
-static CHAR *gettag(CHAR *worktag, INT worklen)
+static TCHAR *gettag(TCHAR *worktag, INT worklen)
 {
 	INT n1;
-	CHAR c1, *ptr1;
+	TCHAR c1, *ptr1;
 	
 	if (worklen == 1) {  /* one character tag */
 		c1 = *worktag;
 		if (c1 < 'a' || c1 > 'z') {
-			invalidxml("non lower case tag encountered", worktag, worklen);
+			invalidxml(_T("non lower case tag encountered"), worktag, worklen);
 			return NULL;
 		}
 		return onechartag[c1 - 'a'];
 	}
 	if (worklen < 1) {
-		invalidxml("internal error A", NULL, 0);
+		invalidxml(_T("internal error A"), NULL, 0);
 		return NULL;
 	}
 	if (othertagscount == 0) {
@@ -596,20 +596,20 @@ static CHAR *gettag(CHAR *worktag, INT worklen)
 		ptr1 = othertags[n1];
 		if (ptr1 == NULL) {
 			if (++othertagscount > MAXTAGS - 25) {
-				invalidxml("too many different tags", worktag, worklen);
+				invalidxml(_T("too many different tags"), worktag, worklen);
 				return NULL;
 			}
 			othertags[n1] = ptr1 = &othertagstext[othertagstextlen];
 			othertagstextlen += (worklen + 1);
 			if (othertagstextlen >= MAXTAGCHARS) {
-				invalidxml("tag storage overflow", worktag, worklen);
+				invalidxml(_T("tag storage overflow"), worktag, worklen);
 				return NULL;
 			}
 			memcpy(ptr1, worktag, worklen);
 			*(ptr1 + worklen) = '\0';
 			break;
 		}
-		if (!memcmp(ptr1, worktag, worklen) && !*(ptr1 + worklen)) break;
+		if (!_tcsicmp(ptr1, worktag) && !*(ptr1 + worklen)) break;
 		if (++n1 == MAXTAGS) n1 = 0;
 	}
 	return ptr1;

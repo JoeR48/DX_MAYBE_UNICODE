@@ -64,8 +64,8 @@ struct fioparmsstruct {
 	TCHAR tdbpath[512];		/* termdef binary file directories */
 	TCHAR imgpath[1024];		/* image file directories */
 	TCHAR cftpath[MAX_PATH]; /* Smart Client file transfer directory */
-	UCHAR casemap[256];		/* case map */
-	UCHAR collatemap[256];	/* collating order */
+	TCHAR casemap[256];		/* case map */
+	TCHAR collatemap[256];	/* collating order */
 	INT (*cvtvolfnc)(TCHAR *, TCHAR ***);	/* function to translate :VOLUME to directory */
 };
 
@@ -114,7 +114,7 @@ struct rtab {			/* record access information table */
 	INT bsiz;			/* buffer size */
 	INT bwst;			/* buffer write start offset */
 	INT blen;			/* buffer valid length (already read or to write) */
-	UCHAR **bptr;		/* pointer to buffer */
+	TCHAR **bptr;		/* pointer to buffer */
 };
 
 struct xtab {			/* index access information table */
@@ -572,8 +572,8 @@ extern void aiomatch(INT, INT);
 extern INT fioainit(INT *, FIOAINITSTRUCT *);
 extern INT fioaopen(TCHAR *, INT, INT, FHANDLE *);
 extern INT fioaclose(FHANDLE);
-extern INT fioaread(FHANDLE, UCHAR *, INT, OFFSET, INT *);
-extern INT fioawrite(FHANDLE, UCHAR *, size_t, OFFSET, size_t *);
+extern INT fioaread(FHANDLE, LPVOID, INT, OFFSET, INT *);
+extern INT fioawrite(FHANDLE, LPVOID, size_t, OFFSET, size_t *);
 extern INT fioalseek(FHANDLE, OFFSET, INT, OFFSET *);
 extern INT fioalock(FHANDLE, INT, OFFSET, INT);
 extern INT fioaflush(FHANDLE);

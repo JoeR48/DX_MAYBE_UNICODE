@@ -71,10 +71,10 @@ static UCHAR dig2map[121] = {
 	'0','1','2','3','4','5','6','7','8','9','.',
 };
 static FHANDLE loghandle;
-static UCHAR logbuffer[8192];
+static TCHAR logbuffer[8192];
 static INT logbufcnt;
-static CHAR logconnect[32];
-static CHAR username[64];
+static TCHAR logconnect[32];
+static TCHAR username[64];
 static INT logconnectlen;
 static INT loggingflags;
 
@@ -82,16 +82,16 @@ static INT loggingflags;
 static INT riocomp(UCHAR *, INT);
 static INT rioxgb(INT, UCHAR **, INT, INT, INT);
 static INT rioxwb(INT);
-static INT logput(CHAR *str, INT len);
-static INT logputdata(UCHAR *str, INT len);
+static INT logput(TCHAR *str, INT len);
+static INT logputdata(TCHAR *str, INT len);
 static INT logputtimestamp(void);
 static INT logputusername(void);
 static INT logflush(void);
 
-INT riologstart(CHAR *logfile, CHAR *user, CHAR *database, INT flags)
+INT riologstart(TCHAR *logfile, TCHAR *user, TCHAR *database, INT flags)
 {
 	INT i1;
-	strcpy(username, user);
+	_tcscpy(username, user);
 	i1 = fioaopen(logfile, FIO_M_SHR, 0, &loghandle);
 	if (i1) return i1;
 	i1 = fioalock(loghandle, FIOA_FLLCK | FIOA_WRLCK, 0, 120);
@@ -102,7 +102,7 @@ INT riologstart(CHAR *logfile, CHAR *user, CHAR *database, INT flags)
 	}
 	fioalseek(loghandle, 0, 2, NULL);
 	logbufcnt = 0;
-	logput("<connect><c>", 12);
+	logput(_T("<connect><c>"), 12 );
 #if OS_WIN32
 	logconnectlen = mscitoa((INT) GetCurrentProcessId(), logconnect);
 #endif
@@ -110,11 +110,11 @@ INT riologstart(CHAR *logfile, CHAR *user, CHAR *database, INT flags)
 	logconnectlen = mscitoa((INT) getpid(), logconnect);
 #endif
 	logput(logconnect, logconnectlen);
-	logput("</c><user>", 10);
-	logputdata((UCHAR *) user, -1);
-	logput("</user><database>", 17);
-	logputdata((UCHAR *) database, -1);
-	logput("</database></connect>", 21);
+	logput(_T("</c><user>"), 10);
+	logputdata(user, -1);
+	logput(_T("</user><database>"), 17);
+	logputdata(database, -1);
+	logput(_T("</database></connect>"), 21);
 	i1 = logflush();
 	fioalock(loghandle, FIOA_FLLCK | FIOA_UNLCK, 0, 0);
 	if (i1) {
@@ -139,9 +139,9 @@ INT riologend()
 	}
 	fioalseek(loghandle, 0, 2, NULL);
 	logbufcnt = 0;
-	logput("<disconnect><c>", 15);
+	logput(_T("<disconnect><c>"), 15);
 	logput(logconnect, logconnectlen - 1);
-	logput("</c></disconnect>", 17);
+	logput(_T("</c></disconnect>"), 17);
 	i1 = logflush();
 	fioalock(loghandle, FIOA_FLLCK | FIOA_UNLCK, 0, 0);
 	fioaclose(loghandle);
@@ -154,13 +154,14 @@ INT riologend()
  * open name for record i/o processing
  * return positive integer file number if successful, else return error
  */
-INT rioopen(CHAR *name, INT opts, INT bufs, INT maxlen)
+INT rioopen(TCHAR *name, INT opts, INT bufs, INT maxlen)
 {
 	static INT firstflg = TRUE;
 
 	INT i1, bsiz, fnum, type;
-	CHAR filename[MAX_NAMESIZE + 1];
-	UCHAR c1, **bptr, **rptr;
+	TCHAR filename[MAX_NAMESIZE + 1];
+	TCHAR **bptr;
+	struct rtab **rptr;
 
 	/* on first open, set compression flag */
 	if (firstflg) {
@@ -184,16 +185,16 @@ INT rioopen(CHAR *name, INT opts, INT bufs, INT maxlen)
 	if ((opts & RIO_T_MASK) < RIO_T_STD || (opts & RIO_T_MASK) > RIO_T_ANY || bufs < 0 || (opts & DBCWEOF)) return(ERR_INVAR);
 
 	/* open the file with txt extension */
-	strncpy(filename, name, sizeof(filename) - 1);
-	filename[sizeof(filename) - 1] = '\0';
-	if (!(opts & RIO_NOX)) miofixname(filename, ".txt", FIXNAME_EXT_ADD);
+	_tcsncpy(filename, name, ARRAYSIZE(filename) - 1);
+	filename[ARRAYSIZE(filename) - 1] = '\0';
+	if (!(opts & RIO_NOX)) miofixname(filename, _T(".txt"), FIXNAME_EXT_ADD);
 	fnum = fioopen(filename, opts);
 	if (fnum < 0) {
 		return(fnum);
 	}
 
 	/* allocate rtab structure and buffer */
-	rptr = memalloc(sizeof(struct rtab), MEMFLAGS_ZEROFILL);
+	rptr = (struct rtab**) memalloc(sizeof(struct rtab), MEMFLAGS_ZEROFILL);
 	if (rptr == NULL) {
 		fioclose(fnum);
 		return(ERR_NOMEM);
@@ -203,19 +204,19 @@ INT rioopen(CHAR *name, INT opts, INT bufs, INT maxlen)
 	while (bufs) {
 		if (bufs < 8) bsiz = 256 << bufs;  /* formula works for bufs = 1 thru 7 */
 		else bsiz = 48 << 10;
-		bptr = memalloc(bsiz + 2, 0);
+		bptr = (TCHAR**) memalloc((bsiz + 2) * sizeof(TCHAR), 0);
 		if (bptr != NULL) break;
 		bufs--;
 	}
 
-	r = (struct rtab *) *rptr;
+	r = *rptr;
 	r->bsiz = bsiz;
 	r->bptr = bptr;
 	r->eofc = 0;
-	i1 = fiosetwptr(fnum, rptr);
+	i1 = fiosetwptr(fnum, (UCHAR**) rptr);
 	if (i1) {
-		memfree(bptr);
-		memfree(rptr);
+		memfree((UCHAR**) bptr);
+		memfree((UCHAR**) rptr);
 		fioclose(fnum);
 		return(i1);
 	}
@@ -231,8 +232,8 @@ INT rioopen(CHAR *name, INT opts, INT bufs, INT maxlen)
 	/* handle prepare and not prepare initialization */
 	i1 = fioflck(fnum);
 	if (i1) {
-		memfree(bptr);
-		memfree(rptr);
+		memfree((UCHAR**) bptr);
+		memfree((UCHAR**) rptr);
 		fioclose(fnum);
 		return(i1);
 	}
@@ -242,6 +243,7 @@ INT rioopen(CHAR *name, INT opts, INT bufs, INT maxlen)
 
 	if ((opts & RIO_M_MASK) < RIO_M_PRP) {  /* not prepare, check file type */
 		type = 0;
+		UCHAR c1;
 		if (r->fsiz) {
 			if (fioread(fnum, r->fsiz - 1, &c1, 1) != 1) goto rioope0;
 			if (c1 == DBCEOF) {
@@ -327,29 +329,29 @@ INT rioopen(CHAR *name, INT opts, INT bufs, INT maxlen)
 		/* write open to log file */
 		i1 = fioalock(loghandle, FIOA_FLLCK | FIOA_WRLCK, 0, 120);
 		if (i1) {
-			memfree(r->bptr);
-			memfree(rptr);
+			memfree((UCHAR**) r->bptr);
+			memfree((UCHAR**) rptr);
 			fioclose(fnum);
 			return i1;
 		}
 		fioalseek(loghandle, 0, 2, NULL);
 		logbufcnt = 0;
-		logput("<open><c>", 9);
+		logput(_T("<open><c>"), 9);
 		logput(logconnect, logconnectlen - 1);
-		logput("</c><f>", 7);
+		logput(_T("</c><f>"), 7);
 		i1 = mscitoa(fnum, logconnect + logconnectlen);
 		logput(logconnect, logconnectlen + i1);
-		logput("</f><name>", 10);
-		logputdata((UCHAR *) filename, -1);
-		logput("</name>", 7);
+		logput(_T("</f><name>"), 10);
+		logputdata(filename, -1);
+		logput(_T("</name>"), 7);
 		if (loggingflags & RIO_L_USR) logputusername();
 		if (loggingflags & RIO_L_TIM) logputtimestamp();
-		logput("</open>", 7);
+		logput(_T("</open>"), 7);
 		i1 = logflush();
 		fioalock(loghandle, FIOA_FLLCK | FIOA_UNLCK, 0, 0);
 		if (i1) {
-			memfree(r->bptr);
-			memfree(rptr);
+			memfree((UCHAR**) r->bptr);
+			memfree((UCHAR**) rptr);
 			fioclose(fnum);
 			return i1;
 		}
@@ -365,33 +367,33 @@ rioope0:
 	i1 = ERR_RDERR;
 rioope1:
 	fiofulk(fnum);
-	memfree(bptr);
-	memfree(rptr);
+	memfree((UCHAR**) bptr);
+	memfree((UCHAR**) rptr);
 	fioclose(fnum);
 	return(i1);
 }
 
 static INT logputtimestamp() {
-	UCHAR work[16];
-	logput("<stamp>", 7);
+	TCHAR work[16];
+	logput(_T("<stamp>"), 7);
 	msctimestamp(work);
-	logput((CHAR *) work, 16);
-	return logput("</stamp>", 8);
+	logput(work, 16);
+	return logput(_T("</stamp>"), 8);
 }
 
 static INT logputfilename(UCHAR *work) {
 	if (work != NULL && work[0] >= ' ') {
-		logput("<name>", 6);
+		logput(_T("<name>"), 6);
 		logputdata(work, -1);
-		logput("</name>", 7);
+		logput(_T("</name>"), 7);
 	}
 	return 0;
 }
 
 static INT logputusername() {
-	logput("<user>", 6);
+	logput(_T("<user>"), 6);
 	logput(username, -1);
-	return logput("</user>", 7);
+	return logput(_T("</user>"), 7);
 }
 
 /* RIOCLOSE */
@@ -399,7 +401,7 @@ static INT logputusername() {
 INT rioclose(INT fnum)
 {
 	INT i1, i2;
-	CHAR *ptr, work[MAX_NAMESIZE];
+	TCHAR *ptr, work[MAX_NAMESIZE];
 	UCHAR **rptr;
 
 	rptr = fiogetwptr(fnum);
@@ -409,12 +411,12 @@ INT rioclose(INT fnum)
 
 	if (r->bflg == 2) i1 = rioxwb(fnum);
 	else i1 = 0;
-	memfree(r->bptr);
+	memfree((UCHAR**) r->bptr);
 	memfree(rptr);
 	work[0] = '\0';
 	if ((r->opts & RIO_LOG) && loghandle > 0 && (loggingflags & RIO_L_NAM)) {
 		ptr = fioname(fnum);
-		if (ptr != NULL) strcpy(work, ptr);
+		if (ptr != NULL) _tcscpy(work, ptr);
 	}
 	i2 = fioclose(fnum);
 	if (!i1) i1 = i2;
@@ -424,14 +426,14 @@ INT rioclose(INT fnum)
 		if (i2) return i2;
 		fioalseek(loghandle, 0, 2, NULL);
 		logbufcnt = 0;
-		logput("<close><f>", 10);
+		logput(_T("<close><f>"), 10);
 		i2 = mscitoa(fnum, logconnect + logconnectlen);
 		logput(logconnect, logconnectlen + i2);
-		logput("</f>", 4);
+		logput(_T("</f>"), 4);
 		if (loggingflags & RIO_L_NAM) logputfilename((UCHAR *)work);
 		if (loggingflags & RIO_L_USR) logputusername();
 		if (loggingflags & RIO_L_TIM) logputtimestamp();
-		logput("</close>", 8);
+		logput(_T("</close>"), 8);
 		i2 = logflush();
 		fioalock(loghandle, FIOA_FLLCK | FIOA_UNLCK, 0, 0);
 		if (i2) return i2;
@@ -450,7 +452,7 @@ INT riokill(INT fnum)
 	r = (struct rtab *) *rptr;
 	if (r->type != 'R') return(ERR_NOTOP);
 
-	memfree(r->bptr);
+	memfree((UCHAR**) r->bptr);
 	memfree(rptr);
 	return(fiokill(fnum));
 }
@@ -1149,7 +1151,7 @@ INT rioput(INT fnum, UCHAR *record, INT recsize)
 {
 	INT i1, i2, i3, i4, datalen, eorsize, typeflg;
 	OFFSET logpos = LONG_MIN, offset;
-	UCHAR c1, delchr, eorchr, eofflg, digits[2], save3[3], work[256];
+	UCHAR delchr, eorchr, eofflg, digits[2], save3[3], work[256];
 	UCHAR *p, *bptr, **rptr, flckflg;
 
 	if (recsize + 4 > riobufsiz) return(ERR_INVAR);
@@ -1180,6 +1182,7 @@ INT rioput(INT fnum, UCHAR *record, INT recsize)
 		/* get current record */
 		i2 = fioread(fnum, r->npos, p, recsize + eorsize);
 		if (i2 < 0) return(i2);
+		UCHAR c1;
 		if (i2 && *p != delchr && (!r->eofc || *p != r->eofc)) {
 			/* updating record */
 			if (typeflg == RIO_T_STD) {
@@ -1226,14 +1229,14 @@ INT rioput(INT fnum, UCHAR *record, INT recsize)
 			if (i2) return i2;
 			fioalseek(loghandle, 0, 2, &logpos);
 			logbufcnt = 0;
-			logput("<u><f>", 6);
+			logput(_T("<u><f>"), 6);
 			i2 = mscitoa(fnum, logconnect + logconnectlen);
 			logput(logconnect, logconnectlen + i2);
-			logput("</f>", 4);
+			logput(_T("</f>"), 4);
 			if (loggingflags & RIO_L_NAM) logputfilename((UCHAR *)fioname(fnum));
 			if (loggingflags & RIO_L_USR) logputusername();
 			if (loggingflags & RIO_L_TIM) logputtimestamp();
-			logput("<o>", 3);
+			logput(_T("<o>"), 3);
 			if (typeflg == RIO_T_STD && !(r->opts & RIO_UNC)) {
 				memset(work, ' ', 255);
 				i2 = 0;
@@ -1277,7 +1280,7 @@ INT rioput(INT fnum, UCHAR *record, INT recsize)
 				if (i4 != i3 && !i2) i2 = logputdata(p + i4, i3 - i4);
 			}
 			else i2 = logputdata(p, datalen);
-			if (!i2) i2 = logput("</o>", 4);
+			if (!i2) i2 = logput(_T("</o>"), 4);
 			c1 = 'u';
 		}
 		else {
@@ -1286,21 +1289,21 @@ INT rioput(INT fnum, UCHAR *record, INT recsize)
 			if (i2) return i2;
 			fioalseek(loghandle, 0, 2, &logpos);
 			logbufcnt = 0;
-			logput("<w><f>", 6);
+			logput(_T("<w><f>"), 6);
 			i2 = mscitoa(fnum, logconnect + logconnectlen);
 			logput(logconnect, logconnectlen + i2);
-			logput("</f>", 4);
+			logput(_T("</f>"), 4);
 			if (loggingflags & RIO_L_NAM) logputfilename((UCHAR *)fioname(fnum));
 			if (loggingflags & RIO_L_USR) logputusername();
 			if (loggingflags & RIO_L_TIM) logputtimestamp();
 			i2 = 0;
 			c1 = 'w';
 		}
-		if (!i2) i2 = logput("<n>", 3);
+		if (!i2) i2 = logput(_T("<n>"), 3);
 		if (!i2) i2 = logputdata(record, recsize);
-		if (!i2) i2 = logput("</n></", 6);
+		if (!i2) i2 = logput(_T("</n></"), 6);
 		if (!i2) i2 = logput((CHAR *) &c1, 1);
-		if (!i2) i2 = logput(">", 1);
+		if (!i2) i2 = logput(_T(">"), 1);
 		if (!i2) i2 = logflush();
 		if (i2) {
 			if (logpos == LONG_MIN) return ERR_PROGX;
@@ -1618,14 +1621,14 @@ INT riodelete(INT fnum, INT recsize)
 		if (i2) return i2;
 		fioalseek(loghandle, 0, 2, &logpos);
 		logbufcnt = 0;
-		logput("<d><f>", 6);
+		logput(_T("<d><f>"), 6);
 		i2 = mscitoa(fnum, logconnect + logconnectlen);
 		logput(logconnect, logconnectlen + i2);
-		logput("</f>", 4);
+		logput(_T("</f>"), 4);
 		if (loggingflags & RIO_L_NAM) logputfilename((UCHAR *)fioname(fnum));
 		if (loggingflags & RIO_L_USR) logputusername();
 		if (loggingflags & RIO_L_TIM) logputtimestamp();
-		logput("<o>", 3);
+		logput(_T("<o>"), 3);
 		if (typeflg == RIO_T_STD && !(r->opts & RIO_UNC)) {
 			memset(work, ' ', 255);
 			i2 = 0;
@@ -1669,7 +1672,7 @@ INT riodelete(INT fnum, INT recsize)
 			if (i4 != i3 && !i2) i2 = logputdata(riowork + i4, i3 - i4);
 		}
 		else i2 = logputdata(riowork, datalen);
-		if (!i2) i2 = logput("</o></d>", 8);
+		if (!i2) i2 = logput(_T("</o></d>"), 8);
 		if (!i2) i2 = logflush();
 		if (i2) fioatrunc(loghandle, logpos);
 		fioalock(loghandle, FIOA_FLLCK | FIOA_UNLCK, 0, 0);
@@ -1972,40 +1975,43 @@ static INT rioxwb(INT fnum)
 	return(0);
 }
 
-static INT logput(CHAR *str, INT len)
+/**
+ * @param len Count of characters, not necessarily bytes
+*/
+static INT logput(TCHAR *str, INT len)
 {
 	INT i1;
 
-	if (len == -1) len = (INT)strlen(str);
-	while (len > (INT)(sizeof(logbuffer) - logbufcnt)) {
-		i1 = sizeof(logbuffer) - logbufcnt;
-		memcpy(logbuffer + logbufcnt, str, i1);
+	if (len == -1) len = (INT)_tcslen(str);
+	while (len > (INT)(ARRAYSIZE(logbuffer) - logbufcnt)) {
+		i1 = ARRAYSIZE(logbuffer) - logbufcnt;
+		HRESULT hr = StringCchCopyN(logbuffer + logbufcnt, i1, str, len);
 		logbufcnt += i1;
 		str += i1;
 		len -= i1;
 		i1 = logflush();
 		if (i1) return i1;
 	}
-	memcpy(logbuffer + logbufcnt, str, len);
+	memcpy(logbuffer + logbufcnt, str, len * sizeof(TCHAR));
 	logbufcnt += len;
 	return 0;
 }
 
-static INT logputdata(UCHAR *str, INT len)
+static INT logputdata(TCHAR *str, INT len)
 {
 	INT i1, i2, i3;
 
-	if (len == -1) len = (INT)strlen((CHAR *) str);
+	if (len == -1) len = (INT)_tcslen((TCHAR *) str);
 	for (i2 = i3 = 0; i2 <= len; i2++) {
 		if (i2 == len || str[i2] == '<' || str[i2] == '>' || str[i2] == '&' || str[i2] == '"' || str[i2] == '\'') {
-			i1 = logput((CHAR *)(str + i3), i2 - i3);
+			i1 = logput((str + i3), i2 - i3);
 			if (i1) return i1;
 			if (i2 == len) break;
-			if (str[i2] == '<') i1 = logput("&lt;", 4);
-			else if (str[i2] == '>') i1 = logput("&gt;", 4);
-			else if (str[i2] == '&') i1 = logput("&amp;", 5);
-			else if (str[i2] == '"') i1 = logput("&quot;", 6);
-			else i1 = logput("&apos;", 6);
+			if (str[i2] == '<') i1 = logput(_T("&lt;"), 4);
+			else if (str[i2] == '>') i1 = logput(_T("&gt;"), 4);
+			else if (str[i2] == '&') i1 = logput(_T("&amp;"), 5);
+			else if (str[i2] == '"') i1 = logput(_T("&quot;"), 6);
+			else i1 = logput(_T("&apos;"), 6);
 			if (i1) return i1;
 			i3 = i2 + 1;
 		}
